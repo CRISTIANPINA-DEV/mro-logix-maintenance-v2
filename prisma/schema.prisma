@@ -1,0 +1,929 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  attachments                    Attachment[]
+  partReplacements              PartReplacement[]
+  flightRecords                 FlightRecord[]
+  users                         User[]
+  stockInventoryAttachments     StockInventoryAttachment[]
+  stockInventories              StockInventory[]
+  temperatureControls           TemperatureControl[]
+  temperatureHumidityConfigs    TemperatureHumidityConfig[]
+  incomingInspectionAttachments IncomingInspectionAttachment[]
+  incomingInspections           IncomingInspection[]
+  airportIdAttachments          AirportIDAttachment[]
+  airportIds                    AirportID[]
+  userActivities                UserActivity[]
+  technicianTrainingAttachments TechnicianTrainingAttachment[]
+  technicianTrainings           TechnicianTraining[]
+
+  technicalQueries              TechnicalQuery[]
+  technicalQueryResponses       TechnicalQueryResponse[]
+  technicalQueryAttachments     TechnicalQueryAttachment[]
+  technicalQueryResponseAttachments TechnicalQueryResponseAttachment[]
+  technicalQueryVotes           TechnicalQueryVote[]
+  technicalQueryResponseVotes   TechnicalQueryResponseVote[]
+  smsReportAttachments          SMSReportAttachment[]
+  smsReports                    SMSReport[]
+  sdrReportAttachments          SDRReportAttachment[]
+  sdrReports                    SDRReport[]
+  audits                        Audit[]
+  auditFindings                 AuditFinding[]
+  correctiveActions             CorrectiveAction[]
+  auditChecklistItems           AuditChecklistItem[]
+  auditAttachments              AuditAttachment[]
+  auditFindingAttachments       AuditFindingAttachment[]
+  correctiveActionAttachments   CorrectiveActionAttachment[]
+  auditTemplates                AuditTemplate[]
+  notifications                 Notification[]
+}
+
+model Attachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id             String       @id @default(uuid())
+  fileName       String
+  fileKey        String
+  fileSize       Int
+  fileType       String
+  flightRecordId String
+  createdAt      DateTime     @default(now())
+  FlightRecord   FlightRecord @relation(fields: [flightRecordId], references: [id], onDelete: Cascade)
+  @@index([companyId])
+}
+
+model PartReplacement {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id             String       @id @default(uuid())
+  pnOff          String?
+  snOff          String?
+  pnOn           String?
+  snOn           String?
+  flightRecordId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  FlightRecord   FlightRecord @relation(fields: [flightRecordId], references: [id], onDelete: Cascade)
+  @@index([companyId])
+}
+
+model FlightRecord {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String            @id @default(uuid())
+  date              DateTime
+  airline           String
+  fleet             String
+  station           String
+  service           String
+  tail              String?
+  hasTime           Boolean           @default(false)
+  blockTime         String?
+  outTime           String?
+  hasDefect         Boolean           @default(false)
+  logPageNo         String?
+  discrepancyNote   String?
+  rectificationNote String?
+  systemAffected    String?
+  defectStatus      String?
+  riiRequired       Boolean           @default(false)
+  inspectedBy       String?
+  hasAttachments    Boolean           @default(false)
+  hasComment        Boolean           @default(false)
+  comment           String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  technician        String?
+  username          String?
+  flightNumber      String?
+  fixingManual      String?
+  manualReference   String?
+  hasPartReplaced   Boolean           @default(false)
+  Attachment        Attachment[]
+  PartReplacement   PartReplacement[]
+  @@index([companyId])
+}
+
+model User {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid())
+  firstName    String
+  lastName     String
+  username     String    @unique
+  email        String    @unique
+  password     String
+  pin          String?
+  pinCreatedAt DateTime?
+  verified     Boolean   @default(false)
+  resetToken   String?   // For password reset
+  resetTokenExpiry DateTime? // When the reset token expires
+  tempPassword String?   // Temporary storage for password reset
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // User Activity Relations
+  activities         UserActivity[]
+
+
+
+  // Technical Queries Relations
+  createdTechnicalQueries     TechnicalQuery[]         @relation("CreatedTechnicalQueries")
+  updatedTechnicalQueries     TechnicalQuery[]         @relation("UpdatedTechnicalQueries")
+  resolvedTechnicalQueries    TechnicalQuery[]         @relation("ResolvedTechnicalQueries")
+  createdTechnicalQueryResponses TechnicalQueryResponse[] @relation("CreatedTechnicalQueryResponses")
+  updatedTechnicalQueryResponses TechnicalQueryResponse[] @relation("UpdatedTechnicalQueryResponses")
+  technicalQueryVotes         TechnicalQueryVote[]     @relation("TechnicalQueryVotes")
+  technicalQueryResponseVotes TechnicalQueryResponseVote[] @relation("TechnicalQueryResponseVotes")
+
+  // Notifications Relations
+  receivedNotifications Notification[] @relation("ReceivedNotifications")
+  sentNotifications    Notification[] @relation("SentNotifications")
+
+  @@index([companyId])
+}
+
+model StockInventoryAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id               String         @id @default(uuid())
+  fileName         String
+  fileKey          String
+  fileSize         Int
+  fileType         String
+  stockInventoryId String
+  createdAt        DateTime       @default(now())
+  StockInventory   StockInventory @relation(fields: [stockInventoryId], references: [id], onDelete: Cascade)
+  @@index([companyId])
+}
+
+model StockInventory {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String                     @id @default(uuid())
+  incomingDate      DateTime
+  station           String
+  customStation     String?
+  owner             String
+  customOwner       String?
+  description       String
+  partNo            String
+  serialNo          String
+  quantity          String
+  hasExpireDate     Boolean                    @default(false)
+  expireDate        DateTime?
+  type              String
+  customType        String?
+  location          String
+  customLocation    String?
+  hasInspection     Boolean                    @default(false)
+  inspectionResult  String?
+  inspectionFailure String?
+  customFailure     String?
+  hasComment        Boolean                    @default(false)
+  comment           String?
+  hasAttachments    Boolean                    @default(false)
+  technician        String?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+  Attachment        StockInventoryAttachment[]
+  IncomingInspection    IncomingInspection[]
+  @@index([companyId])
+}
+
+model TemperatureControl {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  date           DateTime
+  location       String
+  customLocation String?
+  time           String
+  temperature    Float
+  humidity       Float
+  employeeName   String
+  hasComment     Boolean  @default(false)
+  comment        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([companyId])
+}
+
+model TemperatureHumidityConfig {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String   @id @default(uuid())
+  // Temperature ranges
+  tempNormalMin         Float    @default(0)
+  tempNormalMax         Float    @default(24)
+  tempMediumMin         Float    @default(25)
+  tempMediumMax         Float    @default(35)
+  tempHighMin           Float    @default(36)
+  // Humidity ranges
+  humidityNormalMin     Float    @default(0)
+  humidityNormalMax     Float    @default(35)
+  humidityMediumMin     Float    @default(36)
+  humidityMediumMax     Float    @default(65)
+  humidityHighMin       Float    @default(66)
+  // Only one configuration record should exist
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@unique([isActive])
+  @@index([companyId])
+}
+
+model IncomingInspectionAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String             @id @default(uuid())
+  fileName              String
+  fileKey               String
+  fileSize              Int
+  fileType              String
+  incomingInspectionId  String
+  incomingInspection    IncomingInspection @relation(fields: [incomingInspectionId], references: [id], onDelete: Cascade)
+  createdAt             DateTime           @default(now())
+  @@index([companyId])
+}
+
+model IncomingInspection {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                        @id @default(uuid())
+  inspectionDate        DateTime
+  inspector             String
+  stockInventoryId      String?                       // Make this nullable
+  stockInventoryDeleted Boolean                       @default(false)
+  partNo                String?                       // Store the part number
+  serialNo              String?                       // Store the serial number
+  description           String?                       // Store the description
+  productMatch          String?                       // YES, NO, N/A
+  productSpecs          String?                       // YES, NO, N/A
+  batchNumber           String?                       // YES, NO, N/A
+  productObservations   String?
+  quantityMatch         String?                       // YES, NO, N/A
+  physicalCondition     String?                       // YES, NO, N/A
+  expirationDate        String?                       // YES, NO, N/A
+  serviceableExpiry     String?                       // YES, NO, N/A
+  physicalDefects       String?                       // YES, NO, N/A
+  suspectedUnapproved   String?                       // YES, NO, N/A
+  quantityObservations  String?
+  esdSensitive          String?                       // YES, NO, N/A
+  inventoryRecorded     String?                       // YES, NO, N/A
+  temperatureControl    String?                       // YES, NO, N/A
+  handlingObservations  String?
+  hasAttachments        Boolean                       @default(false)
+  createdAt             DateTime                      @default(now())
+  updatedAt             DateTime                      @updatedAt
+  Attachment            IncomingInspectionAttachment[]
+  StockInventory        StockInventory?               @relation(fields: [stockInventoryId], references: [id], onDelete: SetNull)
+  @@index([companyId])
+}
+
+model AirportIDAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid())
+  fileName     String
+  fileKey      String
+  fileSize     Int
+  fileType     String
+  airportIdId  String
+  createdAt    DateTime  @default(now())
+  AirportID    AirportID @relation(fields: [airportIdId], references: [id], onDelete: Cascade)
+  @@index([companyId])
+}
+
+model AirportID {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String               @id @default(uuid())
+  employeeName      String
+  station           String
+  customStation     String?
+  idIssuedDate      DateTime
+  badgeIdNumber     String
+  expireDate        DateTime
+  hasComment        Boolean              @default(false)
+  comment           String?
+  hasAttachment     Boolean              @default(false)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  Attachment        AirportIDAttachment[]
+  @@index([companyId])
+}
+
+model UserActivity {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  userId         String
+  action         String   // LOGIN, LOGOUT, ADDED_FLIGHT_RECORD, DELETED_FLIGHT_RECORD, etc.
+  resourceType   String?  // FLIGHT_RECORD, STOCK_INVENTORY, TEMPERATURE_CONTROL, AIRPORT_ID
+  resourceId     String?  // ID of the specific resource affected
+  resourceTitle  String?  // Human-readable title/description of the resource
+  metadata       Json?    // Additional data about the activity (flexible JSON field)
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+  
+  // Relation to User
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([action])
+  @@index([resourceType])
+  @@index([createdAt])
+  @@index([companyId])
+}
+
+model TechnicianTrainingAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String              @id @default(uuid())
+  fileName              String
+  fileKey               String
+  fileSize              Int
+  fileType              String
+  technicianTrainingId  String
+  createdAt             DateTime            @default(now())
+  TechnicianTraining    TechnicianTraining  @relation(fields: [technicianTrainingId], references: [id], onDelete: Cascade)
+  @@index([companyId])
+}
+
+model TechnicianTraining {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id              String                        @id @default(uuid())
+  date            DateTime
+  technician      String
+  organization    String
+  customOrg       String?
+  type            String
+  customType      String?
+  training        String
+  hasEngine       Boolean                       @default(false)
+  engineType      String?
+  hasHours        Boolean                       @default(false)
+  hours           Float?
+  hasComment      Boolean                       @default(false)
+  comment         String?
+  hasAttachments  Boolean                       @default(false)
+  createdAt       DateTime                      @default(now())
+  updatedAt       DateTime                      @updatedAt
+  Attachment      TechnicianTrainingAttachment[]
+  @@index([companyId])
+}
+
+
+
+// =========================
+// Technical Queries Models
+// =========================
+
+model TechnicalQuery {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id              String                      @id @default(uuid())
+  title           String
+  description     String
+  category        String?                     // Optional categorization (e.g., "Engine", "Avionics", "Hydraulics")
+  priority        String                      @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status          String                      @default("OPEN")   // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  tags            String[]                    // Array of tags for better searchability
+  isResolved      Boolean                     @default(false)
+  resolvedAt      DateTime?
+  resolvedById    String?
+  hasAttachments  Boolean                     @default(false)
+  viewCount       Int                         @default(0)
+  upvotes         Int                         @default(0)
+  downvotes       Int                         @default(0)
+  createdById     String
+  updatedById     String?
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  // Relations
+  createdBy       User                        @relation("CreatedTechnicalQueries", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy       User?                       @relation("UpdatedTechnicalQueries", fields: [updatedById], references: [id])
+  resolvedBy      User?                       @relation("ResolvedTechnicalQueries", fields: [resolvedById], references: [id])
+  responses       TechnicalQueryResponse[]
+  attachments     TechnicalQueryAttachment[]
+  votes           TechnicalQueryVote[]
+
+  @@index([createdById])
+  @@index([status])
+  @@index([category])
+  @@index([isResolved])
+  @@index([createdAt])
+  @@index([companyId])
+}
+
+model TechnicalQueryResponse {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String           @id @default(uuid())
+  content           String
+  isAcceptedAnswer  Boolean          @default(false)
+  hasAttachments    Boolean          @default(false)
+  upvotes           Int              @default(0)
+  downvotes         Int              @default(0)
+  technicalQueryId  String
+  createdById       String
+  updatedById       String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relations
+  technicalQuery    TechnicalQuery   @relation(fields: [technicalQueryId], references: [id], onDelete: Cascade)
+  createdBy         User             @relation("CreatedTechnicalQueryResponses", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy         User?            @relation("UpdatedTechnicalQueryResponses", fields: [updatedById], references: [id])
+  attachments       TechnicalQueryResponseAttachment[]
+  votes             TechnicalQueryResponseVote[]
+
+  @@index([technicalQueryId])
+  @@index([createdById])
+  @@index([isAcceptedAnswer])
+  @@index([createdAt])
+  @@index([companyId])
+}
+
+model TechnicalQueryAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String           @id @default(uuid())
+  fileName          String
+  fileKey           String
+  fileSize          Int
+  fileType          String
+  technicalQueryId  String
+  createdAt         DateTime         @default(now())
+
+  technicalQuery    TechnicalQuery   @relation(fields: [technicalQueryId], references: [id], onDelete: Cascade)
+
+  @@index([technicalQueryId])
+  @@index([companyId])
+}
+
+model TechnicalQueryResponseAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                        String                 @id @default(uuid())
+  fileName                  String
+  fileKey                   String
+  fileSize                  Int
+  fileType                  String
+  technicalQueryResponseId  String
+  createdAt                 DateTime               @default(now())
+
+  technicalQueryResponse    TechnicalQueryResponse @relation(fields: [technicalQueryResponseId], references: [id], onDelete: Cascade)
+
+  @@index([technicalQueryResponseId])
+  @@index([companyId])
+}
+
+model TechnicalQueryVote {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String           @id @default(uuid())
+  voteType          String           // "UP" or "DOWN"
+  technicalQueryId  String
+  userId            String
+  createdAt         DateTime         @default(now())
+
+  technicalQuery    TechnicalQuery   @relation(fields: [technicalQueryId], references: [id], onDelete: Cascade)
+  user              User             @relation("TechnicalQueryVotes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([technicalQueryId, userId])
+  @@index([technicalQueryId])
+  @@index([userId])
+  @@index([companyId])
+}
+
+model TechnicalQueryResponseVote {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                        String                 @id @default(uuid())
+  voteType                  String                 // "UP" or "DOWN"
+  technicalQueryResponseId  String
+  userId                    String
+  createdAt                 DateTime               @default(now())
+
+  technicalQueryResponse    TechnicalQueryResponse @relation(fields: [technicalQueryResponseId], references: [id], onDelete: Cascade)
+  user                      User                   @relation("TechnicalQueryResponseVotes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([technicalQueryResponseId, userId])
+  @@index([technicalQueryResponseId])
+  @@index([userId])
+  @@index([companyId])
+}
+
+// =========================
+// SMS Reports Models
+// =========================
+
+model SMSReportAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id          String    @id @default(uuid())
+  fileName    String
+  fileKey     String
+  fileSize    Int
+  fileType    String
+  smsReportId String
+  createdAt   DateTime  @default(now())
+  SMSReport   SMSReport @relation(fields: [smsReportId], references: [id], onDelete: Cascade)
+
+  @@index([smsReportId])
+  @@index([companyId])
+}
+
+model SMSReport {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String                @id @default(uuid())
+  reportNumber      String                @unique
+  reporterName      String?
+  reporterEmail     String?
+  date              DateTime
+  timeOfEvent       String?
+  reportTitle       String
+  reportDescription String
+  hasAttachments    Boolean               @default(false)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  Attachment        SMSReportAttachment[]
+
+  @@index([reportNumber])
+  @@index([date])
+  @@index([createdAt])
+  @@index([companyId])
+}
+
+model SDRReportAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id          String    @id @default(uuid())
+  fileName    String
+  fileKey     String
+  fileSize    Int
+  fileType    String
+  sdrReportId String
+  createdAt   DateTime  @default(now())
+  SDRReport   SDRReport @relation(fields: [sdrReportId], references: [id], onDelete: Cascade)
+  @@index([companyId])
+}
+
+model SDRReport {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                @id @default(uuid())
+  controlNumber         String                @unique
+  reportTitle           String
+  difficultyDate        DateTime
+  submitter             String
+  submitterOther        String?
+  submitterName         String
+  email                 String
+  station               String
+  condition             String
+  conditionOther        String?
+  howDiscovered         String
+  howDiscoveredOther    String?
+  hasFlightNumber       Boolean               @default(false)
+  flightNumber          String?
+  partOrAirplane        String
+  airplaneModel         String?
+  airplaneTailNumber    String?
+  partNumber            String?
+  serialNumber          String?
+  timeOfDiscover        String?
+  hasAtaCode            Boolean               @default(false)
+  ataSystemCode         String?
+  problemDescription    String
+  symptoms              String?
+  consequences          String?
+  correctiveAction      String?
+  hasAttachments        Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  Attachment            SDRReportAttachment[]
+  @@index([companyId])
+}
+
+// =========================
+// Audits Management Models
+// =========================
+
+enum AuditType {
+  INTERNAL
+  EXTERNAL
+  SAFETY
+  COMPLIANCE
+  QUALITY
+  REGULATORY
+  CUSTOMER
+}
+
+enum AuditStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DEFERRED
+}
+
+enum FindingSeverity {
+  CRITICAL
+  MAJOR
+  MINOR
+  NON_CRITICAL
+  OBSERVATION
+}
+
+enum FindingStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+  VERIFIED
+  DEFERRED
+}
+
+enum ActionStatus {
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  VERIFIED
+  OVERDUE
+}
+
+model Audit {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                @id @default(uuid())
+  auditNumber           String                @unique
+  title                 String
+  description           String?
+  type                  AuditType
+  status                AuditStatus           @default(PLANNED)
+  scope                 String?               // Area/department being audited
+  department            String?
+  location              String?
+  plannedStartDate      DateTime
+  plannedEndDate        DateTime
+  actualStartDate       DateTime?
+  actualEndDate         DateTime?
+  leadAuditor           String
+  auditTeam             String[]              // Array of auditor names
+  auditee               String?               // Person/department being audited
+  objectives            String?
+  criteria              String?               // Standards/regulations being audited against
+  methodology           String?
+  executiveSummary      String?
+  conclusions           String?
+  recommendations       String?
+  overallRating         String?               // Satisfactory, Minor Issues, Major Issues, Unsatisfactory
+  complianceRate        Float?                // Percentage compliance
+  hasAttachments        Boolean               @default(false)
+  isRecurring           Boolean               @default(false)
+  recurringFrequency    String?               // Monthly, Quarterly, Annually
+  nextAuditDue          DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relations
+  findings              AuditFinding[]
+  attachments           AuditAttachment[]
+  checklistItems        AuditChecklistItem[]
+
+  @@index([auditNumber])
+  @@index([type])
+  @@index([status])
+  @@index([plannedStartDate])
+  @@index([leadAuditor])
+  @@index([companyId])
+}
+
+model AuditFinding {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                @id @default(uuid())
+  findingNumber         String                // Unique within audit (e.g., F-001, F-002)
+  title                 String
+  description           String
+  severity              FindingSeverity
+  status                FindingStatus         @default(OPEN)
+  category              String?               // Process, Documentation, Training, etc.
+  standardReference     String?               // Which standard/regulation was violated
+  evidence              String?               // Description of evidence
+  rootCause             String?
+  riskAssessment        String?
+  immediateAction       String?               // Immediate containment actions
+  auditId               String
+  discoveredDate        DateTime              @default(now())
+  targetCloseDate       DateTime?
+  actualCloseDate       DateTime?
+  verifiedDate          DateTime?
+  verifiedBy            String?
+  hasAttachments        Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relations
+  audit                 Audit                 @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  correctiveActions     CorrectiveAction[]
+  attachments           AuditFindingAttachment[]
+
+  @@index([auditId])
+  @@index([severity])
+  @@index([status])
+  @@index([targetCloseDate])
+  @@unique([auditId, findingNumber])
+  @@index([companyId])
+}
+
+model CorrectiveAction {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                @id @default(uuid())
+  actionNumber          String                // Unique within finding (e.g., CA-001)
+  title                 String
+  description           String
+  assignedTo            String
+  assignedDate          DateTime              @default(now())
+  targetDate            DateTime
+  completedDate         DateTime?
+  status                ActionStatus          @default(ASSIGNED)
+  priority              String                @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  actionType            String                @default("CORRECTIVE") // CORRECTIVE, PREVENTIVE
+  resources             String?               // Resources needed
+  cost                  Float?                // Estimated cost
+  progress              String?               // Progress notes
+  verificationMethod    String?               // How to verify completion
+  verifiedBy            String?
+  verifiedDate          DateTime?
+  effectiveness         String?               // Effectiveness review
+  findingId             String
+  hasAttachments        Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relations
+  finding               AuditFinding          @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  attachments           CorrectiveActionAttachment[]
+
+  @@index([findingId])
+  @@index([assignedTo])
+  @@index([status])
+  @@index([targetDate])
+  @@unique([findingId, actionNumber])
+  @@index([companyId])
+}
+
+model AuditChecklistItem {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                @id @default(uuid())
+  itemNumber            String                // Sequential number within audit
+  category              String?               // Grouping category
+  requirement           String                // What is being checked
+  criteria              String?               // Criteria for compliance
+  method                String?               // How to verify
+  status                String                @default("NOT_STARTED") // NOT_STARTED, COMPLIANT, NON_COMPLIANT, NOT_APPLICABLE
+  findings              String?               // Observations or issues
+  evidence              String?               // Evidence of compliance/non-compliance
+  auditorNotes          String?
+  auditId               String
+  completedDate         DateTime?
+  completedBy           String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  // Relations
+  audit                 Audit                 @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([auditId])
+  @@index([status])
+  @@unique([auditId, itemNumber])
+  @@index([companyId])
+}
+
+model AuditAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                @id @default(uuid())
+  fileName              String
+  fileKey               String
+  fileSize              Int
+  fileType              String
+  description           String?
+  category              String?               // Evidence, Report, Photo, Document
+  auditId               String
+  uploadedBy            String?
+  createdAt             DateTime              @default(now())
+
+  audit                 Audit                 @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([auditId])
+  @@index([companyId])
+}
+
+model AuditFindingAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                @id @default(uuid())
+  fileName              String
+  fileKey               String
+  fileSize              Int
+  fileType              String
+  description           String?
+  category              String?               // Evidence, Photo, Document
+  findingId             String
+  uploadedBy            String?
+  createdAt             DateTime              @default(now())
+
+  finding               AuditFinding          @relation(fields: [findingId], references: [id], onDelete: Cascade)
+
+  @@index([findingId])
+  @@index([companyId])
+}
+
+model CorrectiveActionAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                @id @default(uuid())
+  fileName              String
+  fileKey               String
+  fileSize              Int
+  fileType              String
+  description           String?
+  category              String?               // Evidence, Photo, Document
+  correctiveActionId    String
+  uploadedBy            String?
+  createdAt             DateTime              @default(now())
+
+  correctiveAction      CorrectiveAction      @relation(fields: [correctiveActionId], references: [id], onDelete: Cascade)
+
+  @@index([correctiveActionId])
+  @@index([companyId])
+}
+
+model AuditTemplate {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                    String                @id @default(uuid())
+  name                  String
+  type                  AuditType
+  description           String?
+  department            String?
+  checklistItems        Json[]                // Array of checklist template items
+  isActive              Boolean               @default(true)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([type])
+  @@index([isActive])
+  @@index([companyId])
+}
+
+model Notification {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id          String    @id @default(uuid())
+  title       String
+  message     String
+  priority    String?   // Optional for existing records
+  userId      String    // Recipient
+  senderId    String?   // Optional for existing records, will be required for new ones
+  isRead      Boolean   @default(false)
+  isArchived  Boolean   @default(false)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  user        User      @relation("ReceivedNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  sender      User?     @relation("SentNotifications", fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([senderId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([companyId])
+}
