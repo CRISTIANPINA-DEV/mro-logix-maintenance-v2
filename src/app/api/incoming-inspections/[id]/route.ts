@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { deleteIncomingInspectionFile } from '@/lib/s3';
 import { getServerSession } from '@/lib/auth';
 import { logActivity, getRequestInfo } from '@/lib/activity-logger';
+import { canUserViewIncomingInspections, canUserDeleteIncomingInspections } from '@/lib/user-permissions';
 
 export async function GET(
   request: Request,
@@ -15,6 +16,15 @@ export async function GET(
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Check if user has permission to view incoming inspections
+    const canView = await canUserViewIncomingInspections(session.user.id);
+    if (!canView) {
+      return NextResponse.json(
+        { success: false, message: 'Permission denied' },
+        { status: 403 }
       );
     }
 
@@ -68,6 +78,15 @@ export async function DELETE(
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Check if user has permission to delete incoming inspections
+    const canDelete = await canUserDeleteIncomingInspections(session.user.id);
+    if (!canDelete) {
+      return NextResponse.json(
+        { success: false, message: 'Permission denied' },
+        { status: 403 }
       );
     }
 
@@ -155,15 +174,15 @@ export async function DELETE(
       message: 'Inspection deleted successfully',
       id: id
     });
-      } catch (error) {
-      console.error('Error deleting inspection:', error);
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Failed to delete inspection',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        },
-        { status: 500 }
-      );
-    }
+  } catch (error) {
+    console.error('Error deleting inspection:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        message: 'Failed to delete inspection',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
 } 

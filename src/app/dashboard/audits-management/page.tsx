@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +78,8 @@ interface Audit {
 }
 
 export default function AuditsManagement() {
+  const router = useRouter();
+  const { permissions, loading: permissionsLoading } = useUserPermissions();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [audits, setAudits] = useState<Audit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,6 +94,13 @@ export default function AuditsManagement() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [deleteConfirmAudit, setDeleteConfirmAudit] = useState<Audit | null>(null);
   const [operationLoading, setOperationLoading] = useState(false);
+
+  // Check permissions
+  useEffect(() => {
+    if (!permissionsLoading && !permissions?.canSeeAuditManagement) {
+      router.push('/dashboard');
+    }
+  }, [permissions, permissionsLoading, router]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -276,6 +287,27 @@ export default function AuditsManagement() {
     }
   };
 
+  // Show loading state while checking permissions
+  if (permissionsLoading) {
+    return (
+      <div className="w-full max-w-full mx-auto px-2 pt-1 pb-10">
+        <AuditsManagementHeader />
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has permission to access this page
+  if (!permissions?.canSeeAuditManagement) {
+    return null;
+  }
+
+  // Show loading state while fetching data
   if (loading && !dashboardData) {
     return (
       <div className="w-full max-w-full mx-auto px-2 pt-1 pb-10">
@@ -286,29 +318,6 @@ export default function AuditsManagement() {
             <p className="mt-4 text-gray-600">Loading audit data...</p>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="w-full max-w-full mx-auto px-2 pt-1 pb-10">
-        <AuditsManagementHeader />
-        <Alert className="mt-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            {error}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="ml-4"
-              onClick={handleRefreshData}
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Retry
-            </Button>
-          </AlertDescription>
-        </Alert>
       </div>
     );
   }

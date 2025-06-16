@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileSpreadsheet, FileText } from "lucide-react";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 interface StockInventoryReportDialogProps {
   open: boolean;
@@ -60,7 +61,9 @@ export function StockInventoryReportDialog({
     return initial;
   });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const { toast } = useToast();
+  const { permissions, loading } = useUserPermissions();
 
   const ownerOptions = ['Airline-1', 'Airline-2', 'Airline-3', 'Airline-4', 'Airline-5', 'Airline-6', 'Airline-7', 'Airline-8', 'Airline-9', 'Airline-10', 'All'];
 
@@ -124,6 +127,62 @@ export function StockInventoryReportDialog({
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleGeneratePdf = async () => {
+    if (!startDate || !endDate) {
+      toast({
+        title: "Missing dates",
+        description: "Please select both start and end dates",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingPdf(true);
+    try {
+      const response = await fetch('/api/stock-inventory/pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startDate,
+          endDate,
+          owner: owner === 'All' ? null : owner,
+          selectedColumns,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `stock-inventory-report-${startDate}-to-${endDate}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "PDF generated successfully"
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -197,24 +256,48 @@ export function StockInventoryReportDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={isGenerating}
+            disabled={isGenerating || isGeneratingPdf}
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleGenerateReport}
-            disabled={isGenerating}
-            className="bg-green-400 hover:bg-green-500 text-gray-800"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              'Generate Report'
-            )}
-          </Button>
+          {!loading && permissions?.canGenerateStockReport && (
+            <Button
+              onClick={handleGenerateReport}
+              disabled={isGenerating || isGeneratingPdf}
+              className="bg-green-400 hover:bg-green-500 text-gray-800"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Generate Report
+                </>
+              )}
+            </Button>
+          )}
+          {!loading && permissions?.canGenerateStockPdf && (
+            <Button
+              onClick={handleGeneratePdf}
+              disabled={isGenerating || isGeneratingPdf}
+              className="bg-red-400 hover:bg-red-500 text-gray-800"
+            >
+              {isGeneratingPdf ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Generate PDF
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

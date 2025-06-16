@@ -8,12 +8,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 interface IncomingInspectionsHeaderProps {
   onAddNew: () => void;
 }
 
 export function IncomingInspectionsHeader({ onAddNew }: IncomingInspectionsHeaderProps) {
+  const { permissions } = useUserPermissions();
+
   return (
     <TooltipProvider>
       <div className="flex items-center justify-between">
@@ -23,21 +26,23 @@ export function IncomingInspectionsHeader({ onAddNew }: IncomingInspectionsHeade
             Manage and track incoming part inspections
           </p>
         </div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              onClick={onAddNew}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Inspection
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Create a new incoming inspection record</p>
-          </TooltipContent>
-        </Tooltip>
+        {permissions?.canAddIncomingInspections && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                onClick={onAddNew}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Inspection
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Create a new incoming inspection record</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
     </TooltipProvider>
   );

@@ -36,6 +36,7 @@ export const config: NextAuthOptions = {
             lastName: true,
             username: true,
             companyId: true,
+            privilege: true,
             company: {
               select: {
                 id: true,
@@ -58,6 +59,13 @@ export const config: NextAuthOptions = {
           return null;
         }
 
+        // Debug log
+        console.log("Auth user data:", {
+          id: user.id,
+          email: user.email,
+          privilege: user.privilege,
+        });
+
         return {
           id: user.id,
           email: user.email,
@@ -67,6 +75,7 @@ export const config: NextAuthOptions = {
           username: user.username,
           companyId: user.companyId,
           companyName: user.company.name,
+          privilege: user.privilege,
         };
       },
     }),

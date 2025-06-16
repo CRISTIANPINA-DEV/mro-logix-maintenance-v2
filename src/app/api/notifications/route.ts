@@ -5,11 +5,25 @@ import { requireAuth } from '@/lib/auth';
 // GET - Fetch notifications for the current user
 export async function GET(request: NextRequest) {
   try {
+    // Add CORS headers
+    const headers = new Headers({
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || '*',
+      'Content-Type': 'application/json',
+    });
+
     const auth = await requireAuth(request);
     if (auth.error) {
-      return NextResponse.json(auth.error, { status: auth.status });
+      return NextResponse.json(auth.error, { status: auth.status, headers });
     }
     const currentUser = auth.user;
+
+    if (!currentUser?.id || !currentUser?.companyId) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid user session' },
+        { status: 401, headers }
+      );
+    }
 
     // Get URL parameters
     const url = new URL(request.url);
@@ -32,12 +46,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: notifications
-    });
+    }, { headers });
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return NextResponse.json(
       { success: false, message: 'Failed to fetch notifications' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: new Headers({
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || '*',
+          'Content-Type': 'application/json',
+        })
+      }
     );
   }
 }
@@ -109,4 +130,16 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// OPTIONS - Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return NextResponse.json({}, {
+    headers: new Headers({
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    })
+  });
 } 

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import {
   Dialog,
   DialogContent,
@@ -63,6 +64,7 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
   const { toast } = useToast();
   const router = useRouter();
   const isMobile = useIsMobile();
+  const { permissions, loading: permissionsLoading } = useUserPermissions();
 
   // Get the id from params
   useEffect(() => {
@@ -489,48 +491,58 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
             </Button>
           </div>
           
-                     {isMobile ? (
-             <DropdownMenu>
-               <DropdownMenuTrigger asChild>
-                 <Button variant="outline" size="sm">
-                   <MoreHorizontal className="h-4 w-4" />
-                 </Button>
-               </DropdownMenuTrigger>
-               <DropdownMenuContent align="end">
-                 <DropdownMenuItem 
-                   onClick={handleGeneratePDF}
-                   className="flex items-center gap-2"
-                 >
-                   <FileDown className="h-4 w-4" />
-                   Generate PDF
-                 </DropdownMenuItem>
-                 <DropdownMenuItem 
-                   onClick={() => setShowDeleteConfirm(true)}
-                   className="flex items-center gap-2 text-red-600"
-                 >
-                   <Trash2 className="h-4 w-4" />
-                   Delete Record
-                 </DropdownMenuItem>
-               </DropdownMenuContent>
-             </DropdownMenu>
-           ) : (
-             <div className="flex items-center space-x-2">
-               <Button
-                 variant="export"
-                 onClick={handleGeneratePDF}
-               >
-                 <FileDown className="h-4 w-4 mr-2" />
-                 Generate PDF
-               </Button>
-               <Button
-                 variant="delete"
-                 onClick={() => setShowDeleteConfirm(true)}
-               >
-                 <Trash2 className="h-4 w-4 mr-2" />
-                 Delete Record
-               </Button>
-             </div>
-           )}
+          {!permissionsLoading && (
+            isMobile ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {permissions?.canGenerateStockPdf && (
+                    <DropdownMenuItem 
+                      onClick={handleGeneratePDF}
+                      className="flex items-center gap-2"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      Generate PDF
+                    </DropdownMenuItem>
+                  )}
+                  {permissions?.canDeleteStockRecord && (
+                    <DropdownMenuItem 
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="flex items-center gap-2 text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete Record
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center space-x-2">
+                {permissions?.canGenerateStockPdf && (
+                  <Button
+                    variant="export"
+                    onClick={handleGeneratePDF}
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Generate PDF
+                  </Button>
+                )}
+                {permissions?.canDeleteStockRecord && (
+                  <Button
+                    variant="delete"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Record
+                  </Button>
+                )}
+              </div>
+            )
+          )}
         </div>
 
         {/* Document Title */}

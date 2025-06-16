@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, Download, AlertCircle, Trash2, RefreshCw, FileType as PdfIcon } from "lucide-react";
+import { FileText, Download, AlertCircle, Trash2, RefreshCw, FileType as PdfIcon, Pencil } from "lucide-react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
@@ -17,6 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { useSession } from "next-auth/react";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { FlightRecordForm, FlightRecordFormValues } from "./FlightRecordForm";
 
 interface Attachment {
   id: string;
@@ -84,6 +87,9 @@ export function FlightRecordDetailDialog({
   recordId, 
   onRecordDeleted 
 }: FlightRecordDetailDialogProps) {
+  const { data: session } = useSession();
+  const { toast } = useToast();
+  const { permissions } = useUserPermissions();
   const [record, setRecord] = useState<FlightRecord | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +99,7 @@ export function FlightRecordDetailDialog({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const { toast } = useToast();
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const fetchFlightRecord = useCallback(async () => {
     if (!recordId) return;
@@ -343,293 +349,368 @@ export function FlightRecordDetailDialog({
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-[90vw] w-[90vw] max-h-[90vh] h-[90vh] overflow-y-auto rounded-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Flight Record Details</span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={generatePdf}
-                  disabled={isGeneratingPdf || loading || !record}
-                  className="text-red-600 border-red-600 hover:bg-red-50"
-                >
-                  <PdfIcon className="h-4 w-4 mr-2" />
-                  {isGeneratingPdf ? "Generating..." : "Export PDF"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing || loading}
-                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDeleteClick}
-                  disabled={loading || !record}
-                  className="text-red-600 border-red-600 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              </div>
-            </DialogTitle>
-            <DialogDescription>
-              View detailed information about this flight record.
-            </DialogDescription>
-          </DialogHeader>
-
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : error || !record ? (
-            <div className="text-center py-8">
-              <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
-              <h3 className="text-lg font-medium mb-2">Error</h3>
-              <p className="text-muted-foreground">{error || "Flight record not found."}</p>
-            </div>
+          {isEditMode && record ? (
+            <FlightRecordForm
+              initialValues={record as FlightRecordFormValues}
+              mode="edit"
+              onSubmit={async (values, files, deletedAttachmentIds) => {
+                const formData = new FormData();
+                Object.entries(values).forEach(([key, value]) => {
+                  if (key === "PartReplacement") {
+                    formData.append("partReplacements", JSON.stringify(value));
+                  } else if (key === "Attachment") {
+                    // skip, handled separately
+                  } else {
+                    formData.append(key, value as any);
+                  }
+                });
+                files.forEach((file: File) => formData.append("files", file));
+                formData.append("deletedAttachmentIds", JSON.stringify(deletedAttachmentIds));
+                try {
+                  const res = await fetch(`/api/flight-records/${recordId}`, {
+                    method: "PUT",
+                    body: formData,
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    setIsEditMode(false);
+                    fetchFlightRecord();
+                    toast({
+                      title: "Success",
+                      description: "Flight record updated successfully",
+                    });
+                  } else {
+                    if (res.status === 403) {
+                      toast({
+                        title: "Error",
+                        description: "You don't have permission to edit flight records",
+                        variant: "destructive",
+                      });
+                    } else {
+                      toast({
+                        title: "Error",
+                        description: data.message || "Failed to update record",
+                        variant: "destructive",
+                      });
+                    }
+                  }
+                } catch (error) {
+                  console.error("Error updating flight record:", error);
+                  toast({
+                    title: "Error",
+                    description: "An unexpected error occurred while updating the record",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              onCancel={() => setIsEditMode(false)}
+            />
           ) : (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">General Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Date</p>
-                      <p className="font-medium">{formatDate(record.date)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Airline</p>
-                      <p className="font-medium">{record.airline}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Fleet</p>
-                      <p className="font-medium">{record.fleet}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Flight Number</p>
-                      <p className="font-medium">{record.flightNumber || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Tail</p>
-                      <p className="font-medium">{record.tail || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Station</p>
-                      <p className="font-medium">{record.station}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Service</p>
-                      <p className="font-medium">{record.service}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Technician</p>
-                      <p className="font-medium">{record.technician || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Username</p>
-                      <p className="font-medium">{record.username || "N/A"}</p>
-                    </div>
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center justify-between">
+                  <span>Flight Record Details</span>
+                  <div className="flex gap-2">
+                    {permissions?.canEditFlightRecords && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditMode(true)}
+                        disabled={isEditMode || loading || !record}
+                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                      >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    )}
+                    {permissions?.canExportPdfFlightRecords && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={generatePdf}
+                        disabled={isGeneratingPdf || loading || !record}
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                      >
+                        <PdfIcon className="h-4 w-4 mr-2" />
+                        {isGeneratingPdf ? "Generating..." : "Export PDF"}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRefresh}
+                      disabled={isRefreshing || loading}
+                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                    >
+                      <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </Button>
+                    {permissions?.canDeleteFlightRecords && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDeleteClick}
+                        disabled={loading || !record}
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-4">Created: {formatDate(record.createdAt)}</p>
-                </CardContent>
-              </Card>
+                </DialogTitle>
+                <DialogDescription>
+                  View detailed information about this flight record.
+                </DialogDescription>
+              </DialogHeader>
 
-              {record.hasTime && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Time Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Block Time</p>
-                        <p className="font-medium">{record.blockTime || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Out Time</p>
-                        <p className="font-medium">{record.outTime || "N/A"}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {record.hasDefect && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Defect Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Log Page No</p>
-                        <p className="font-medium">{record.logPageNo || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">System Affected</p>
-                        <p className="font-medium">{record.systemAffected || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Status</p>
-                        <p className="font-medium">{record.defectStatus || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">RII Required</p>
-                        <p className="font-medium">{record.riiRequired ? "Yes" : "No"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Part Replaced</p>
-                        <p className="font-medium">{record.hasPartReplaced ? "Yes" : "No"}</p>
-                      </div>
-                      {record.riiRequired && record.inspectedBy && (
+              {loading ? (
+                <div className="flex justify-center items-center h-40">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : error || !record ? (
+                <div className="text-center py-8">
+                  <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Error</h3>
+                  <p className="text-muted-foreground">{error || "Flight record not found."}</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">General Information</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <p className="text-sm text-muted-foreground">Inspected By</p>
-                          <p className="font-medium">{record.inspectedBy}</p>
+                          <p className="text-sm text-muted-foreground">Date</p>
+                          <p className="font-medium">{formatDate(record.date)}</p>
                         </div>
-                      )}
-                      {record.hasPartReplaced && record.PartReplacement && record.PartReplacement.length > 0 && (
-                        <div className="col-span-2 mt-4">
-                          <h3 className="text-sm font-medium mb-4">Part Replacements</h3>
-                          <div className="space-y-4">
-                            {record.PartReplacement.map((part, index) => (
-                              <div key={part.id} className="border rounded-lg p-4 bg-muted/50">
-                                <div className="flex items-center justify-between mb-2">
-                                  <h4 className="text-sm font-medium">Part Replacement #{index + 1}</h4>
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Date(part.createdAt).toLocaleDateString()}
-                                  </span>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                    <div>
-                                      <p className="text-sm text-muted-foreground">Removed Part</p>
-                                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Airline</p>
+                          <p className="font-medium">{record.airline}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Fleet</p>
+                          <p className="font-medium">{record.fleet}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Flight Number</p>
+                          <p className="font-medium">{record.flightNumber || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Tail</p>
+                          <p className="font-medium">{record.tail || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Station</p>
+                          <p className="font-medium">{record.station}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Service</p>
+                          <p className="font-medium">{record.service}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Technician</p>
+                          <p className="font-medium">{record.technician || "N/A"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Username</p>
+                          <p className="font-medium">{record.username || "N/A"}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-4">Created: {formatDate(record.createdAt)}</p>
+                    </CardContent>
+                  </Card>
+
+                  {record.hasTime && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Time Information</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Block Time</p>
+                            <p className="font-medium">{record.blockTime || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Out Time</p>
+                            <p className="font-medium">{record.outTime || "N/A"}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {record.hasDefect && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Defect Information</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Log Page No</p>
+                            <p className="font-medium">{record.logPageNo || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">System Affected</p>
+                            <p className="font-medium">{record.systemAffected || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Status</p>
+                            <p className="font-medium">{record.defectStatus || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">RII Required</p>
+                            <p className="font-medium">{record.riiRequired ? "Yes" : "No"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Part Replaced</p>
+                            <p className="font-medium">{record.hasPartReplaced ? "Yes" : "No"}</p>
+                          </div>
+                          {record.riiRequired && record.inspectedBy && (
+                            <div>
+                              <p className="text-sm text-muted-foreground">Inspected By</p>
+                              <p className="font-medium">{record.inspectedBy}</p>
+                            </div>
+                          )}
+                          {record.hasPartReplaced && record.PartReplacement && record.PartReplacement.length > 0 && (
+                            <div className="col-span-2 mt-4">
+                              <h3 className="text-sm font-medium mb-4">Part Replacements</h3>
+                              <div className="space-y-4">
+                                {record.PartReplacement.map((part, index) => (
+                                  <div key={part.id} className="border rounded-lg p-4 bg-muted/50">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <h4 className="text-sm font-medium">Part Replacement #{index + 1}</h4>
+                                      <span className="text-xs text-muted-foreground">
+                                        {new Date(part.createdAt).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                      <div className="space-y-2">
                                         <div>
-                                          <p className="text-xs text-muted-foreground">P/N</p>
-                                          <p className="font-medium">{part.pnOff || "N/A"}</p>
+                                          <p className="text-sm text-muted-foreground">Removed Part</p>
+                                          <div className="grid grid-cols-2 gap-2 mt-1">
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">P/N</p>
+                                              <p className="font-medium">{part.pnOff || "N/A"}</p>
+                                            </div>
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">S/N</p>
+                                              <p className="font-medium">{part.snOff || "N/A"}</p>
+                                            </div>
+                                          </div>
                                         </div>
+                                      </div>
+                                      <div className="space-y-2">
                                         <div>
-                                          <p className="text-xs text-muted-foreground">S/N</p>
-                                          <p className="font-medium">{part.snOff || "N/A"}</p>
+                                          <p className="text-sm text-muted-foreground">Installed Part</p>
+                                          <div className="grid grid-cols-2 gap-2 mt-1">
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">P/N</p>
+                                              <p className="font-medium">{part.pnOn || "N/A"}</p>
+                                            </div>
+                                            <div>
+                                              <p className="text-xs text-muted-foreground">S/N</p>
+                                              <p className="font-medium">{part.snOn || "N/A"}</p>
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="space-y-2">
-                                    <div>
-                                      <p className="text-sm text-muted-foreground">Installed Part</p>
-                                      <div className="grid grid-cols-2 gap-2 mt-1">
-                                        <div>
-                                          <p className="text-xs text-muted-foreground">P/N</p>
-                                          <p className="font-medium">{part.pnOn || "N/A"}</p>
-                                        </div>
-                                        <div>
-                                          <p className="text-xs text-muted-foreground">S/N</p>
-                                          <p className="font-medium">{part.snOn || "N/A"}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {record.defectStatus && (
+                            <>
+                              <div>
+                                <p className="text-sm text-muted-foreground">
+                                  {record.defectStatus === "Fixed" ? "Fixing Manual" : "Deferral Manual"}
+                                </p>
+                                <p className="font-medium">{record.fixingManual || "N/A"}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-muted-foreground">
+                                  {record.defectStatus === "Fixed" ? "Fixing Manual Reference" : "Deferral Manual Reference"}
+                                </p>
+                                <p className="font-medium">{record.manualReference || "N/A"}</p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Discrepancy</p>
+                            <p className="bg-muted p-2 rounded text-sm whitespace-pre-wrap">{record.discrepancyNote || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Rectification</p>
+                            <p className="bg-muted p-2 rounded text-sm whitespace-pre-wrap">{record.rectificationNote || "N/A"}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {record.hasComment && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Comments</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="bg-muted p-4 rounded">
+                          <p className="text-sm whitespace-pre-wrap">
+                            {record.comment || "No comment provided"}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {record.hasAttachments && record.Attachment?.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg">Attachments</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {record.Attachment.map((attachment) => (
+                            <div key={attachment.id} className="flex items-center justify-between bg-muted p-2 rounded">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-muted-foreground" />
+                                <div>
+                                  <p className="text-sm font-medium">{attachment.fileName}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {attachment.fileType} • {(attachment.fileSize / 1024).toFixed(1)} KB
+                                  </p>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {record.defectStatus && (
-                        <>
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              {record.defectStatus === "Fixed" ? "Fixing Manual" : "Deferral Manual"}
-                            </p>
-                            <p className="font-medium">{record.fixingManual || "N/A"}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              {record.defectStatus === "Fixed" ? "Fixing Manual Reference" : "Deferral Manual Reference"}
-                            </p>
-                            <p className="font-medium">{record.manualReference || "N/A"}</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Discrepancy</p>
-                        <p className="bg-muted p-2 rounded text-sm whitespace-pre-wrap">{record.discrepancyNote || "N/A"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Rectification</p>
-                        <p className="bg-muted p-2 rounded text-sm whitespace-pre-wrap">{record.rectificationNote || "N/A"}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {record.hasComment && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Comments</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-muted p-4 rounded">
-                      <p className="text-sm whitespace-pre-wrap">
-                        {record.comment || "No comment provided"}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {record.hasAttachments && record.Attachment?.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Attachments</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {record.Attachment.map((attachment) => (
-                        <div key={attachment.id} className="flex items-center justify-between bg-muted p-2 rounded">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-sm font-medium">{attachment.fileName}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {attachment.fileType} • {(attachment.fileSize / 1024).toFixed(1)} KB
-                              </p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => downloadAttachment(attachment)}
+                                className="flex items-center gap-2 hover:cursor-pointer"
+                              >
+                                <Download className="h-4 w-4" />
+                                Download
+                              </Button>
                             </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => downloadAttachment(attachment)}
-                            className="flex items-center gap-2 hover:cursor-pointer"
-                          >
-                            <Download className="h-4 w-4" />
-                            Download
-                          </Button>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

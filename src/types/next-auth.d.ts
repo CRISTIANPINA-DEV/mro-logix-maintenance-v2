@@ -11,6 +11,7 @@ declare module "next-auth" {
       username: string
       companyId: string
       companyName: string
+      privilege: string
     }
   }
 
@@ -23,6 +24,7 @@ declare module "next-auth" {
     username: string
     companyId: string
     companyName: string
+    privilege: string
   }
 }
 
@@ -34,5 +36,6 @@ declare module "next-auth/jwt" {
     username: string
     companyId: string
     companyName: string
+    privilege: string
   }
 } 

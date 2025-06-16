@@ -19,6 +19,7 @@ model Company {
   partReplacements              PartReplacement[]
   flightRecords                 FlightRecord[]
   users                         User[]
+  userPermissions               UserPermission[]
   stockInventoryAttachments     StockInventoryAttachment[]
   stockInventories              StockInventory[]
   temperatureControls           TemperatureControl[]
@@ -133,13 +134,15 @@ model User {
   resetToken   String?   // For password reset
   resetTokenExpiry DateTime? // When the reset token expires
   tempPassword String?   // Temporary storage for password reset
+  privilege    String    @default("reader-only") // "admin" or "reader-only"
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   
   // User Activity Relations
   activities         UserActivity[]
 
-
+  // User Permissions Relations
+  permissions        UserPermission[]
 
   // Technical Queries Relations
   createdTechnicalQueries     TechnicalQuery[]         @relation("CreatedTechnicalQueries")
@@ -154,6 +157,50 @@ model User {
   receivedNotifications Notification[] @relation("ReceivedNotifications")
   sentNotifications    Notification[] @relation("SentNotifications")
 
+  @@index([companyId])
+}
+
+model UserPermission {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Flight Records Permissions
+  canViewFlightRecords    Boolean @default(true)
+  canAddFlightRecords     Boolean @default(true)
+  canExportFlightRecords  Boolean @default(false)
+  
+  // Flight Records Report Page Button Permissions
+  canEditFlightRecords    Boolean @default(false)
+  canExportPdfFlightRecords Boolean @default(true)
+  canDeleteFlightRecords  Boolean @default(false)
+  
+  // Stock Inventory Permissions
+  canViewStockInventory   Boolean @default(true)
+  canGenerateStockReport    Boolean @default(true)
+  canAddStockItem           Boolean @default(false)
+  canGenerateStockPdf       Boolean @default(true)
+  canDeleteStockRecord      Boolean @default(false)
+  
+  // Incoming Inspections Permissions
+  canViewIncomingInspections    Boolean @default(true)
+  canAddIncomingInspections     Boolean @default(false)
+  canDeleteIncomingInspections  Boolean @default(false)
+  
+  // Temperature Control Permissions
+  canConfigureTemperatureRanges Boolean @default(false)
+  canAddTemperatureRecord       Boolean @default(false)
+  canDeleteTemperatureRecord    Boolean @default(false)
+  
+  // Audit Management Permissions
+  canSeeAuditManagement        Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId])
   @@index([companyId])
 }
 

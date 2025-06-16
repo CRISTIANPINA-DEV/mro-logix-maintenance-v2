@@ -4,6 +4,7 @@ import { uploadIncomingInspectionFile } from '@/lib/s3';
 import { parseLocalDate } from '@/lib/utils';
 import { getServerSession } from '@/lib/auth';
 import { logActivity, getRequestInfo } from '@/lib/activity-logger';
+import { canUserViewIncomingInspections, canUserAddIncomingInspections } from '@/lib/user-permissions';
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +14,15 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Check if user has permission to add incoming inspections
+    const canAdd = await canUserAddIncomingInspections(session.user.id);
+    if (!canAdd) {
+      return NextResponse.json(
+        { success: false, message: 'Permission denied' },
+        { status: 403 }
       );
     }
 
@@ -140,6 +150,15 @@ export async function GET(request: Request) {
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Check if user has permission to view incoming inspections
+    const canView = await canUserViewIncomingInspections(session.user.id);
+    if (!canView) {
+      return NextResponse.json(
+        { success: false, message: 'Permission denied' },
+        { status: 403 }
       );
     }
 

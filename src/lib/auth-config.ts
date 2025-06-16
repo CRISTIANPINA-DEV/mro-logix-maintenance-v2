@@ -5,6 +5,12 @@ import bcrypt from "bcrypt"
 import { logActivity } from "@/lib/activity-logger"
 
 export const authOptions: AuthOptions = {
+  session: {
+    strategy: "jwt",
+  },
+  pages: {
+    signIn: "/signin",
+  },
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -14,7 +20,7 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials, req) {
         if (!credentials?.identifier || !credentials?.password) {
-          return null
+          return null;
         }
 
         try {
@@ -26,46 +32,55 @@ export const authOptions: AuthOptions = {
                 { username: credentials.identifier }
               ]
             },
-            include: {
-              company: true
+            select: {
+              id: true,
+              email: true,
+              password: true,
+              firstName: true,
+              lastName: true,
+              username: true,
+              companyId: true,
+              privilege: true,
+              verified: true,
+              company: {
+                select: {
+                  id: true,
+                  name: true,
+                }
+              }
             }
-          })
+          });
 
           if (!user) {
-            return null
+            return null;
           }
 
           // Check if user is verified
           if (!user.verified) {
-            return null
+            return null;
           }
 
           // Check password
           const passwordMatch = await bcrypt.compare(credentials.password, user.password)
 
           if (!passwordMatch) {
-            return null
+            return null;
           }
 
-          // Log successful login activity
-          try {
-            await logActivity({
-              userId: user.id,
-              action: 'LOGIN',
-              resourceType: 'AUTHENTICATION',
-              resourceTitle: `User login: ${user.firstName} ${user.lastName}`,
-              metadata: {
-                identifier: credentials.identifier,
-                loginMethod: 'nextauth',
-                companyId: user.companyId,
-                companyName: user.company.name
-              },
-              ipAddress: req?.headers?.['x-forwarded-for'] as string || req?.headers?.['x-real-ip'] as string || 'unknown',
-              userAgent: req?.headers?.['user-agent'] || 'unknown'
-            })
-          } catch (error) {
-            console.error('Error logging activity:', error)
-          }
+          // Debug log
+          console.log("Auth - User data:", {
+            id: user.id,
+            email: user.email,
+            privilege: user.privilege,
+          });
+
+          // Log successful login
+          await logActivity({
+            userId: user.id,
+            action: "LOGIN",
+            ipAddress: req.headers?.["x-forwarded-for"] as string || "unknown",
+            userAgent: req.headers?.["user-agent"] || "unknown"
+          });
 
           return {
             id: user.id,
@@ -75,49 +90,44 @@ export const authOptions: AuthOptions = {
             lastName: user.lastName,
             username: user.username,
             companyId: user.companyId,
-            companyName: user.company.name
-          }
+            companyName: user.company.name,
+            privilege: user.privilege,
+          };
         } catch (error) {
-          console.error('Auth error:', error)
-          return null
+          console.error("Auth error:", error);
+          return null;
         }
-      }
-    })
+      },
+    }),
   ],
-  session: {
-    strategy: "jwt" as const,
-    maxAge: 7 * 24 * 60 * 60, // 7 days
-  },
-  jwt: {
-    maxAge: 7 * 24 * 60 * 60, // 7 days
-  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.firstName = user.firstName
-        token.lastName = user.lastName
-        token.username = user.username
-        token.companyId = user.companyId
-        token.companyName = user.companyName
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.username = user.username;
+        token.companyId = user.companyId;
+        token.companyName = user.companyName;
+        token.privilege = user.privilege;
       }
-      return token
+      return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string
-        session.user.firstName = token.firstName as string
-        session.user.lastName = token.lastName as string
-        session.user.username = token.username as string
-        session.user.companyId = token.companyId as string
-        session.user.companyName = token.companyName as string
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+        session.user.firstName = token.firstName as string;
+        session.user.lastName = token.lastName as string;
+        session.user.username = token.username as string;
+        session.user.companyId = token.companyId as string;
+        session.user.companyName = token.companyName as string;
+        session.user.privilege = token.privilege as string;
       }
-      return session
+      return session;
     }
   },
-  pages: {
-    signIn: '/signin',
-    error: '/signin',
-  },
-  secret: process.env.NEXTAUTH_SECRET,
 } 

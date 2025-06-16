@@ -171,7 +171,7 @@ export function FlightRecordsList({
         {isTabletLandscape ? (
           <div className="overflow-x-auto">
             <div className="min-w-[1200px]">
-              <div className="grid grid-cols-[120px_100px_250px_120px_100px_100px_100px_100px_120px] gap-x-4 gap-y-1 text-sm font-semibold items-center">
+              <div className="grid grid-cols-[120px_100px_250px_120px_100px_100px_100px_100px_100px_120px] gap-x-4 gap-y-1 text-sm font-semibold items-center">
                 <div>Date</div>
                 <div>Station</div>
                 <div>Airline</div>
@@ -180,12 +180,13 @@ export function FlightRecordsList({
                 <div>Tail</div>
                 <div>Service</div>
                 <div>Defect</div>
+                <div>Log Page No</div>
                 <div>Username</div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-10 gap-x-3 gap-y-1 text-sm font-semibold items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-11 gap-x-3 gap-y-1 text-sm font-semibold items-center">
             <div className="xl:col-span-1">Date</div>
             <div className="xl:col-span-1">Station</div>
             <div className="xl:col-span-1">Airline</div>
@@ -194,6 +195,7 @@ export function FlightRecordsList({
             <div className="xl:col-span-1">Tail</div>
             <div className="xl:col-span-1">Service</div>
             <div className="xl:col-span-1">Defect</div>
+            <div className="xl:col-span-1">Log Page No</div>
             <div className="xl:col-span-1">Username</div>
           </div>
         )}
@@ -212,7 +214,7 @@ export function FlightRecordsList({
           {isTabletLandscape ? (
             <div className="overflow-x-auto">
               <div className="min-w-[1200px]">
-                <div className="grid grid-cols-[120px_100px_250px_120px_100px_100px_100px_100px_120px] gap-x-4 gap-y-1 text-sm items-center hover:text-accent-foreground">
+                <div className="grid grid-cols-[120px_100px_250px_120px_100px_100px_100px_100px_100px_120px] gap-x-4 gap-y-1 text-sm items-center hover:text-accent-foreground">
                   <div className="whitespace-nowrap"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{formatDate(record.date)}</Link></div>
                   <div>{record.station}</div>
                   <div>{record.airline}</div>
@@ -235,12 +237,13 @@ export function FlightRecordsList({
                       No
                     </span>
                   )}</div>
+                  <div>{record.logPageNo || "-"}</div>
                   <div>{record.username || "-"}</div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-10 gap-x-3 gap-y-1 text-sm items-center hover:text-accent-foreground">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-11 gap-x-3 gap-y-1 text-sm items-center hover:text-accent-foreground">
               <div className="xl:col-span-1 whitespace-nowrap"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{formatDate(record.date)}</Link></div>
               <div className="xl:col-span-1">{record.station}</div>
               <div className="xl:col-span-1 whitespace-nowrap truncate" title={record.airline}>{record.airline}</div>
@@ -270,6 +273,7 @@ export function FlightRecordsList({
                 )}
               </div>
               
+              <div className="xl:col-span-1">{record.logPageNo || "-"}</div>
               <div className="xl:col-span-1">{record.username || "-"}</div>
             </div>
           )}

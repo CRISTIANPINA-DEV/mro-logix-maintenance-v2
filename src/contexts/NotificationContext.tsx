@@ -29,28 +29,52 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [archivedNotifications, setArchivedNotifications] = useState<Notification[]>([]);
 
   const fetchNotifications = async () => {
+    if (!session?.user?.id) {
+      console.log('No active session, skipping notification fetch');
+      return;
+    }
+
     try {
       // Fetch active notifications
       const activeResponse = await fetch('/api/notifications?archived=false', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
       });
       
       // Fetch archived notifications
       const archivedResponse = await fetch('/api/notifications?archived=true', {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
       });
       
-      if (activeResponse.ok && archivedResponse.ok) {
-        const activeData = await activeResponse.json();
-        const archivedData = await archivedResponse.json();
-        
-        if (activeData.success && archivedData.success) {
-          setNotifications(activeData.data);
-          setArchivedNotifications(archivedData.data);
-        }
+      if (!activeResponse.ok) {
+        throw new Error(`Active notifications fetch failed: ${activeResponse.status}`);
+      }
+      
+      if (!archivedResponse.ok) {
+        throw new Error(`Archived notifications fetch failed: ${archivedResponse.status}`);
+      }
+      
+      const activeData = await activeResponse.json();
+      const archivedData = await archivedResponse.json();
+      
+      if (activeData.success && archivedData.success) {
+        setNotifications(activeData.data);
+        setArchivedNotifications(archivedData.data);
+      } else {
+        throw new Error('Invalid response format from server');
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      // Reset notifications on error to prevent stale data
+      setNotifications([]);
+      setArchivedNotifications([]);
     }
   };
 

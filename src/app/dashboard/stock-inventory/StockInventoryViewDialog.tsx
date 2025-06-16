@@ -12,6 +12,7 @@ import { Download, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 interface StockInventory {
   id: string;
@@ -58,6 +59,7 @@ export function StockInventoryViewDialog({
   const [deleteText, setDeleteText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+  const { permissions, loading } = useUserPermissions();
 
   const handleDownload = async (fileKey: string, fileName: string) => {
     try {
@@ -129,15 +131,17 @@ export function StockInventoryViewDialog({
         <DialogContent className="!max-w-[95vw] !w-[95vw] sm:!max-w-[95vw] max-h-[95vh] overflow-y-auto p-12">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle>Stock Inventory Details</DialogTitle>
-            <Button
-              variant="destructive"
-              size="sm"
-              className="h-8"
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Record
-            </Button>
+            {!loading && permissions?.canDeleteStockRecord && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-8"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Record
+              </Button>
+            )}
           </DialogHeader>
           
           <div className="overflow-x-auto">

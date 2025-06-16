@@ -7,6 +7,7 @@ import { ArrowRight, PlaneTakeoff, Users, BarChart3Icon, Thermometer, Droplets, 
 import Link from "next/link";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 interface WeatherData {
   location: string;
@@ -55,6 +56,7 @@ interface ExpiryStatusData {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const { permissions, loading: permissionsLoading } = useUserPermissions();
   const [loading, setLoading] = useState(true);
   const [metricsLoading, setMetricsLoading] = useState(false);
   const [flightRecordsCount, setFlightRecordsCount] = useState(0);
@@ -401,7 +403,6 @@ export default function DashboardPage() {
   return (
     <div className="w-full max-w-full mx-auto px-4 py-10">
       <div className="space-y-6">
-        
         {/* All three cards in the same row */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="h-[165px] rounded-none border border-slate-200/50 hover:border-slate-300 dark:border-slate-800/50 dark:hover:border-slate-700">

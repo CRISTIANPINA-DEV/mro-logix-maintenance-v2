@@ -200,6 +200,7 @@ export async function PUT(
   if (!session?.user) {
     return NextResponse.json({ success: false, message: "Authentication required" }, { status: 401 });
   }
+
   const companyId = session.user.companyId;
 
   // Parse FormData

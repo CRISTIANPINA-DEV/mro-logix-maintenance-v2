@@ -6,6 +6,8 @@ import { Plus, ThermometerSnowflake, Thermometer, Droplets, Settings } from "luc
 import { AddTemperatureControlForm } from "./AddTemperatureControlForm";
 import { TemperatureControlList } from "./TemperatureControlList";
 import { TemperatureConfigDialog } from "./TemperatureConfigDialog";
+import { TemperatureTrendCard } from "./TemperatureTrendCard";
+import { TemperatureTrendModal } from "./TemperatureTrendModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Tooltip,
@@ -13,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 interface ConfigData {
   tempNormalMin: number;
@@ -28,8 +31,10 @@ interface ConfigData {
 }
 
 export default function TemperatureControlPage() {
+  const { permissions, loading } = useUserPermissions();
   const [showForm, setShowForm] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
+  const [showTrendModal, setShowTrendModal] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [configRefreshTrigger, setConfigRefreshTrigger] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -112,40 +117,45 @@ export default function TemperatureControlPage() {
             <h1 className="text-3xl font-bold">Temperature Control</h1>
           </div>
           <div className="flex space-x-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  onClick={() => setShowConfigDialog(true)}
-                  variant="outline"
-                  className="border-gray-300 hover:bg-gray-50 cursor-pointer"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Configure Ranges
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Configure temperature and humidity ranges</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  onClick={() => setShowForm(true)}
-                  className="bg-white text-black border border-black hover:bg-gray-50 cursor-pointer"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Temperature
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Add a new temperature record</p>
-              </TooltipContent>
-            </Tooltip>
+            {permissions?.canConfigureTemperatureRanges && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    onClick={() => setShowConfigDialog(true)}
+                    variant="outline"
+                    className="border-gray-300 hover:bg-gray-50 cursor-pointer"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Configure Ranges
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Configure temperature and humidity ranges</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {permissions?.canAddTemperatureRecord && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    onClick={() => setShowForm(true)}
+                    className="bg-white text-black border border-black hover:bg-gray-50 cursor-pointer"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Temperature
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add a new temperature record</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
         </div>
 
         {/* Range Indicator Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">        {/* Total Records Stats Card */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+          {/* Total Records Stats Card */}
           <Card className="shadow-sm">
             <CardHeader className="py-2">
               <CardTitle className="text-sm flex items-center">
@@ -224,6 +234,12 @@ export default function TemperatureControlPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Trend Analysis Card */}
+          <TemperatureTrendCard 
+            refreshTrigger={refreshTrigger}
+            onClick={() => setShowTrendModal(true)}
+          />
         </div>
 
         {showForm && (
@@ -235,6 +251,13 @@ export default function TemperatureControlPage() {
           isOpen={showConfigDialog}
           onClose={() => setShowConfigDialog(false)}
           onConfigUpdate={handleConfigUpdate}
+        />
+
+        {/* Trend Analysis Modal */}
+        <TemperatureTrendModal 
+          isOpen={showTrendModal}
+          onClose={() => setShowTrendModal(false)}
+          refreshTrigger={refreshTrigger}
         />
 
         {/* Temperature Control Records List */}

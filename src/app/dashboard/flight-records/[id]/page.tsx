@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, ChevronLeft, Download, AlertCircle, Trash2, FileType as PdfIcon } from "lucide-react";
+import { FileText, ChevronLeft, Download, AlertCircle, Trash2, FileType as PdfIcon, Pencil } from "lucide-react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Link from "next/link";
@@ -17,6 +17,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FlightRecordForm, FlightRecordFormValues } from "../FlightRecordForm";
+import { useSession } from "next-auth/react";
+import { useToast } from "@/components/ui/use-toast";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 interface Attachment {
   id: string;
@@ -72,6 +75,9 @@ interface FlightRecord {
 }
 
 export default function FlightRecordDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { data: session } = useSession();
+  const { toast } = useToast();
+  const { permissions } = useUserPermissions();
   const { id } = use(params);
   const [record, setRecord] = useState<FlightRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -631,11 +637,32 @@ export default function FlightRecordDetailPage({ params }: { params: Promise<{ i
               if (data.success) {
                 setIsEditMode(false);
                 fetchFlightRecord();
+                toast({
+                  title: "Success",
+                  description: "Flight record updated successfully",
+                });
               } else {
-                alert(data.message || "Failed to update record");
+                if (res.status === 403) {
+                  toast({
+                    title: "Error",
+                    description: "You don't have permission to edit flight records",
+                    variant: "destructive",
+                  });
+                } else {
+                  toast({
+                    title: "Error",
+                    description: data.message || "Failed to update record",
+                    variant: "destructive",
+                  });
+                }
               }
-            } catch (e) {
-              alert("Error updating record");
+            } catch (error) {
+              console.error("Error updating flight record:", error);
+              toast({
+                title: "Error",
+                description: "An unexpected error occurred while updating the record",
+                variant: "destructive",
+              });
             }
           }}
           onCancel={() => setIsEditMode(false)}
@@ -653,32 +680,39 @@ export default function FlightRecordDetailPage({ params }: { params: Promise<{ i
           <p className="text-sm text-gray-600 mt-1">Record ID: {record.id}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsEditMode(true)}
-            disabled={isEditMode || loading}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={generatePdf}
-            disabled={isGeneratingPdf || loading}
-          >
-            <PdfIcon className="h-4 w-4 mr-2" />
-            {isGeneratingPdf ? "Generating..." : "Export PDF"}
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleDeleteClick}
-            disabled={loading}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
+          {permissions?.canEditFlightRecords && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditMode(true)}
+              disabled={isEditMode || loading}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          )}
+          {permissions?.canExportPdfFlightRecords && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={generatePdf}
+              disabled={isGeneratingPdf || loading}
+            >
+              <PdfIcon className="h-4 w-4 mr-2" />
+              {isGeneratingPdf ? "Generating..." : "Export PDF"}
+            </Button>
+          )}
+          {permissions?.canDeleteFlightRecords && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteClick}
+              disabled={loading}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          )}
           <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard/flight-records">
               <ChevronLeft className="h-4 w-4 mr-2" />

@@ -23,6 +23,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 
 interface Attachment {
   id: string;
@@ -56,6 +58,14 @@ interface FlightRecord {
 }
 
 export default function FlightRecordsBulkDeletePage() {
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session && session.user.privilege !== 'admin') {
+      redirect('/dashboard/flight-records');
+    }
+  }, [session]);
+
   const [records, setRecords] = useState<FlightRecord[]>([]);
   const [selectedRecords, setSelectedRecords] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);

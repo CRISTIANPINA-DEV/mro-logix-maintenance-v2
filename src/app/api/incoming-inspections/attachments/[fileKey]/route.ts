@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getIncomingInspectionFile } from '@/lib/s3';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
+import { canUserViewIncomingInspections } from '@/lib/user-permissions';
 
 export async function GET(
   request: Request,
@@ -14,6 +15,15 @@ export async function GET(
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Check if user has permission to view incoming inspections
+    const canView = await canUserViewIncomingInspections(session.user.id);
+    if (!canView) {
+      return NextResponse.json(
+        { success: false, message: 'Permission denied' },
+        { status: 403 }
       );
     }
 

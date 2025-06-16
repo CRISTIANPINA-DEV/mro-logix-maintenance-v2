@@ -136,8 +136,8 @@ export default function UserActivityPage() {
             <ActivityIcon className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">My Activity</h1>
-            <p className="text-muted-foreground">View your recent actions and system activities</p>
+            <h1 className="text-3xl font-bold">My Activity Log</h1>
+            <p className="text-muted-foreground">Track your personal actions and system activities</p>
           </div>
         </div>
         <Button onClick={fetchActivities} disabled={loading} variant="neutral">

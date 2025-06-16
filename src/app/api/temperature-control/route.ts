@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
 import { logActivity, getRequestInfo } from '@/lib/activity-logger';
+import { canUserAddTemperatureRecord, canUserDeleteTemperatureRecord } from '@/lib/user-permissions';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    // Check if user has permission to add temperature records
+    const canAdd = await canUserAddTemperatureRecord(session.user.id);
+    if (!canAdd) {
+      return NextResponse.json(
+        { success: false, message: 'Insufficient permissions to add temperature records' },
+        { status: 403 }
       );
     }
 
@@ -42,13 +52,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Create temperature control record with company isolation
-    // Fix date handling to prevent timezone issues
-    // By adding 'T00:00:00.000Z' we ensure the date is treated as UTC midnight
-    // which prevents the date from shifting due to timezone conversion
     const temperatureControl = await prisma.temperatureControl.create({
       data: {
         companyId: currentUser.companyId,
-        date: new Date(`${date}T00:00:00.000Z`),
+        date: new Date(date),
         location: location,
         customLocation: location === 'Other' ? customLocation : null,
         time: time,
@@ -209,6 +216,15 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Temperature control record not found' },
         { status: 404 }
+      );
+    }
+
+    // Check if user has permission to delete temperature records
+    const canDelete = await canUserDeleteTemperatureRecord(session.user.id);
+    if (!canDelete) {
+      return NextResponse.json(
+        { success: false, message: 'Insufficient permissions to delete temperature records' },
+        { status: 403 }
       );
     }
 

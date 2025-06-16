@@ -30,10 +30,12 @@ export async function GET(request: Request) {
     // Build where clause for filtering - SECURITY: Filter by company ID for multi-tenant isolation
     const where: {
       companyId: string;
+      userId: string;
       action?: { contains: string; mode: 'insensitive' };
       resourceType?: string;
     } = {
-      companyId: currentUser.companyId // SECURITY FIX: Filter by company ID instead of just user ID
+      companyId: currentUser.companyId,
+      userId: currentUser.id
     };
     
     if (action) {

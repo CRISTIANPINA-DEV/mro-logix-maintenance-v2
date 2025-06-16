@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, User, Settings, DatabaseIcon, ActivityIcon, CircleUserRound, Bell, HelpCircle, Book, Wrench, MessageSquare, Globe, LayoutDashboard, Plane } from "lucide-react";
+import { LogOut, Menu, X, User, Settings, DatabaseIcon, ActivityIcon, CircleUserRound, Bell, HelpCircle, Book, Wrench, MessageSquare, Globe, LayoutDashboard, Plane, Shield } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signOut, useSession } from "next-auth/react";
@@ -37,6 +37,12 @@ export default function DashboardHeader() {
   const { data: session } = useSession();
   const { unreadCount } = useNotifications();
   
+  // Debug log
+  console.log("Header session data:", {
+    privilege: session?.user?.privilege,
+    user: session?.user,
+  });
+
   // Check if current page is Gantt Chart Schedule
   const isGanttChartPage = pathname === "/dashboard/gantt-chart-schedule";
 
@@ -75,9 +81,18 @@ export default function DashboardHeader() {
         <div className="flex h-12 items-center justify-between w-full">
           <div className="flex items-center gap-2">
             {!isGanttChartPage && <SidebarTrigger className="flex size-6 mr-1" />}
-            <span className="font-medium text-sm text-muted-foreground">
-              @{session?.user?.username || session?.user?.firstName || 'User'}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-sm text-muted-foreground">
+                @{session?.user?.username || session?.user?.firstName || 'User'}
+              </span>
+              <span className={`text-xs px-2 py-0.5 border rounded-sm font-medium uppercase tracking-wide ${
+                session?.user?.privilege === 'admin' 
+                  ? 'bg-background text-blue-700 border-blue-200 dark:border-blue-800 dark:text-blue-400'
+                  : 'bg-background text-gray-700 border-gray-200 dark:border-gray-800 dark:text-gray-400'
+              }`}>
+                {session?.user?.privilege === 'admin' ? 'Admin' : 'User'}
+              </span>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -200,6 +215,14 @@ export default function DashboardHeader() {
                       Account Settings
                     </Link>
                   </DropdownMenuItem>
+                  {session?.user?.privilege === "admin" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/administration" className="flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        Administration
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/organization" className="flex items-center gap-2">
                       <User className="h-4 w-4" />

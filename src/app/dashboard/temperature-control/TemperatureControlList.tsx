@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Calendar, MapPin, Thermometer, Droplets, User, ChevronLeft, ChevronRight, Eye, MessageSquare, Trash2, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 interface TemperatureControlRecord {
   id: string;
@@ -42,6 +43,7 @@ interface TemperatureControlListProps {
 }
 
 export function TemperatureControlList({ refreshTrigger, config }: TemperatureControlListProps) {
+  const { permissions, loading: permissionsLoading } = useUserPermissions();
   const [records, setRecords] = useState<TemperatureControlRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -99,8 +101,10 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
   }, [currentPage, toast]);
 
   useEffect(() => {
-    fetchRecords();
-  }, [fetchRecords, refreshTrigger]);
+    if (!permissionsLoading) {
+      fetchRecords();
+    }
+  }, [fetchRecords, refreshTrigger, permissionsLoading]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -143,6 +147,8 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
         method: "DELETE",
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         toast({
           title: "Success",
@@ -156,14 +162,16 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
       } else {
         toast({
           title: "Error",
-          description: "Failed to delete record",
+          description: data.message || "Failed to delete record",
           variant: "destructive",
         });
+        console.error("Delete error:", data);
       }
-    } catch {
+    } catch (error) {
+      console.error("Delete error:", error);
       toast({
         title: "Error",
-        description: "Failed to delete record",
+        description: "Failed to delete record. Please try again.",
         variant: "destructive",
       });
     }
@@ -198,33 +206,15 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
     },
   };
 
-  if (loading) {
+  if (permissionsLoading) {
     return (
       <div className="space-y-4">
-        {/* Loading Stats Card */}
-        <div className="mb-4">
-          <Card className="shadow-sm animate-pulse">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-12"></div>
-                </div>
-                <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid gap-4">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Loading placeholder */}
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground">Loading...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -245,7 +235,7 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
         <>
           <div className="grid gap-4">
             {records.map((record) => (
-              <Card key={record.id} className="hover:shadow-md transition-shadow">
+              <Card key={record.id} className="hover:shadow-md transition-shadow rounded-none">
                 <CardContent className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
                     {/* Date & Time */}
@@ -317,6 +307,19 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
                       >
                         <MessageSquare className={`h-3.5 w-3.5 ${record.hasComment ? 'text-green-500' : 'text-gray-400'}`} />
                       </Button>
+                      {permissions?.canDeleteTemperatureRecord && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 hover:bg-red-100 hover:text-red-600"
+                          onClick={() => {
+                            setRecordToDelete(record.id);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -401,17 +404,19 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
           {/* Footer */}
           <div className="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-3">
             <div className="flex justify-between items-center">
-              <Button
-                variant="delete"
-                onClick={() => {
-                  setRecordToDelete(selectedComment?.recordId || null);
-                  setIsDeleteDialogOpen(true);
-                }}
-                className="text-sm cursor-pointer flex items-center gap-2"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Delete Record
-              </Button>
+              {permissions?.canDeleteTemperatureRecord && (
+                <Button
+                  variant="delete"
+                  onClick={() => {
+                    setRecordToDelete(selectedComment?.recordId || null);
+                    setIsDeleteDialogOpen(true);
+                  }}
+                  className="text-sm cursor-pointer flex items-center gap-2"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete Record
+                </Button>
+              )}
               <Button 
                 type="button" 
                 variant="neutral" 
@@ -427,38 +432,34 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="z-[9999]">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Temperature Record</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this record? This action cannot be undone.
-              Type &quot;Delete&quot; to confirm.
+              This action cannot be undone. Please type &quot;Delete&quot; to confirm.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <Input
+              type="text"
               placeholder="Type 'Delete' to confirm"
               value={deleteConfirmation}
               onChange={(e) => setDeleteConfirmation(e.target.value)}
+              className="w-full"
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel 
-              onClick={() => {
-                setIsDeleteDialogOpen(false);
-                setDeleteConfirmation("");
-                setRecordToDelete(null);
-              }}
-              className="bg-white text-black border border-gray-800 hover:bg-gray-50"
-            >
+            <AlertDialogCancel onClick={() => {
+              setDeleteConfirmation("");
+              setRecordToDelete(null);
+            }}>
               Cancel
             </AlertDialogCancel>
-            <Button 
-              variant="delete" 
+            <Button
+              variant="destructive"
               onClick={() => recordToDelete && handleDelete(recordToDelete)}
-              className="text-sm"
             >
-              Delete
+              Delete Record
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

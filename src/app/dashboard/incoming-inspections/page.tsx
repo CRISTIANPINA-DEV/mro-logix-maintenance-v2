@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { InspectionChecklistForm } from "./inspection-checklist-form";
 import { IncomingInspectionsHeader } from "./incoming-inspections-header";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import {
   Table,
   TableBody,
@@ -36,9 +37,18 @@ interface Inspection {
 export default function IncomingInspectionsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { permissions, loading } = useUserPermissions();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user has permission to view incoming inspections
+    if (!loading && permissions && !permissions.canViewIncomingInspections) {
+      router.push('/dashboard');
+      return;
+    }
+  }, [permissions, loading, router]);
 
   useEffect(() => {
     const showForm = searchParams.get('showForm') === 'true';
@@ -69,6 +79,20 @@ export default function IncomingInspectionsPage() {
   const handleViewInspection = (inspectionId: string) => {
     router.push(`/dashboard/incoming-inspections/${inspectionId}`);
   };
+
+  // Show loading state while checking permissions
+  if (loading) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  // Redirect if user doesn't have permission
+  if (!permissions?.canViewIncomingInspections) {
+    return null; // Will redirect in useEffect
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-6">

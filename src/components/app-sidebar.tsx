@@ -30,6 +30,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 import {
   Sidebar,
@@ -164,18 +165,41 @@ const menuItems = [
   },
 ];
 
-
-
 export function AppSidebar() {
   const pathname = usePathname();
   const { setOpenMobile, isMobile } = useSidebar();
   const { data: session } = useSession();
+  const { permissions } = useUserPermissions();
   const [safetyExpanded, setSafetyExpanded] = useState(false);
   const [employeeExpanded, setEmployeeExpanded] = useState(false);
   const [businessExpanded, setBusinessExpanded] = useState(false);
   const [documentationExpanded, setDocumentationExpanded] = useState(false);
   const [systemExpanded, setSystemExpanded] = useState(false);
   const [operationsExpanded, setOperationsExpanded] = useState(false);
+
+  // Filter menu items based on permissions
+  const getFilteredMenuItems = (items: string[]) => {
+    return items.filter(itemTitle => {
+      // If it's Flight Records, check the permission
+      if (itemTitle === "Flight Records") {
+        return permissions?.canViewFlightRecords ?? true;
+      }
+      // If it's Stock Inventory, check the permission
+      if (itemTitle === "Stock Inventory") {
+        return permissions?.canViewStockInventory ?? true;
+      }
+      // If it's Incoming Inspections, check the permission
+      if (itemTitle === "Incoming Inspections") {
+        return permissions?.canViewIncomingInspections ?? false;
+      }
+      // If it's Audits Management, check the permission
+      if (itemTitle === "Audits Management") {
+        return permissions?.canSeeAuditManagement ?? false;
+      }
+      // For other items, always show them
+      return true;
+    });
+  };
 
   // Update data-sidebar-expanded attribute based on sidebar width
   useEffect(() => {
@@ -244,7 +268,7 @@ export function AppSidebar() {
         {/* Operations Group - Now Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-blue-50 dark:bg-blue-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-blue-50 dark:bg-blue-950/30"
             onClick={() => setOperationsExpanded(!operationsExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -263,7 +287,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => ["Flight Records", "Stock Inventory", "Incoming Inspections", "Temperature Control", "Aircraft Parts Cycle", "Technical Queries"].includes(item.title))
+                  .filter(item => getFilteredMenuItems(["Flight Records", "Stock Inventory", "Incoming Inspections", "Temperature Control", "Aircraft Parts Cycle", "Technical Queries"]).includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -285,7 +309,7 @@ export function AppSidebar() {
         {/* Safety Group - Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-red-50 dark:bg-red-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-red-50 dark:bg-red-950/30"
             onClick={() => setSafetyExpanded(!safetyExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -305,6 +329,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {menuItems
                   .filter(item => ["Audits Management", "SMS Reports", "Service Difficulty Reports"].includes(item.title))
+                  .filter(item => getFilteredMenuItems([item.title]).includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -326,7 +351,7 @@ export function AppSidebar() {
         {/* Employee Group - Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-purple-50 dark:bg-purple-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-purple-50 dark:bg-purple-950/30"
             onClick={() => setEmployeeExpanded(!employeeExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -367,7 +392,7 @@ export function AppSidebar() {
         {/* Business Group - Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-emerald-50 dark:bg-emerald-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-emerald-50 dark:bg-emerald-950/30"
             onClick={() => setBusinessExpanded(!businessExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -408,7 +433,7 @@ export function AppSidebar() {
         {/* Documentation Group - Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-amber-50 dark:bg-amber-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-amber-50 dark:bg-amber-950/30"
             onClick={() => setDocumentationExpanded(!documentationExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -454,7 +479,7 @@ export function AppSidebar() {
               <span className="font-medium uppercase">{session.user.companyName}</span>
             </div>
           )}
-          <p>&copy; 2025 MRO Logix v1.0.0</p>
+          <p>&copy; 2025 MRO Logix V. 1.1 Beta</p>
         </div>
       </SidebarFooter>
     </Sidebar>

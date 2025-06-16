@@ -40,7 +40,9 @@ export type ActivityAction =
   | 'UPDATED_MANUAL'
   | 'DELETED_MANUAL'
   | 'DOWNLOADED_MANUAL_VERSION'
-  | 'ADDED_SDR_REPORT';
+  | 'ADDED_SDR_REPORT'
+  | 'UPDATED_USER'
+  | 'GENERATED_PDF';
 
 export type ResourceType = 
   | 'FLIGHT_RECORD'
@@ -55,7 +57,8 @@ export type ResourceType =
   | 'SMS_REPORT'
   | 'AUDIT'
   | 'MANUAL'
-  | 'SDR_REPORT';
+  | 'SDR_REPORT'
+  | 'USER';
 
 interface LogActivityParams {
   userId: string;

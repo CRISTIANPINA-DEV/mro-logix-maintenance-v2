@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, Eye, EyeOff, Plane } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Package } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 type RecordType = 'stock-inventory' | 'flight-records';
 
@@ -29,6 +30,13 @@ export default function ManageDataRecordsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session && session.user.privilege !== 'admin') {
+      redirect('/dashboard');
+    }
+  }, [session]);
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

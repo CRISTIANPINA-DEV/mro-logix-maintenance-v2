@@ -6,6 +6,7 @@ import { useState } from "react";
 import { StockInventoryReportDialog } from "./StockInventoryReportDialog";
 import { useIsTabletLandscape } from "@/hooks/use-tablet-landscape";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,9 +29,14 @@ export default function StockInventoryHeader({ showForm, onAddStockClick }: Stoc
   const [showReportDialog, setShowReportDialog] = useState(false);
   const isTabletLandscape = useIsTabletLandscape();
   const isMobile = useIsMobile();
+  const { permissions, loading } = useUserPermissions();
 
   // For tablet landscape and mobile, use dropdown menu to save space
   const useCompactLayout = isTabletLandscape || isMobile;
+
+  // Check if user has any permissions to show buttons
+  const canGenerateReport = !loading && permissions?.canGenerateStockReport;
+  const canAddStock = !loading && permissions?.canAddStockItem;
 
   return (
     <TooltipProvider>
@@ -57,51 +63,59 @@ export default function StockInventoryHeader({ showForm, onAddStockClick }: Stoc
                   </TooltipContent>
                 </Tooltip>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => setShowReportDialog(true)}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <FileSpreadsheet className="h-4 w-4" />
-                    Generate Report
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={onAddStockClick}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <Package className="h-4 w-4" />
-                    Add Stock Item
-                  </DropdownMenuItem>
+                  {canGenerateReport && (
+                    <DropdownMenuItem
+                      onClick={() => setShowReportDialog(true)}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <FileSpreadsheet className="h-4 w-4" />
+                      Generate Report
+                    </DropdownMenuItem>
+                  )}
+                  {canAddStock && (
+                    <DropdownMenuItem
+                      onClick={onAddStockClick}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <Package className="h-4 w-4" />
+                      Add Stock Item
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               // Normal layout for desktop and tablet portrait
               <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowReportDialog(true)}
-                      className="flex items-center gap-2 cursor-pointer"
-                    >
-                      <FileSpreadsheet className="h-4 w-4" />
-                      <span className="hidden sm:inline">Generate Report</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Generate Stock Inventory Report</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button onClick={onAddStockClick} className="cursor-pointer">
-                      <span className="hidden sm:inline">Add Stock Item</span>
-                      <span className="sm:hidden">Add</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Add a new stock item</p>
-                  </TooltipContent>
-                </Tooltip>
+                {canGenerateReport && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowReportDialog(true)}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <FileSpreadsheet className="h-4 w-4" />
+                        <span className="hidden sm:inline">Generate Report</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Generate Stock Inventory Report</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                {canAddStock && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={onAddStockClick} className="cursor-pointer">
+                        <span className="hidden sm:inline">Add Stock Item</span>
+                        <span className="sm:hidden">Add</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Add a new stock item</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </>
             )}
           </div>

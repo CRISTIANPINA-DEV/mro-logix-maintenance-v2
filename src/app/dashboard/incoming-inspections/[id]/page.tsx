@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { getFileUrl } from "@/lib/s3";
 import { useToast } from "@/components/ui/use-toast";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,6 +72,7 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { permissions } = useUserPermissions();
 
   const fetchInspectionDetail = useCallback(async () => {
     try {
@@ -203,33 +205,35 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Inspections
         </Button>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="delete" disabled={isDeleting}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Inspection
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the inspection record
-                and all associated attachments.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-white text-black border border-gray-800 hover:bg-gray-50">Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleDelete} 
-                disabled={isDeleting}
-                className="bg-red-100 text-black border border-red-600 hover:bg-red-200"
-              >
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {permissions?.canDeleteIncomingInspections && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="delete" disabled={isDeleting}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Inspection
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the inspection record
+                  and all associated attachments.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-white text-black border border-gray-800 hover:bg-gray-50">Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDelete} 
+                  disabled={isDeleting}
+                  className="bg-red-100 text-black border border-red-600 hover:bg-red-200"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       <Card>        <CardHeader>

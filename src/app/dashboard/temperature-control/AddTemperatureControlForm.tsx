@@ -66,7 +66,11 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
     
     try {      // Create form data
       const formData = new FormData();
-        formData.append('date', date);
+      // Ensure date is properly formatted to prevent timezone issues
+      // Add 12 hours to ensure we're in the middle of the day to prevent any timezone issues
+      const [year, month, day] = date.split('-').map(Number);
+      const dateToSend = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+      formData.append('date', dateToSend.toISOString());
       formData.append('location', location);
       formData.append('time', time);
       formData.append('temperature', temperature);
