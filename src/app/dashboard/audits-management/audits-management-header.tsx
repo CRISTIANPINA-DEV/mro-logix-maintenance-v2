@@ -36,8 +36,8 @@ const AuditsManagementHeader: React.FC<AuditsManagementHeaderProps> = ({ onAudit
             <div>
               <h1 className="text-2xl font-bold">
                 <div className="flex items-center gap-2">
-                  <ShieldAlert size={24} strokeWidth={1.5} className="text-[#f43f5e]" />
-                  <Badge className="px-3 py-1 text-base bg-[#f43f5e] text-white rounded-[4px] border border-black shadow-md">Audits Management</Badge>
+                  <ShieldAlert size={24} strokeWidth={1.5} className="text-rose-500" />
+                  <Badge className="px-3 py-1 text-base bg-rose-100 text-rose-600 rounded-[4px] border border-rose-500 shadow-md">Audits Management</Badge>
                 </div>
               </h1>
             </div>

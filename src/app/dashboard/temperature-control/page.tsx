@@ -110,23 +110,26 @@ export default function TemperatureControlPage() {
 
   return (
     <TooltipProvider>
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="container mx-auto py-4 px-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Header Section - Mobile Optimized */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div className="flex items-center space-x-2">
-            <ThermometerSnowflake className="h-6 w-6" />
-            <h1 className="text-3xl font-bold">Temperature Control</h1>
+            <ThermometerSnowflake className="h-5 w-5 sm:h-6 sm:w-6" />
+            <h1 className="text-2xl sm:text-3xl font-bold">Temperature Control</h1>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
             {permissions?.canConfigureTemperatureRanges && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
                     onClick={() => setShowConfigDialog(true)}
                     variant="outline"
-                    className="border-gray-300 hover:bg-gray-50 cursor-pointer"
+                    className="border-gray-300 hover:bg-gray-50 cursor-pointer text-sm sm:text-base"
+                    size="sm"
                   >
                     <Settings className="mr-2 h-4 w-4" />
-                    Configure Ranges
+                    <span className="hidden sm:inline">Configure Ranges</span>
+                    <span className="sm:hidden">Configure</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -139,10 +142,12 @@ export default function TemperatureControlPage() {
                 <TooltipTrigger asChild>
                   <Button 
                     onClick={() => setShowForm(true)}
-                    className="bg-white text-black border border-black hover:bg-gray-50 cursor-pointer"
+                    className="bg-white text-black border border-black hover:bg-gray-50 cursor-pointer text-sm sm:text-base"
+                    size="sm"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Temperature
+                    <span className="hidden sm:inline">Add Temperature</span>
+                    <span className="sm:hidden">Add Record</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -153,33 +158,33 @@ export default function TemperatureControlPage() {
           </div>
         </div>
 
-        {/* Range Indicator Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        {/* Range Indicator Cards - Mobile Optimized Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
           {/* Total Records Stats Card */}
-          <Card className="shadow-sm">
-            <CardHeader className="py-2">
-              <CardTitle className="text-sm flex items-center">
-                <ThermometerSnowflake className="h-4 w-4 mr-1" />
+          <Card className="shadow-sm lg:col-span-1 xl:col-span-1">
+            <CardHeader className="py-2 px-3 sm:px-4">
+              <CardTitle className="text-xs sm:text-sm flex items-center">
+                <ThermometerSnowflake className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 Records Summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="py-2">
+            <CardContent className="py-2 px-3 sm:px-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium">Total Records</span>
-                <span className="text-lg font-bold text-primary">{totalRecords}</span>
+                <span className="text-base sm:text-lg font-bold text-primary">{totalRecords}</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Temperature Range Cards */}
-          <Card className="shadow-sm">
-            <CardHeader className="py-2">
-              <CardTitle className="text-sm flex items-center">
-                <Thermometer className="h-4 w-4 mr-1" />
+          <Card className="shadow-sm lg:col-span-1 xl:col-span-1">
+            <CardHeader className="py-2 px-3 sm:px-4">
+              <CardTitle className="text-xs sm:text-sm flex items-center">
+                <Thermometer className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 Temperature Ranges
               </CardTitle>
             </CardHeader>
-            <CardContent className="py-2">
+            <CardContent className="py-2 px-3 sm:px-4">
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
                   <span className="text-xs">Normal:</span>
@@ -204,14 +209,14 @@ export default function TemperatureControlPage() {
           </Card>
 
           {/* Humidity Range Cards */}
-          <Card className="shadow-sm">
-            <CardHeader className="py-2">
-              <CardTitle className="text-sm flex items-center">
-                <Droplets className="h-4 w-4 mr-1" />
+          <Card className="shadow-sm lg:col-span-1 xl:col-span-1">
+            <CardHeader className="py-2 px-3 sm:px-4">
+              <CardTitle className="text-xs sm:text-sm flex items-center">
+                <Droplets className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 Humidity Ranges
               </CardTitle>
             </CardHeader>
-            <CardContent className="py-2">
+            <CardContent className="py-2 px-3 sm:px-4">
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
                   <span className="text-xs">Normal:</span>
@@ -236,10 +241,12 @@ export default function TemperatureControlPage() {
           </Card>
 
           {/* Trend Analysis Card */}
-          <TemperatureTrendCard 
-            refreshTrigger={refreshTrigger}
-            onClick={() => setShowTrendModal(true)}
-          />
+          <div className="lg:col-span-1 xl:col-span-1">
+            <TemperatureTrendCard 
+              refreshTrigger={refreshTrigger}
+              onClick={() => setShowTrendModal(true)}
+            />
+          </div>
         </div>
 
         {showForm && (
@@ -261,7 +268,7 @@ export default function TemperatureControlPage() {
         />
 
         {/* Temperature Control Records List */}
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           <TemperatureControlList 
             refreshTrigger={refreshTrigger} 
             config={config}

@@ -89,13 +89,13 @@ export function TemperatureTrendCard({ refreshTrigger, onClick }: TemperatureTre
   if (loading) {
     return (
       <Card className="shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-        <CardHeader className="py-2">
-          <CardTitle className="text-sm flex items-center">
-            <BarChart3 className="h-4 w-4 mr-1" />
+        <CardHeader className="py-2 px-3 sm:px-4">
+          <CardTitle className="text-xs sm:text-sm flex items-center">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
             Trend Analysis
           </CardTitle>
         </CardHeader>
-        <CardContent className="py-2">
+        <CardContent className="py-2 px-3 sm:px-4">
           <div className="space-y-1">
             <div className="flex justify-between items-center">
               <span className="text-xs">Loading...</span>
@@ -111,13 +111,13 @@ export function TemperatureTrendCard({ refreshTrigger, onClick }: TemperatureTre
       className="shadow-sm cursor-pointer hover:shadow-md transition-shadow" 
       onClick={onClick}
     >
-      <CardHeader className="py-2">
-        <CardTitle className="text-sm flex items-center">
-          <BarChart3 className="h-4 w-4 mr-1" />
+      <CardHeader className="py-2 px-3 sm:px-4">
+        <CardTitle className="text-xs sm:text-sm flex items-center">
+          <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
           Trend Analysis
         </CardTitle>
       </CardHeader>
-      <CardContent className="py-2">
+      <CardContent className="py-2 px-3 sm:px-4">
         <div className="space-y-1">
           <div className="flex justify-between items-center">
             <span className="text-xs">Temperature:</span>

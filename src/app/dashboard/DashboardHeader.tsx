@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, User, Settings, DatabaseIcon, ActivityIcon, CircleUserRound, Bell, HelpCircle, Book, Wrench, MessageSquare, Globe, LayoutDashboard, Plane, Shield } from "lucide-react";
+import { LogOut, Menu, X, User, Settings, DatabaseIcon, ActivityIcon, CircleUserRound, Bell, HelpCircle, Book, Wrench, MessageSquare, Globe, LayoutDashboard, Plane, Shield, HomeIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signOut, useSession } from "next-auth/react";
@@ -92,6 +92,14 @@ export default function DashboardHeader() {
               }`}>
                 {session?.user?.privilege === 'admin' ? 'Admin' : 'User'}
               </span>
+              {/* Add Dashboard button in mobile view */}
+              <Link 
+                href="/dashboard" 
+                className="md:hidden inline-flex items-center justify-center h-6 px-2 text-xs font-medium bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 border border-black/20 dark:border-black/40 rounded-md gap-1"
+              >
+                <HomeIcon className="h-3 w-3" />
+                Dashboard
+              </Link>
             </div>
           </div>
 
@@ -99,9 +107,9 @@ export default function DashboardHeader() {
           <nav className="hidden md:flex items-center space-x-4">
             <Link 
               href="/dashboard" 
-              className="inline-flex items-center justify-center h-8 px-3 text-xs font-medium bg-background hover:bg-accent border border-input rounded-md gap-1"
+              className="inline-flex items-center justify-center h-8 px-3 text-xs font-medium bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 border border-black/20 dark:border-black/40 rounded-md gap-1"
             >
-              <LayoutDashboard className="h-3 w-3" />
+              <HomeIcon className="h-3 w-3" />
               Dashboard
             </Link>
             <Link 
@@ -337,6 +345,40 @@ export default function DashboardHeader() {
               >
                 <Settings className="h-4 w-4" />
                 Account Settings
+              </Link>
+              {session?.user?.privilege === "admin" && (
+                <Link 
+                  href="/dashboard/administration" 
+                  className="block py-2 text-sm font-medium hover:text-primary flex items-center gap-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Shield className="h-4 w-4" />
+                  Administration
+                </Link>
+              )}
+              <Link 
+                href="/dashboard/organization" 
+                className="block py-2 text-sm font-medium hover:text-primary flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <User className="h-4 w-4" />
+                Your Organization
+              </Link>
+              <Link 
+                href="/dashboard/manage-data-records" 
+                className="block py-2 text-sm font-medium hover:text-primary flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <DatabaseIcon className="h-4 w-4" />
+                Manage Data Records
+              </Link>
+              <Link 
+                href="/dashboard/user-activity" 
+                className="block py-2 text-sm font-medium hover:text-primary flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <ActivityIcon className="h-4 w-4" />
+                User Activity
               </Link>
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm font-medium">Dark Mode</span>

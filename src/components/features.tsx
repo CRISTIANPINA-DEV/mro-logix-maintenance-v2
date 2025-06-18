@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Plane, PackageOpen, FileCog, CalendarCheck2, Clock3, BarChart3, GraduationCap, Users, ShieldAlert, FileSpreadsheet, TriangleAlert, Handshake, ChartNoAxesCombined, FileText, DatabaseBackup, Clipboard } from "lucide-react";
+import { Plane, PackageOpen, CalendarCheck2, Clock3, BarChart3, GraduationCap, Users, ShieldAlert, FileSpreadsheet, TriangleAlert, Handshake, ChartNoAxesCombined, FileText, DatabaseBackup, Clipboard } from "lucide-react";
 
 export const Features = () => (
   <div className="w-full pt-12 pb-20 lg:pt-12 lg:pb-40">
@@ -39,15 +39,7 @@ export const Features = () => (
              Optimize inventory management with real-time tracking and analysis
             </p>
           </div>
-          <div className="flex flex-col gap-2 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg rounded-md p-4 border border-slate-200 hover:border-indigo-300 hover:bg-background">
-            <div className="bg-muted rounded-md aspect-video mb-2 flex items-center justify-center">
-              <FileCog className="w-20 h-20 text-indigo-600" strokeWidth={0.5} />
-            </div>
-            <h3 className="text-xl tracking-tight">Aircraft Parts Cycle Tracking</h3>
-            <p className="text-muted-foreground text-base">
-             Real-time tracking of parts flight cycle and hours cycle
-            </p>
-          </div>
+
           <div className="flex flex-col gap-2 transition-all duration-300 hover:-translate-y-2 hover:shadow-lg rounded-md p-4 border border-slate-200 hover:border-indigo-300 hover:bg-background">
             <div className="bg-muted rounded-md aspect-video mb-2 flex items-center justify-center">
               <CalendarCheck2 className="w-20 h-20 text-indigo-600" strokeWidth={0.5} />

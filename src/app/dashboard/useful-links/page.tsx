@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, LinkIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface UsefulLink {
@@ -129,50 +129,63 @@ export default function UsefulLinksPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-full">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Aviation Resources & Regulatory Links</h1>
-        <p className="text-muted-foreground mt-2">
-          Essential aviation maintenance resources, technical documentation, and regulatory information for MRO professionals. 
-          Access official guidelines, safety recommendations, and technical publications from leading aviation authorities.
-        </p>
+    <div className="container mx-auto p-4 sm:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center space-x-3 mb-6">
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <LinkIcon className="h-6 w-6 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Professional Aviation Resources</h1>
+          <p className="text-muted-foreground mt-1 text-base">
+            Curated collection of essential aviation industry resources, regulatory authorities, and technical documentation for MRO professionals.
+          </p>
+        </div>
       </div>
 
-      <div className="space-y-2">
+      {/* Links Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {usefulLinks.map((link, index) => (
           <Card 
             key={index} 
-            className="cursor-pointer hover:shadow-md transition-shadow duration-200 border-l-4 border-l-primary w-full h-fit rounded-none"
+            className="cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all duration-200 group rounded-lg border"
             onClick={() => handleLinkClick(link.url)}
           >
-            <div className="flex items-center justify-between px-6 py-2">
-              <div className="flex-1 min-w-0 flex items-center gap-8">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <CardTitle className="text-base font-semibold text-primary truncate">
-                    {link.topic}
-                  </CardTitle>
-                  <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                </div>
-                <CardDescription className="text-xs font-mono text-muted-foreground truncate leading-tight min-w-0 flex-1">
-                  {link.url}
-                </CardDescription>
-                {link.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-1 min-w-0 flex-2">
-                    {link.description}
-                  </p>
-                )}
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors leading-tight pr-2">
+                  {link.topic}
+                </CardTitle>
+                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
               </div>
-            </div>
+            </CardHeader>
+            {link.description && (
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                  {link.description}
+                </p>
+              </CardContent>
+            )}
           </Card>
         ))}
       </div>
 
-      <div className="mt-8 p-4 bg-muted/50 rounded-lg">
-        <p className="text-sm text-muted-foreground">
-          <strong>Note:</strong> Clicking on any link will open the resource in a new tab. 
-          These external resources are provided for reference and may have their own terms of use.
-        </p>
-      </div>
+      {/* Footer Note */}
+      <Card className="mt-8 border-dashed">
+        <CardContent className="pt-6">
+          <div className="flex items-start space-x-3">
+            <div className="p-1 bg-blue-100 dark:bg-blue-900 rounded">
+              <ExternalLink className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium mb-1">External Resources Notice</p>
+              <p className="text-sm text-muted-foreground">
+                All links open in new tabs for your convenience. These external resources are maintained by their respective organizations and may have independent terms of use and privacy policies.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 } 

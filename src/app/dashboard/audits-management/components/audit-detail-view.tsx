@@ -30,11 +30,22 @@ import {
   Users,
   ClipboardCheck
 } from "lucide-react";
+import CreateFindingDialog from './create-finding-dialog';
+import CreateCorrectiveActionDialog from './create-corrective-action-dialog';
 
 interface AuditDetailViewProps {
   auditId: string;
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface AuditChecklistItem {
+  id: string;
+  itemNumber: string;
+  category?: string;
+  requirement: string;
+  status: string;
+  auditorNotes?: string;
 }
 
 interface Audit {
@@ -68,7 +79,7 @@ interface Audit {
   nextAuditDue?: string;
   findings: any[];
   attachments: any[];
-  checklistItems: any[];
+  checklistItems: AuditChecklistItem[];
   _count: {
     findings: number;
     attachments: number;
@@ -131,6 +142,16 @@ const AuditDetailView: React.FC<AuditDetailViewProps> = ({ auditId, isOpen, onCl
       case 'NON_CRITICAL': return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'OBSERVATION': return 'bg-gray-50 text-gray-700 border-gray-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getChecklistStatusColor = (status: string) => {
+    switch (status) {
+      case 'COMPLIANT': return 'bg-green-100 text-green-800';
+      case 'NON_COMPLIANT': return 'bg-red-100 text-red-800';
+      case 'NOT_APPLICABLE': return 'bg-gray-100 text-gray-700';
+      case 'NOT_STARTED': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-50 text-gray-700';
     }
   };
 
@@ -468,13 +489,54 @@ const AuditDetailView: React.FC<AuditDetailViewProps> = ({ auditId, isOpen, onCl
                     )}
                   </TabsContent>
 
+                  <TabsContent value="checklist" className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-base font-medium">Checklist ({audit.checklistItems.length})</h3>
+                      <Button size="sm" className="h-7 text-xs">
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Item
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {audit.checklistItems.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <ClipboardCheck className="h-12 w-12 mx-auto text-gray-300" />
+                          <p className="mt-2">No checklist items have been added to this audit.</p>
+                        </div>
+                      ) : (
+                        audit.checklistItems.map((item) => (
+                          <Card key={item.id} className="border-gray-200">
+                            <CardContent className="p-3">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-semibold text-xs text-gray-500">{item.itemNumber}</span>
+                                    <h4 className="text-sm font-medium text-gray-900">{item.requirement}</h4>
+                                  </div>
+                                  {item.auditorNotes && <p className="text-xs text-gray-700 ml-6 leading-relaxed">{item.auditorNotes}</p>}
+                                </div>
+                                <div className="flex items-center gap-2 ml-3">
+                                  <Badge className={`text-xs px-2 py-0.5 border ${getChecklistStatusColor(item.status)}`}>
+                                    {item.status.replace('_', ' ')}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </TabsContent>
+
                   <TabsContent value="findings" className="space-y-3">
                     <div className="flex justify-between items-center">
                       <h3 className="text-base font-medium">Findings ({audit.findings.length})</h3>
-                      <Button size="sm" className="h-7 text-xs">
-                        <Plus className="h-3 w-3 mr-1" />
-                        Add
-                      </Button>
+                      <CreateFindingDialog auditId={audit.id} onFindingCreated={fetchAuditDetails}>
+                        <Button size="sm" className="h-7 text-xs">
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add
+                        </Button>
+                      </CreateFindingDialog>
                     </div>
                     <div className="space-y-2">
                       {audit.findings.map((finding) => (
@@ -497,7 +559,15 @@ const AuditDetailView: React.FC<AuditDetailViewProps> = ({ auditId, isOpen, onCl
                             <p className="text-xs text-gray-700 mb-2 leading-relaxed line-clamp-2">{finding.description}</p>
                             <div className="flex justify-between items-center text-xs text-gray-500">
                               <span>{finding.category || 'N/A'}</span>
-                              <span>{finding.correctiveActions?.length || 0} actions</span>
+                              <div className="flex items-center gap-2">
+                                <span>{finding.correctiveActions?.length || 0} actions</span>
+                                <CreateCorrectiveActionDialog findingId={finding.id} onActionCreated={fetchAuditDetails}>
+                                  <Button variant="outline" className="h-5 px-1.5 text-xs">
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Add Action
+                                  </Button>
+                                </CreateCorrectiveActionDialog>
+                              </div>
                             </div>
                           </CardContent>
                         </Card>

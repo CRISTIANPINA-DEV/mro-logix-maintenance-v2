@@ -151,38 +151,39 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-xl font-semibold">New SMS Report</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between px-3 sm:px-6 py-3 sm:py-4">
+        <CardTitle className="text-lg sm:text-xl font-semibold">New SMS Report</CardTitle>
         <Button
           variant="ghost"
           size="sm"
           onClick={onCancel}
           className="h-8 w-8 p-0"
         >
-          <X size={16} />
+          <X size={14} className="sm:w-4 sm:h-4" />
         </Button>
       </CardHeader>
       
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className="px-3 sm:px-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Reporter Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="reporterName">Your Name (Optional)</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="reporterName" className="text-sm">Your Name (Optional)</Label>
               <Input
                 id="reporterName"
                 name="reporterName"
                 value={formData.reporterName}
                 onChange={handleInputChange}
                 placeholder="Enter your name (reports can be anonymous)"
+                className="h-9 text-sm"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 leading-tight">
                 Reports can be anonymous in accordance with company policies
               </p>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="reporterEmail">Email (Optional)</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="reporterEmail" className="text-sm">Email (Optional)</Label>
               <Input
                 id="reporterEmail"
                 name="reporterEmail"
@@ -190,17 +191,18 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
                 value={formData.reporterEmail}
                 onChange={handleInputChange}
                 placeholder="Enter your email for a copy of the report"
+                className="h-9 text-sm"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 leading-tight">
                 A copy of the report will be sent to this email if provided
               </p>
             </div>
           </div>
 
           {/* Event Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date <span className="text-red-500">*</span></Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="date" className="text-sm">Date <span className="text-red-500">*</span></Label>
               <Input
                 id="date"
                 name="date"
@@ -208,11 +210,12 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
                 value={formData.date}
                 onChange={handleInputChange}
                 required
+                className="h-9 text-sm"
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="timeOfEvent">Time of Event (Optional)</Label>
+            <div className="space-y-1 sm:space-y-2">
+              <Label htmlFor="timeOfEvent" className="text-sm">Time of Event (Optional)</Label>
               <Input
                 id="timeOfEvent"
                 name="timeOfEvent"
@@ -220,13 +223,14 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
                 value={formData.timeOfEvent}
                 onChange={handleInputChange}
                 placeholder="HH:MM"
+                className="h-9 text-sm"
               />
             </div>
           </div>
 
           {/* Report Details */}
-          <div className="space-y-2">
-            <Label htmlFor="reportTitle">Report Title <span className="text-red-500">*</span></Label>
+          <div className="space-y-1 sm:space-y-2">
+            <Label htmlFor="reportTitle" className="text-sm">Report Title <span className="text-red-500">*</span></Label>
             <Input
               id="reportTitle"
               name="reportTitle"
@@ -234,29 +238,31 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
               onChange={handleInputChange}
               placeholder="Enter a descriptive title for the report"
               required
+              className="h-9 text-sm"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="reportDescription">Report Description <span className="text-red-500">*</span></Label>
+          <div className="space-y-1 sm:space-y-2">
+            <Label htmlFor="reportDescription" className="text-sm">Report Description <span className="text-red-500">*</span></Label>
             <Textarea
               id="reportDescription"
               name="reportDescription"
               value={formData.reportDescription}
               onChange={handleInputChange}
               placeholder="Provide a detailed description of the safety event or concern..."
-              rows={6}
+              rows={5}
               required
+              className="text-sm resize-none"
             />
           </div>
 
           {/* File Upload */}
-          <div className="space-y-4">
-            <Label>Attachments (Optional)</Label>
+          <div className="space-y-3 sm:space-y-4">
+            <Label className="text-sm">Attachments (Optional)</Label>
             
             {/* File Drop Zone */}
             <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${
                 dragActive 
                   ? 'border-blue-400 bg-blue-50' 
                   : 'border-gray-300 hover:border-gray-400'
@@ -266,8 +272,8 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-sm text-gray-600 mb-2">
+              <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mb-3 sm:mb-4" />
+              <p className="text-xs sm:text-sm text-gray-600 mb-2">
                 Drag and drop files here, or{' '}
                 <label className="text-blue-600 hover:text-blue-500 cursor-pointer">
                   browse
@@ -288,17 +294,17 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
             {/* File List */}
             {files.length > 0 && (
               <div className="space-y-2">
-                <Label>Selected Files ({files.length})</Label>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
+                <Label className="text-sm">Selected Files ({files.length})</Label>
+                <div className="space-y-2 max-h-32 sm:max-h-40 overflow-y-auto">
                   {files.map((file) => (
                     <div
                       key={file.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center justify-between p-2 sm:p-3 bg-gray-50 rounded-lg gap-2"
                     >
-                      <div className="flex items-center space-x-3">
-                        <File size={16} className="text-gray-500" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
+                      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                        <File size={14} className="text-gray-500 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                             {file.name}
                           </p>
                           <p className="text-xs text-gray-500">
@@ -311,9 +317,9 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile(file.id)}
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-red-500 hover:text-red-700 flex-shrink-0"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={12} className="sm:w-3.5 sm:h-3.5" />
                       </Button>
                     </div>
                   ))}
@@ -323,12 +329,13 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 sm:pt-6 border-t">
             <Button
               type="button"
               variant="neutral"
               onClick={onCancel}
               disabled={isSubmitting}
+              className="h-9 text-sm order-2 sm:order-1"
             >
               Cancel
             </Button>
@@ -336,6 +343,7 @@ const SMSReportForm = ({ onCancel, onSuccess }: SMSReportFormProps) => {
               type="submit"
               variant="save"
               disabled={isSubmitting}
+              className="h-9 text-sm order-1 sm:order-2"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Report'}
             </Button>

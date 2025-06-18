@@ -185,7 +185,7 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '16px',
+      padding: '12px',
     },
     content: {
       position: 'relative' as const,
@@ -194,10 +194,10 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
       right: 'auto',
       bottom: 'auto',
       width: '100%',
-      maxWidth: '600px',
+      maxWidth: '90vw',
       maxHeight: '90vh',
       border: 'none',
-      borderRadius: '0',
+      borderRadius: '8px',
       padding: '0',
       overflow: 'hidden',
       background: 'white',
@@ -211,8 +211,8 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
       <div className="space-y-4">
         {/* Loading placeholder */}
         <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">Loading...</p>
+          <CardContent className="p-4 sm:p-6 text-center">
+            <p className="text-muted-foreground text-sm sm:text-base">Loading...</p>
           </CardContent>
         </Card>
       </div>
@@ -223,10 +223,10 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
       {/* Records List */}
       {records.length === 0 ? (
         <Card>
-          <CardContent className="p-6 text-center">
-            <Thermometer className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Temperature Records Found</h3>
-            <p className="text-muted-foreground">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <Thermometer className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-3 sm:mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold mb-2">No Temperature Records Found</h3>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Start by adding your first temperature record.
             </p>
           </CardContent>
@@ -236,61 +236,67 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
           <div className="grid gap-4">
             {records.map((record) => (
               <Card key={record.id} className="hover:shadow-md transition-shadow rounded-none">
-                <CardContent className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+                <CardContent className="p-3 sm:p-4">
+                  {/* Mobile-first layout with responsive grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
                     {/* Date & Time */}
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-3 w-3 text-muted-foreground" />
-                      <div>
+                    <div className="flex items-center gap-2 sm:col-span-1">
+                      <Calendar className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0">
                         <p className="text-xs font-medium">Date & Time</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground truncate">
                           {formatDate(record.date)} at {formatTime(record.time)}
                         </p>
                       </div>
                     </div>
 
                     {/* Location */}
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-3 w-3 text-muted-foreground" />
-                      <div>
+                    <div className="flex items-center gap-2 sm:col-span-1">
+                      <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0">
                         <p className="text-xs font-medium">Location</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground truncate">
                           {getLocationDisplay(record.location, record.customLocation)}
                         </p>
                       </div>
                     </div>
 
-                    {/* Temperature */}
-                    <div className="flex items-center gap-2">
-                      <Thermometer className="h-3 w-3 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs font-medium">Temperature</p>
-                        <p className={`text-xs font-semibold ${getTemperatureColor(record.temperature)}`}>
-                          {record.temperature}°C
-                        </p>
+                    {/* Temperature & Humidity - Combined on mobile */}
+                    <div className="grid grid-cols-2 gap-3 sm:col-span-2 lg:col-span-2">
+                      {/* Temperature */}
+                      <div className="flex items-center gap-2">
+                        <Thermometer className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium">Temperature</p>
+                          <p className={`text-xs font-semibold ${getTemperatureColor(record.temperature)}`}>
+                            {record.temperature}°C
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Humidity */}
+                      <div className="flex items-center gap-2">
+                        <Droplets className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium">Humidity</p>
+                          <p className={`text-xs font-semibold ${getHumidityColor(record.humidity)}`}>
+                            {record.humidity}%
+                          </p>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Humidity */}
-                    <div className="flex items-center gap-2">
-                      <Droplets className="h-3 w-3 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs font-medium">Humidity</p>
-                        <p className={`text-xs font-semibold ${getHumidityColor(record.humidity)}`}>
-                          {record.humidity}%
-                        </p>
-                      </div>
-                    </div>
                     {/* Employee */}
-                    <div className="flex items-center gap-2">
-                      <User className="h-3 w-3 text-muted-foreground" />
-                      <div>
+                    <div className="flex items-center gap-2 sm:col-span-1">
+                      <User className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0">
                         <p className="text-xs font-medium">Recorded by</p>
-                        <p className="text-xs text-muted-foreground">{record.employeeName}</p>
+                        <p className="text-xs text-muted-foreground truncate">{record.employeeName}</p>
                       </div>
                     </div>
+
                     {/* Actions */}
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-1 sm:col-span-1 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -327,29 +333,33 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
             ))}
           </div>
 
-          {/* Pagination */}
+          {/* Pagination - Mobile Optimized */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4">
-              <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-3 sm:gap-0">
+              <div className="text-sm text-muted-foreground order-2 sm:order-1">
                 Page {currentPage} of {totalPages}
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 order-1 sm:order-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
+                  className="text-xs sm:text-sm"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Previous
+                  <span className="hidden sm:inline">Previous</span>
+                  <span className="sm:hidden">Prev</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
+                  className="text-xs sm:text-sm"
                 >
-                  Next
+                  <span className="hidden sm:inline">Next</span>
+                  <span className="sm:hidden">Next</span>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -369,21 +379,21 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
         <div className="flex flex-col h-full bg-gray-50">
           {/* Header */}
           <div className="flex-shrink-0 bg-white border-b border-gray-200">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-md">
-                  <MessageSquare className="w-4 h-4 text-blue-600" />
+            <div className="flex items-center justify-between px-3 sm:px-4 py-3">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-blue-100 rounded-md flex-shrink-0">
+                  <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
                 </div>
-                <div>
-                  <h1 className="text-lg font-semibold text-gray-900">Comment Details</h1>
-                  <p className="text-xs text-gray-500">Record ID: {selectedComment?.recordId}</p>
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-lg font-semibold text-gray-900 truncate">Comment Details</h1>
+                  <p className="text-xs text-gray-500 truncate">Record ID: {selectedComment?.recordId}</p>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedComment(null)}
-                className="h-7 w-7 p-0 hover:bg-gray-100 rounded-md cursor-pointer"
+                className="h-7 w-7 p-0 hover:bg-gray-100 rounded-md cursor-pointer flex-shrink-0"
               >
                 <X className="h-3.5 w-3.5" />
               </Button>
@@ -391,19 +401,19 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6">
             <div className="prose prose-sm max-w-none">
               {selectedComment?.hasComment && selectedComment.comment ? (
-                <p>{selectedComment.comment}</p>
+                <p className="text-sm sm:text-base">{selectedComment.comment}</p>
               ) : (
-                <p className="text-gray-500 italic">No comment provided for this record.</p>
+                <p className="text-gray-500 italic text-sm sm:text-base">No comment provided for this record.</p>
               )}
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-3">
-            <div className="flex justify-between items-center">
+          <div className="flex-shrink-0 bg-white border-t border-gray-200 px-3 sm:px-4 py-3">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
               {permissions?.canDeleteTemperatureRecord && (
                 <Button
                   variant="delete"
@@ -411,7 +421,7 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
                     setRecordToDelete(selectedComment?.recordId || null);
                     setIsDeleteDialogOpen(true);
                   }}
-                  className="text-sm cursor-pointer flex items-center gap-2"
+                  className="text-sm cursor-pointer flex items-center gap-2 order-2 sm:order-1"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Delete Record
@@ -421,7 +431,7 @@ export function TemperatureControlList({ refreshTrigger, config }: TemperatureCo
                 type="button" 
                 variant="neutral" 
                 onClick={() => setSelectedComment(null)}
-                className="text-sm cursor-pointer"
+                className="text-sm cursor-pointer order-1 sm:order-2"
               >
                 Close
               </Button>

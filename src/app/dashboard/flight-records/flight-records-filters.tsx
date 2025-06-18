@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { FilterIcon, SearchIcon, RefreshCwIcon } from "lucide-react";
+import { FilterIcon, SearchIcon, RefreshCwIcon, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -41,14 +42,31 @@ export function FlightRecordsFilters({
   stationList,
   serviceList
 }: FlightRecordsFiltersProps) {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
   return (
     <TooltipProvider>
-      <Card>
-        <CardHeader className="py-3">
+      <Card className="rounded-none">
+        <CardHeader className={`py-3 sm:py-3 ${isCollapsed ? 'py-1.5' : 'py-3'}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FilterIcon className="h-4 w-4" />
-              <CardTitle className="text-base">Filters & Search</CardTitle>
+              <div className="sm:hidden flex items-center gap-2">
+                <CardTitle className={`text-base ${isCollapsed ? 'text-sm' : 'text-base'}`}>Filters</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  className={`p-1 ${isCollapsed ? 'h-5 w-5' : 'h-6 w-6'} rounded-none`}
+                >
+                  {isCollapsed ? (
+                    <ChevronDown className="h-3 w-3" />
+                  ) : (
+                    <ChevronUp className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <CardTitle className="text-base hidden sm:block">Filters & Search</CardTitle>
             </div>
             <div className="flex gap-2">
               <Tooltip>
@@ -62,7 +80,7 @@ export function FlightRecordsFilters({
                       onDefectFilterChange("all_defects");
                       onSearchChange("");
                     }}
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${isCollapsed ? 'h-6 text-xs' : 'h-8 text-sm'} sm:h-8 sm:text-sm rounded-none`}
                   >
                     Clear All
                   </Button>
@@ -78,9 +96,9 @@ export function FlightRecordsFilters({
                     disabled={loading} 
                     variant="outline" 
                     size="sm"
-                    className="cursor-pointer"
+                    className={`cursor-pointer ${isCollapsed ? 'h-6 text-xs' : 'h-8 text-sm'} sm:h-8 sm:text-sm rounded-none`}
                   >
-                    <RefreshCwIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCwIcon className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
                     Refresh
                   </Button>
                 </TooltipTrigger>
@@ -91,7 +109,7 @@ export function FlightRecordsFilters({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="py-3">
+        <CardContent className={`py-3 ${isCollapsed ? 'hidden sm:block' : 'block'}`}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="space-y-1">
               <label className="text-xs font-medium">Search</label>
@@ -103,7 +121,7 @@ export function FlightRecordsFilters({
                       placeholder="Search records..."
                       value={searchTerm}
                       onChange={(e) => onSearchChange(e.target.value)}
-                      className="pl-8 h-8 text-sm cursor-pointer"
+                      className="pl-8 h-8 text-sm cursor-pointer rounded-none"
                     />
                   </div>
                 </TooltipTrigger>
@@ -115,7 +133,7 @@ export function FlightRecordsFilters({
             <div className="space-y-1">
               <label className="text-xs font-medium">Station</label>
               <Select value={stationFilter} onValueChange={onStationFilterChange}>
-                <SelectTrigger className="h-8 text-sm cursor-pointer">
+                <SelectTrigger className="h-8 text-sm cursor-pointer rounded-none">
                   <SelectValue placeholder="All stations" />
                 </SelectTrigger>
                 <SelectContent>
@@ -129,7 +147,7 @@ export function FlightRecordsFilters({
             <div className="space-y-1">
               <label className="text-xs font-medium">Service Type</label>
               <Select value={serviceFilter} onValueChange={onServiceFilterChange}>
-                <SelectTrigger className="h-8 text-sm cursor-pointer">
+                <SelectTrigger className="h-8 text-sm cursor-pointer rounded-none">
                   <SelectValue placeholder="All services" />
                 </SelectTrigger>
                 <SelectContent>
@@ -143,7 +161,7 @@ export function FlightRecordsFilters({
             <div className="space-y-1">
               <label className="text-xs font-medium">Defect Status</label>
               <Select value={defectFilter} onValueChange={onDefectFilterChange}>
-                <SelectTrigger className="h-8 text-sm cursor-pointer">
+                <SelectTrigger className="h-8 text-sm cursor-pointer rounded-none">
                   <SelectValue placeholder="All defects" />
                 </SelectTrigger>
                 <SelectContent>

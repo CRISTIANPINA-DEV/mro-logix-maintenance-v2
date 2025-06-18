@@ -20,12 +20,24 @@ export async function GET(
 
     const { id } = await params;
 
+    // Build where clause based on user privilege
+    const whereClause: {
+      id: string;
+      companyId: string;
+      userId?: string;
+    } = {
+      id,
+      companyId: session.user.companyId
+    };
+
+    // If user is not admin, filter to only their own reports
+    if (session.user.privilege !== 'admin') {
+      whereClause.userId = session.user.id;
+    }
+
     // Check if the SMS report exists and belongs to the user's company
     const smsReport = await prisma.sMSReport.findFirst({
-      where: { 
-        id,
-        companyId: session.user.companyId
-      },
+      where: whereClause,
       include: {
         Attachment: {
           select: {
@@ -35,6 +47,14 @@ export async function GET(
             fileSize: true,
             fileType: true,
             createdAt: true
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
           }
         }
       }
@@ -83,12 +103,24 @@ export async function DELETE(
 
     const { id } = await params;
 
+    // Build where clause based on user privilege
+    const whereClause: {
+      id: string;
+      companyId: string;
+      userId?: string;
+    } = {
+      id,
+      companyId: currentUser.companyId
+    };
+
+    // If user is not admin, filter to only their own reports
+    if (session.user.privilege !== 'admin') {
+      whereClause.userId = currentUser.id;
+    }
+
     // First, get the SMS report with its attachments and verify company ownership
     const smsReport = await prisma.sMSReport.findFirst({
-      where: { 
-        id,
-        companyId: currentUser.companyId
-      },
+      where: whereClause,
       include: {
         Attachment: true
       }

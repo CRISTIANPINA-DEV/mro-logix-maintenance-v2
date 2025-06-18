@@ -37,6 +37,7 @@ interface SMSReportDetailProps {
     reportNumber: string;
     reporterName?: string | null;
     reporterEmail?: string | null;
+    userId?: string | null;
     date: string;
     timeOfEvent?: string | null;
     reportTitle: string;
@@ -44,6 +45,12 @@ interface SMSReportDetailProps {
     hasAttachments: boolean;
     createdAt: string;
     updatedAt: string;
+    user?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+    } | null;
     Attachment?: Array<{
       id: string;
       fileName: string;
@@ -148,24 +155,28 @@ const SMSReportDetail = ({ report, onClose, onDelete }: SMSReportDetailProps) =>
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex items-center gap-3">
-          <CardTitle className="text-xl font-semibold">SMS Report Details</CardTitle>
-          <Badge className="bg-[#8b5cf6] text-white">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 px-3 sm:px-6">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <CardTitle className="text-lg sm:text-xl font-semibold">
+            <span className="sm:hidden">Report Details</span>
+            <span className="hidden sm:inline">SMS Report Details</span>
+          </CardTitle>
+          <Badge className="bg-[#8b5cf6] text-white text-xs sm:text-sm">
             {report.reportNumber}
           </Badge>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm h-8 sm:h-9"
                 disabled={isDeleting}
               >
-                <Trash2 size={16} className="mr-1" />
-                Delete
+                <Trash2 size={14} className="mr-1" />
+                <span className="hidden sm:inline">Delete</span>
+                <span className="sm:hidden">Del</span>
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -198,60 +209,68 @@ const SMSReportDetail = ({ report, onClose, onDelete }: SMSReportDetailProps) =>
             onClick={onClose}
             className="h-8 w-8 p-0"
           >
-            <X size={16} />
+            <X size={14} className="sm:w-4 sm:h-4" />
           </Button>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6">
         {/* Report Title */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-2 leading-tight">
             {report.reportTitle}
           </h2>
         </div>
 
         {/* Report Metadata */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar size={16} className="text-gray-500" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <Calendar size={14} className="text-gray-500 flex-shrink-0" />
             <span className="font-medium">Event Date:</span>
-            <span>{formatDate(report.date)}</span>
+            <span className="truncate">{formatDate(report.date)}</span>
           </div>
           
           {report.timeOfEvent && (
-            <div className="flex items-center gap-2 text-sm">
-              <Clock size={16} className="text-gray-500" />
+            <div className="flex items-center gap-2 text-xs sm:text-sm">
+              <Clock size={14} className="text-gray-500 flex-shrink-0" />
               <span className="font-medium">Time:</span>
-              <span>{formatTime(report.timeOfEvent)}</span>
+              <span className="truncate">{formatTime(report.timeOfEvent)}</span>
             </div>
           )}
           
-          <div className="flex items-center gap-2 text-sm">
-            <User size={16} className="text-gray-500" />
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <User size={14} className="text-gray-500 flex-shrink-0" />
             <span className="font-medium">Reporter:</span>
-            <span>{report.reporterName || 'Anonymous'}</span>
+            <span className="truncate">{report.reporterName || 'Anonymous'}</span>
           </div>
           
           {report.reporterEmail && (
-            <div className="flex items-center gap-2 text-sm">
-              <Mail size={16} className="text-gray-500" />
+            <div className="flex items-center gap-2 text-xs sm:text-sm">
+              <Mail size={14} className="text-gray-500 flex-shrink-0" />
               <span className="font-medium">Email:</span>
-              <span>{report.reporterEmail}</span>
+              <span className="truncate">{report.reporterEmail}</span>
             </div>
           )}
           
-          <div className="flex items-center gap-2 text-sm">
-            <FileText size={16} className="text-gray-500" />
+          {report.user && (
+            <div className="flex items-center gap-2 text-xs sm:text-sm">
+              <User size={14} className="text-gray-500 flex-shrink-0" />
+              <span className="font-medium">Created by:</span>
+              <span className="truncate">{report.user.firstName} {report.user.lastName}</span>
+            </div>
+          )}
+          
+          <div className="flex items-center gap-2 text-xs sm:text-sm">
+            <FileText size={14} className="text-gray-500 flex-shrink-0" />
             <span className="font-medium">Submitted:</span>
-            <span>{formatDateTime(report.createdAt)}</span>
+            <span className="truncate">{formatDateTime(report.createdAt)}</span>
           </div>
           
           {report.hasAttachments && (
-            <div className="flex items-center gap-2 text-sm">
-              <Paperclip size={16} className="text-gray-500" />
+            <div className="flex items-center gap-2 text-xs sm:text-sm">
+              <Paperclip size={14} className="text-gray-500 flex-shrink-0" />
               <span className="font-medium">Attachments:</span>
-              <span>{report.Attachment?.length || 0} files</span>
+              <span className="truncate">{report.Attachment?.length || 0} files</span>
             </div>
           )}
         </div>
@@ -260,9 +279,9 @@ const SMSReportDetail = ({ report, onClose, onDelete }: SMSReportDetailProps) =>
 
         {/* Report Description */}
         <div>
-          <h3 className="text-lg font-semibold mb-3">Report Description</h3>
-          <div className="bg-white border rounded-lg p-4">
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+          <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Report Description</h3>
+          <div className="bg-white border rounded-lg p-3 sm:p-4">
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
               {report.reportDescription}
             </p>
           </div>
@@ -271,17 +290,17 @@ const SMSReportDetail = ({ report, onClose, onDelete }: SMSReportDetailProps) =>
         {/* Attachments */}
         {report.hasAttachments && report.Attachment && report.Attachment.length > 0 && (
           <div>
-            <h3 className="text-lg font-semibold mb-3">Attachments</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Attachments</h3>
             <div className="space-y-2">
               {report.Attachment.map((attachment) => (
                 <div
                   key={attachment.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 p-3 bg-gray-50 rounded-lg border"
                 >
-                  <div className="flex items-center space-x-3">
-                    <Paperclip size={16} className="text-gray-500" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
+                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                    <Paperclip size={14} className="text-gray-500 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                         {attachment.fileName}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -293,9 +312,9 @@ const SMSReportDetail = ({ report, onClose, onDelete }: SMSReportDetailProps) =>
                     variant="outline"
                     size="sm"
                     onClick={() => handleDownloadAttachment(attachment.id, attachment.fileName)}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 text-xs sm:text-sm h-8 sm:h-9 w-full sm:w-auto justify-center"
                   >
-                    <Download size={14} />
+                    <Download size={12} className="sm:w-3.5 sm:h-3.5" />
                     Download
                   </Button>
                 </div>

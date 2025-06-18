@@ -139,14 +139,14 @@ export function FlightRecordsList({
   if (loading) {
     return (
       <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-none h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (filteredRecords.length === 0 && !loading) {
     return (
-      <div className="border rounded-lg p-8 bg-card text-center">
+      <div className="border rounded-none p-8 bg-card text-center">
         <PlaneTakeoff className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium mb-2">
           {searchTerm || stationFilter !== "all_stations" || 
@@ -165,7 +165,7 @@ export function FlightRecordsList({
   }
 
   return (
-    <div className="border rounded-lg bg-card overflow-hidden">
+    <div className="border rounded-none bg-card overflow-hidden">
       {/* Header Row */}
       <div className="py-2 px-3 border-b-[0.5px] sticky top-0 bg-card z-10">
         {isTabletLandscape ? (

@@ -279,10 +279,10 @@ export default function TechnicalQueryDetailPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-          <p>Loading technical query...</p>
+      <div className="container mx-auto p-3 sm:p-6">
+        <div className="text-center py-6 sm:py-8">
+          <div className="animate-spin h-6 w-6 sm:h-8 sm:w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+          <p className="text-sm sm:text-base">Loading technical query...</p>
         </div>
       </div>
     );
@@ -290,15 +290,15 @@ export default function TechnicalQueryDetailPage() {
 
   if (!query) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-3 sm:p-6">
         <Card>
-          <CardContent className="text-center py-8">
-            <AlertTriangleIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">Query not found</h3>
-            <p className="text-muted-foreground mb-4">
+          <CardContent className="text-center py-6 sm:py-8">
+            <AlertTriangleIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+            <h3 className="text-base sm:text-lg font-semibold mb-2">Query not found</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
               The technical query you're looking for doesn't exist or has been deleted.
             </p>
-            <Button asChild>
+            <Button asChild size="sm">
               <Link href="/dashboard/technical-queries">
                 <ArrowLeftIcon className="h-4 w-4 mr-2" />
                 Back to Queries
@@ -313,10 +313,10 @@ export default function TechnicalQueryDetailPage() {
   const canDeleteQuery = currentUserId === query.createdBy.id;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button variant="neutral" asChild>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <Button variant="neutral" asChild className="self-start">
           <Link href="/dashboard/technical-queries">
             <ArrowLeftIcon className="h-4 w-4 mr-2" />
             Back to Queries
@@ -328,21 +328,22 @@ export default function TechnicalQueryDetailPage() {
               variant="delete" 
               size="sm"
               onClick={() => setShowDeleteDialog(true)}
+              className="self-start sm:self-auto"
             >
               <TrashIcon className="h-4 w-4 mr-2" />
               Delete Query
             </Button>
             
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md mx-3">
                 <DialogHeader>
                   <DialogTitle className="text-destructive">Delete Technical Query</DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription className="text-sm">
                     This action cannot be undone. This will permanently delete the technical query
                     and all its responses.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
+                <div className="space-y-3 py-3">
                   <p className="text-sm font-medium">
                     Please type "Delete" to confirm:
                   </p>
@@ -354,13 +355,14 @@ export default function TechnicalQueryDetailPage() {
                     className="w-full"
                   />
                 </div>
-                <DialogFooter>
+                <DialogFooter className="flex-col sm:flex-row gap-2">
                   <Button
                     variant="neutral"
                     onClick={() => {
                       setShowDeleteDialog(false);
                       setDeleteConfirmText("");
                     }}
+                    className="w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
@@ -368,6 +370,7 @@ export default function TechnicalQueryDetailPage() {
                     variant="delete"
                     onClick={handleDeleteQuery}
                     disabled={deleteConfirmText !== "Delete" || deleting}
+                    className="w-full sm:w-auto"
                   >
                     {deleting ? "Deleting..." : "Delete Query"}
                   </Button>
@@ -380,34 +383,37 @@ export default function TechnicalQueryDetailPage() {
 
       {/* Query Details */}
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-2">
-              {getStatusIcon(query.status)}
-              <CardTitle className="text-2xl">{query.title}</CardTitle>
+        <CardHeader className="pb-3 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+            <div className="flex items-start gap-2 flex-1 min-w-0">
+              <div className="flex-shrink-0 mt-1">
+                {getStatusIcon(query.status)}
+              </div>
+              <CardTitle className="text-lg sm:text-2xl leading-tight">{query.title}</CardTitle>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {getPriorityBadge(query.priority)}
               {query.isResolved && (
-                <Badge className="bg-green-100 text-green-800">
+                <Badge className="bg-green-100 text-green-800 text-xs">
                   <CheckCircleIcon className="h-3 w-3 mr-1" />
-                  Resolved
+                  <span className="hidden sm:inline">Resolved</span>
+                  <span className="sm:hidden">✓</span>
                 </Badge>
               )}
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4">
           <div className="prose max-w-none">
-            <p className="text-base leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
               {query.description}
             </p>
           </div>
           
           {/* Tags and Category */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1 sm:gap-2">
             {query.category && (
-              <Badge variant="outline">{query.category}</Badge>
+              <Badge variant="outline" className="text-xs">{query.category}</Badge>
             )}
             {query.tags.map((tag, index) => (
               <Badge key={index} variant="secondary" className="text-xs">
@@ -417,47 +423,49 @@ export default function TechnicalQueryDetailPage() {
           </div>
           
           {/* Query Meta */}
-          <div className="flex justify-between items-center text-sm text-muted-foreground pt-4 border-t">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-3 text-xs sm:text-sm text-muted-foreground pt-3 sm:pt-4 border-t">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
               <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
+                <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
                   <AvatarFallback className="text-xs">
                     {getInitials(query.createdBy.firstName, query.createdBy.lastName)}
                   </AvatarFallback>
                 </Avatar>
-                <span>
+                <span className="truncate">
                   {query.createdBy.firstName} {query.createdBy.lastName}
                 </span>
               </div>
-              <div className="flex items-center gap-1">
-                <MessageSquareIcon className="h-4 w-4" />
-                {query._count.responses} responses
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-1">
+                  <MessageSquareIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>{query._count.responses} responses</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <EyeIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>{query.viewCount} views</span>
+                </div>
+                <VotingButtons
+                  itemId={query.id}
+                  itemType="query"
+                  initialUpvotes={query.upvotes}
+                  initialDownvotes={query.downvotes}
+                  size="sm"
+                />
               </div>
-              <div className="flex items-center gap-1">
-                <EyeIcon className="h-4 w-4" />
-                {query.viewCount} views
-              </div>
-              <VotingButtons
-                itemId={query.id}
-                itemType="query"
-                initialUpvotes={query.upvotes}
-                initialDownvotes={query.downvotes}
-                size="md"
-              />
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               <Button
                 variant="neutral"
                 size="sm"
                 onClick={() => setShowResponseForm(!showResponseForm)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 self-start sm:self-auto"
               >
                 <ReplyIcon className="h-4 w-4" />
-                {showResponseForm ? "Cancel" : "Add Response"}
+                <span>{showResponseForm ? "Cancel" : "Add Response"}</span>
               </Button>
-              <div className="flex items-center gap-1">
-                <ClockIcon className="h-4 w-4" />
-                {formatDate(query.createdAt)}
+              <div className="flex items-center gap-1 text-xs sm:text-sm">
+                <ClockIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span>{formatDate(query.createdAt)}</span>
               </div>
             </div>
           </div>
@@ -466,30 +474,31 @@ export default function TechnicalQueryDetailPage() {
 
       {/* Responses Section */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquareIcon className="h-5 w-5" />
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <MessageSquareIcon className="h-4 w-4 sm:h-5 sm:w-5" />
             Responses ({query.responses.length})
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 sm:space-y-6">
           {/* Add Response Form - Conditionally Rendered */}
           {showResponseForm && (
             <>
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Add Your Response</h3>
+              <div className="space-y-3 sm:space-y-4">
+                <h3 className="text-base sm:text-lg font-semibold">Add Your Response</h3>
                 <Textarea
                   placeholder="Share your knowledge and help solve this technical question..."
-                  rows={4}
+                  rows={3}
                   value={responseContent}
                   onChange={(e) => setResponseContent(e.target.value)}
+                  className="text-sm sm:text-base"
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     variant="save"
                     onClick={handleSubmitResponse} 
                     disabled={submittingResponse || !responseContent.trim()}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 text-sm"
                   >
                     <SendIcon className="h-4 w-4" />
                     {submittingResponse ? "Submitting..." : "Submit Response"}
@@ -501,6 +510,7 @@ export default function TechnicalQueryDetailPage() {
                       setResponseContent("");
                     }}
                     disabled={submittingResponse}
+                    className="text-sm"
                   >
                     Cancel
                   </Button>
@@ -512,37 +522,37 @@ export default function TechnicalQueryDetailPage() {
 
           {/* Responses List */}
           {query.responses.length === 0 ? (
-            <div className="text-center py-8">
-              <MessageSquareIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No responses yet</h3>
-              <p className="text-muted-foreground">
+            <div className="text-center py-6 sm:py-8">
+              <MessageSquareIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+              <h3 className="text-base sm:text-lg font-semibold mb-2">No responses yet</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Be the first to help solve this technical question!
               </p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {query.responses.map((response, index) => (
-                <div key={response.id} className="space-y-3">
+                <div key={response.id} className="space-y-2 sm:space-y-3">
                   {response.isAcceptedAnswer && (
-                    <Badge className="bg-green-100 text-green-800">
+                    <Badge className="bg-green-100 text-green-800 text-xs">
                       <CheckCircleIcon className="h-3 w-3 mr-1" />
                       Accepted Answer
                     </Badge>
                   )}
                   <div className="prose max-w-none">
-                    <p className="text-base leading-relaxed whitespace-pre-wrap">
+                    <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
                       {response.content}
                     </p>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-muted-foreground">
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                       <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
+                        <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
                           <AvatarFallback className="text-xs">
                             {getInitials(response.createdBy.firstName, response.createdBy.lastName)}
                           </AvatarFallback>
                         </Avatar>
-                        <span>
+                        <span className="truncate">
                           {response.createdBy.firstName} {response.createdBy.lastName}
                         </span>
                       </div>
@@ -555,9 +565,9 @@ export default function TechnicalQueryDetailPage() {
                         size="sm"
                       />
                     </div>
-                    <div className="flex items-center gap-1">
-                      <ClockIcon className="h-4 w-4" />
-                      {formatDate(response.createdAt)}
+                    <div className="flex items-center gap-1 self-start sm:self-auto">
+                      <ClockIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>{formatDate(response.createdAt)}</span>
                     </div>
                   </div>
                   {index < query.responses.length - 1 && <Separator />}

@@ -31,6 +31,8 @@ import {
   Activity,
   AlertCircle
 } from "lucide-react";
+import EditFindingDialog from './edit-finding-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface Finding {
   id: string;
@@ -91,6 +93,7 @@ const FindingsManagement: React.FC = () => {
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
   const [showFindingDetail, setShowFindingDetail] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [findingToDelete, setFindingToDelete] = useState<Finding | null>(null);
 
   useEffect(() => {
     fetchFindings();
@@ -199,6 +202,26 @@ const FindingsManagement: React.FC = () => {
     return matchesSearch;
   });
 
+  const handleDeleteFinding = async () => {
+    if (!findingToDelete) return;
+
+    try {
+      const response = await fetch(`/api/audits/findings/${findingToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete finding');
+      }
+
+      await fetchFindings(); // Refresh list
+      setFindingToDelete(null); // Close dialog
+
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while deleting.');
+    }
+  };
+
   if (loading && !findingsData) {
     return (
       <Card>
@@ -227,20 +250,6 @@ const FindingsManagement: React.FC = () => {
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
-              <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="neutral" size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Finding
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Finding</DialogTitle>
-                  </DialogHeader>
-                  <p className="text-gray-600">Finding creation form will be implemented here.</p>
-                </DialogContent>
-              </Dialog>
             </div>
           </div>
         </CardHeader>
@@ -466,9 +475,8 @@ const FindingsManagement: React.FC = () => {
                         <p className="text-sm text-gray-700 mb-3 line-clamp-2">{finding.description}</p>
                         
                         <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>Audit: {finding.audit.auditNumber}</span>
-                          <span>Department: {finding.audit.department}</span>
-                          <span>Responsible: {finding.responsiblePerson}</span>
+                          <span>Audit: {finding.audit?.auditNumber || 'N/A'}</span>
+                          <span>Department: {finding.audit?.department || 'N/A'}</span>
                           <span>Due: {new Date(finding.targetCloseDate).toLocaleDateString()}</span>
                           <span>{finding._count.correctiveActions} actions</span>
                         </div>
@@ -485,10 +493,12 @@ const FindingsManagement: React.FC = () => {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="edit" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="delete" size="sm">
+                        <EditFindingDialog finding={finding} onFindingUpdated={fetchFindings}>
+                          <Button variant="edit" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </EditFindingDialog>
+                        <Button variant="delete" size="sm" onClick={() => setFindingToDelete(finding)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -522,6 +532,23 @@ const FindingsManagement: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={!!findingToDelete} onOpenChange={() => setFindingToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this finding?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the finding titled "{findingToDelete?.title}" and all associated corrective actions and attachments.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteFinding} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

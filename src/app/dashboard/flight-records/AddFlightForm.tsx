@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useRef, useEffect } from "react";
 import { X, Loader2, Plus, Minus } from "lucide-react";
-import { useToast } from "../../../components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { UserSearchCombobox } from "@/components/ui/user-search-combobox";
 import { validateStation, validateAirline, validateAirplane, getStationSuggestions, getAirlineSuggestions, getAirplaneSuggestions, getCleanStationCode, getCleanAirlineName, getCleanAirplaneModel, isValueFromAirlineSuggestions, isValueFromStationSuggestions, isValueFromAirplaneSuggestions } from "@/utils/validation";
 import { AutoCompleteInput } from "@/components/ui/auto-complete-input";

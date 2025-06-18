@@ -213,6 +213,9 @@ export async function uploadAuditFindingFile(file: File, findingId: string, cate
     : `${AUDITS_FOLDER}/${fileName}`;
   return uploadToSupabase(file, key);
 }
+export async function deleteAuditFindingFile(fileKey: string): Promise<void> {
+  return deleteFromSupabase(fileKey);
+}
 export async function uploadCorrectiveActionFile(file: File, correctiveActionId: string, category?: string, companyId?: string): Promise<string> {
   const timestamp = Date.now();
   const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -223,4 +226,7 @@ export async function uploadCorrectiveActionFile(file: File, correctiveActionId:
     ? `${AUDITS_FOLDER}/${companyId}/${fileName}`
     : `${AUDITS_FOLDER}/${fileName}`;
   return uploadToSupabase(file, key);
+}
+export async function deleteCorrectiveActionFile(fileKey: string): Promise<void> {
+  return deleteFromSupabase(fileKey);
 }

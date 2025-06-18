@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 import SMSReportsHeader from './sms-reports-header';
 import SMSReportForm from './sms-report-form';
 import SMSReportCard from './sms-report-card';
@@ -16,6 +17,7 @@ interface SMSReport {
   reportNumber: string;
   reporterName?: string | null;
   reporterEmail?: string | null;
+  userId?: string | null;
   date: string;
   timeOfEvent?: string | null;
   reportTitle: string;
@@ -23,6 +25,12 @@ interface SMSReport {
   hasAttachments: boolean;
   createdAt: string;
   updatedAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
   Attachment?: Array<{
     id: string;
     fileName: string;
@@ -34,6 +42,7 @@ interface SMSReport {
 }
 
 export default function SMSReports() {
+  const { data: session } = useSession();
   const [showForm, setShowForm] = useState(false);
   const [selectedReport, setSelectedReport] = useState<SMSReport | null>(null);
   const [reports, setReports] = useState<SMSReport[]>([]);
@@ -41,6 +50,8 @@ export default function SMSReports() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  const isAdmin = session?.user?.privilege === 'admin';
 
   const fetchReports = async () => {
     try {
@@ -74,7 +85,8 @@ export default function SMSReports() {
         report.reportTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.reportDescription.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.reportNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (report.reporterName && report.reporterName.toLowerCase().includes(searchTerm.toLowerCase()))
+        (report.reporterName && report.reporterName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (report.user && `${report.user.firstName} ${report.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()))
       );
       setFilteredReports(filtered);
     }
@@ -116,7 +128,7 @@ export default function SMSReports() {
   // If showing form, render only the form
   if (showForm) {
     return (
-      <div className="w-full max-w-full mx-auto px-2 pt-1 pb-10">
+      <div className="w-full max-w-full mx-auto px-1 sm:px-2 pt-1 pb-6 sm:pb-10">
         <SMSReportsHeader onNewReport={handleNewReport} />
         <SMSReportForm onCancel={handleFormCancel} onSuccess={handleFormSuccess} />
       </div>
@@ -126,7 +138,7 @@ export default function SMSReports() {
   // If showing report detail, render only the detail view
   if (selectedReport) {
     return (
-      <div className="w-full max-w-full mx-auto px-2 pt-1 pb-10">
+      <div className="w-full max-w-full mx-auto px-1 sm:px-2 pt-1 pb-6 sm:pb-10">
         <SMSReportsHeader onNewReport={handleNewReport} />
         <SMSReportDetail 
           report={selectedReport} 
@@ -138,28 +150,28 @@ export default function SMSReports() {
   }
 
   return (
-    <div className="w-full max-w-full mx-auto px-2 pt-1 pb-10">
+    <div className="w-full max-w-full mx-auto px-1 sm:px-2 pt-1 pb-6 sm:pb-10">
       <SMSReportsHeader onNewReport={handleNewReport} />
       
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-6">
         {/* Statistics Cards */}
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        <div className="grid gap-2 sm:gap-4 grid-cols-2">
           <Card className="rounded-none">
-            <CardHeader className="text-center py-2">
-              <CardTitle className="text-xl font-bold text-[#8b5cf6]">
+            <CardHeader className="text-center py-1 sm:py-2 px-2 sm:px-4">
+              <CardTitle className="text-lg sm:text-xl font-bold text-[#8b5cf6]">
                 {reports.length}
               </CardTitle>
-              <CardDescription className="underline text-purple-500 text-xs">
-                Total SMS Reports
+              <CardDescription className="underline text-purple-500 text-xs leading-tight">
+                {isAdmin ? 'Total Company Reports' : 'My SMS Reports'}
               </CardDescription>
             </CardHeader>
           </Card>
           <Card className="rounded-none">
-            <CardHeader className="text-center py-2">
-              <CardTitle className="text-xl font-bold text-[#8b5cf6]">
+            <CardHeader className="text-center py-1 sm:py-2 px-2 sm:px-4">
+              <CardTitle className="text-lg sm:text-xl font-bold text-[#8b5cf6]">
                 {reports.filter(r => !r.reporterName).length}
               </CardTitle>
-              <CardDescription className="underline text-purple-500 text-xs">
+              <CardDescription className="underline text-purple-500 text-xs leading-tight">
                 Anonymous Reports
               </CardDescription>
             </CardHeader>
@@ -167,14 +179,14 @@ export default function SMSReports() {
         </div>
 
         {/* Search and Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-stretch sm:items-center justify-between">
+          <div className="relative flex-1 max-w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <Input
-              placeholder="Search reports..."
+              placeholder={isAdmin ? "Search by title, description, number, reporter, or creator..." : "Search by title, description, number, or reporter..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-9 text-sm"
             />
           </div>
           <Button
@@ -182,26 +194,26 @@ export default function SMSReports() {
             size="sm"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 sm:gap-2 h-9 text-sm px-3 w-full sm:w-auto justify-center"
           >
-            <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+            <RefreshCw size={14} className={`${isRefreshing ? 'animate-spin' : ''} sm:w-4 sm:h-4`} />
             Refresh
           </Button>
         </div>
 
         {/* Reports List */}
         {isLoading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8b5cf6] mx-auto"></div>
-            <p className="mt-2 text-gray-500">Loading SMS reports...</p>
+          <div className="text-center py-6 sm:py-8">
+            <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-[#8b5cf6] mx-auto"></div>
+            <p className="mt-2 text-gray-500 text-sm sm:text-base">Loading SMS reports...</p>
           </div>
         ) : filteredReports.length === 0 ? (
-          <Card className="text-center py-8 rounded-none">
-            <CardHeader>
-              <CardTitle className="text-gray-500">
+          <Card className="text-center py-6 sm:py-8 rounded-none">
+            <CardHeader className="px-2 sm:px-4">
+              <CardTitle className="text-gray-500 text-base sm:text-lg">
                 {searchTerm ? 'No reports found' : 'No SMS reports yet'}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 {searchTerm 
                   ? 'Try adjusting your search terms'
                   : 'Click "New Report" to create your first SMS report'
@@ -210,7 +222,7 @@ export default function SMSReports() {
             </CardHeader>
           </Card>
         ) : (
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          <div className="grid gap-2 sm:gap-4 grid-cols-1 lg:grid-cols-2">
             {filteredReports.map((report) => (
               <SMSReportCard
                 key={report.id}
@@ -226,6 +238,16 @@ export default function SMSReports() {
           <div className="text-center text-sm text-gray-500">
             Showing {filteredReports.length} of {reports.length} reports
             {searchTerm && ` for "${searchTerm}"`}
+            {isAdmin && (
+              <span className="block text-xs text-blue-600 mt-1">
+                Viewing all company reports (Admin)
+              </span>
+            )}
+            {!isAdmin && (
+              <span className="block text-xs text-green-600 mt-1">
+                Viewing your reports only
+              </span>
+            )}
           </div>
         )}
       </div>

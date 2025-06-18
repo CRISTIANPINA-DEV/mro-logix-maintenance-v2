@@ -396,22 +396,23 @@ export default function TechnicalQueriesPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Technical Queries</h1>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold truncate">Technical Queries</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Ask questions and share knowledge with the technical community
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button 
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-2 cursor-pointer flex-1 sm:flex-none text-sm"
             onClick={() => setShowCreateDialog(true)}
           >
             <PlusIcon className="h-4 w-4" />
-            Add New Query
+            <span className="hidden xs:inline">Add New Query</span>
+            <span className="xs:hidden">Add Query</span>
           </Button>
         </div>
       </div>
@@ -430,14 +431,14 @@ export default function TechnicalQueriesPage() {
         <div className="flex flex-col h-full bg-gray-50" style={{ zIndex: 10000 }}>
           {/* Header */}
           <div className="flex-shrink-0 bg-white border-b border-gray-200">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-md">
-                  <PlusIcon className="w-4 h-4 text-blue-600" />
+            <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-blue-100 rounded-md flex-shrink-0">
+                  <PlusIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
                 </div>
-                <div>
-                  <h1 className="text-lg font-semibold text-gray-900">Create New Technical Query</h1>
-                  <p className="text-xs text-gray-500">Ask a technical question to get help from the community</p>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-base sm:text-lg font-semibold text-gray-900 truncate">Create New Technical Query</h1>
+                  <p className="text-xs text-gray-500 hidden sm:block">Ask a technical question to get help from the community</p>
                 </div>
               </div>
               <Button
@@ -445,7 +446,7 @@ export default function TechnicalQueriesPage() {
                 size="sm"
                 onClick={() => setShowCreateDialog(false)}
                 disabled={creating}
-                className="h-8 w-8 p-0 cursor-pointer"
+                className="h-7 w-7 sm:h-8 sm:w-8 p-0 cursor-pointer flex-shrink-0"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -453,32 +454,34 @@ export default function TechnicalQueriesPage() {
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4" style={{ zIndex: 10000 }}>
-            <div className="max-w-2xl mx-auto space-y-4">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4" style={{ zIndex: 10000 }}>
+            <div className="max-w-2xl mx-auto space-y-3 sm:space-y-4">
               <div>
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title" className="text-sm">Title *</Label>
                 <Input
                   id="title"
                   placeholder="Brief description of your question"
                   value={newQuery.title}
                   onChange={(e) => setNewQuery(prev => ({ ...prev, title: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="description">Description *</Label>
+                <Label htmlFor="description" className="text-sm">Description *</Label>
                 <Textarea
                   id="description"
                   placeholder="Provide detailed information about your technical question..."
-                  rows={6}
+                  rows={4}
                   value={newQuery.description}
                   onChange={(e) => setNewQuery(prev => ({ ...prev, description: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category" className="text-sm">Category</Label>
                   <Select value={newQuery.category} onValueChange={(value) => setNewQuery(prev => ({ ...prev, category: value }))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent 
@@ -505,9 +508,9 @@ export default function TechnicalQueriesPage() {
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="priority">Priority</Label>
+                  <Label htmlFor="priority" className="text-sm">Priority</Label>
                   <Select value={newQuery.priority} onValueChange={(value) => setNewQuery(prev => ({ ...prev, priority: value }))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent 
@@ -526,29 +529,30 @@ export default function TechnicalQueriesPage() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="tags">Tags (comma-separated)</Label>
+                <Label htmlFor="tags" className="text-sm">Tags (comma-separated)</Label>
                 <Input
                   id="tags"
                   placeholder="e.g., boeing-737, hydraulic-system, troubleshooting"
                   value={newQuery.tags}
                   onChange={(e) => setNewQuery(prev => ({ ...prev, tags: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-3">
-            <div className="flex justify-end gap-2">
+          <div className="flex-shrink-0 bg-white border-t border-gray-200 px-3 sm:px-4 py-2 sm:py-3">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
               <Button
                 variant="outline"
                 onClick={() => setShowCreateDialog(false)}
                 disabled={creating}
-                className="cursor-pointer"
+                className="cursor-pointer text-sm"
               >
                 Cancel
               </Button>
-              <Button onClick={handleCreateQuery} disabled={creating} className="cursor-pointer">
+              <Button onClick={handleCreateQuery} disabled={creating} className="cursor-pointer text-sm">
                 {creating ? "Creating..." : "Create Query"}
               </Button>
             </div>
@@ -558,35 +562,48 @@ export default function TechnicalQueriesPage() {
 
       {/* Search and Filters */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="flex-1 flex gap-2">
               <Input
                 placeholder="Search queries..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                className="text-sm"
               />
-              <Button onClick={handleSearch} size="icon">
+              <Button onClick={handleSearch} size="sm" className="flex-shrink-0">
                 <SearchIcon className="h-4 w-4" />
               </Button>
             </div>
-            <Button
-              variant="outline"
-              onClick={fetchQueries}
-              disabled={loading}
-              size="icon"
-            >
-              <RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <FilterIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Filters</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={fetchQueries}
+                disabled={loading}
+                size="sm"
+                className="flex-shrink-0"
+              >
+                <RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
           </div>
           
           {showFilters && (
-            <div className="mt-4 pt-4 border-t grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <Label>Category</Label>
+                <Label className="text-sm">Category</Label>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="All categories" />
                   </SelectTrigger>
                   <SelectContent>
@@ -600,9 +617,9 @@ export default function TechnicalQueriesPage() {
                 </Select>
               </div>
               <div>
-                <Label>Status</Label>
+                <Label className="text-sm">Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -616,9 +633,9 @@ export default function TechnicalQueriesPage() {
                 </Select>
               </div>
               <div>
-                <Label>Priority</Label>
+                <Label className="text-sm">Priority</Label>
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder="All priorities" />
                   </SelectTrigger>
                   <SelectContent>
@@ -632,7 +649,7 @@ export default function TechnicalQueriesPage() {
                 </Select>
               </div>
               <div className="sm:col-span-3">
-                <Button variant="neutral" onClick={handleClearFilters}>
+                <Button variant="neutral" onClick={handleClearFilters} size="sm">
                   Clear Filters
                 </Button>
               </div>
@@ -642,25 +659,25 @@ export default function TechnicalQueriesPage() {
       </Card>
 
       {/* Queries List */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {loading ? (
-          <div className="text-center py-8">
-            <RefreshCwIcon className="h-8 w-8 animate-spin mx-auto mb-2" />
-            <p>Loading technical queries...</p>
+          <div className="text-center py-6 sm:py-8">
+            <RefreshCwIcon className="h-6 w-6 sm:h-8 sm:w-8 animate-spin mx-auto mb-2" />
+            <p className="text-sm sm:text-base">Loading technical queries...</p>
           </div>
         ) : queries.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-8">
-              <MessageSquareIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No queries found</h3>
-              <p className="text-muted-foreground mb-4">
+            <CardContent className="text-center py-6 sm:py-8">
+              <MessageSquareIcon className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+              <h3 className="text-base sm:text-lg font-semibold mb-2">No queries found</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
                 {searchTerm || categoryFilter || statusFilter || priorityFilter
                   ? "Try adjusting your search criteria"
                   : "Be the first to ask a technical question!"
                 }
               </p>
               {!searchTerm && !categoryFilter && !statusFilter && !priorityFilter && (
-                <Button variant="neutral" onClick={() => setShowCreateDialog(true)}>
+                <Button variant="neutral" onClick={() => setShowCreateDialog(true)} size="sm">
                   <PlusIcon className="h-4 w-4 mr-2" />
                   Create First Query
                 </Button>
@@ -668,65 +685,68 @@ export default function TechnicalQueriesPage() {
             </CardContent>
           </Card>
         ) : (
-                    queries.map((query) => (
+          queries.map((query) => (
             <Card key={query.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {getStatusIcon(query.status)}
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {getStatusIcon(query.status)}
+                    </div>
                     <Link 
                       href={`/dashboard/technical-queries/${query.id}`}
-                      className="text-base font-semibold hover:text-primary transition-colors truncate"
+                      className="text-sm sm:text-base font-semibold hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1"
                     >
                       {query.title}
                     </Link>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 self-start">
                     {getPriorityBadge(query.priority)}
                     {query.isResolved && (
                       <Badge className="bg-green-100 text-green-800 text-xs">
                         <CheckCircleIcon className="h-3 w-3 mr-1" />
-                        Resolved
+                        <span className="hidden sm:inline">Resolved</span>
+                        <span className="sm:hidden">✓</span>
                       </Badge>
                     )}
                   </div>
                 </div>
                 
-                <p className="text-muted-foreground mb-3 line-clamp-1 text-sm">
+                <p className="text-muted-foreground mb-2 sm:mb-3 line-clamp-2 text-xs sm:text-sm">
                   {query.description}
                 </p>
                 
-                <div className="flex flex-wrap gap-1 mb-3">
+                <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
                   {query.category && (
-                    <Badge variant="outline" className="text-xs py-0">{query.category}</Badge>
+                    <Badge variant="outline" className="text-xs py-0 px-1.5">{query.category}</Badge>
                   )}
-                  {query.tags.slice(0, 3).map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs py-0">
+                  {query.tags.slice(0, 2).map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs py-0 px-1.5">
                       {tag}
                     </Badge>
                   ))}
-                  {query.tags.length > 3 && (
-                    <Badge variant="secondary" className="text-xs py-0">
-                      +{query.tags.length - 3} more
+                  {query.tags.length > 2 && (
+                    <Badge variant="secondary" className="text-xs py-0 px-1.5">
+                      +{query.tags.length - 2}
                     </Badge>
                   )}
                 </div>
                 
-                <div className="flex justify-between items-center text-xs text-muted-foreground">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                     <div className="flex items-center gap-1">
-                      <UserIcon className="h-3 w-3" />
-                      <span className="truncate max-w-24">
+                      <UserIcon className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate max-w-20 sm:max-w-24">
                         {query.createdBy.firstName} {query.createdBy.lastName}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <MessageSquareIcon className="h-3 w-3" />
-                      {query._count.responses}
+                      <span>{query._count.responses}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <EyeIcon className="h-3 w-3" />
-                      {query.viewCount}
+                      <span>{query.viewCount}</span>
                     </div>
                     <VotingButtons
                       itemId={query.id}
@@ -754,21 +774,25 @@ export default function TechnicalQueriesPage() {
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex justify-center gap-2">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-4">
           <Button
             variant="neutral"
             disabled={pagination.page === 1}
             onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+            size="sm"
+            className="w-full sm:w-auto"
           >
             Previous
           </Button>
-          <span className="flex items-center px-4">
+          <span className="flex items-center px-2 sm:px-4 text-sm">
             Page {pagination.page} of {pagination.totalPages}
           </span>
           <Button
             variant="neutral"
             disabled={pagination.page === pagination.totalPages}
             onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+            size="sm"
+            className="w-full sm:w-auto"
           >
             Next
           </Button>

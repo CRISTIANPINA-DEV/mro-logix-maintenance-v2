@@ -95,6 +95,7 @@ export async function POST(request: Request) {
         reportNumber,
         reporterName,
         reporterEmail,
+        userId: currentUser.id,
         date: correctedDate,
         timeOfEvent,
         reportTitle,
@@ -109,6 +110,7 @@ export async function POST(request: Request) {
           reportNumber,
           reporterName: reporterName || null,
           reporterEmail: reporterEmail || null,
+          userId: currentUser.id,
           date: correctedDate,
           timeOfEvent: timeOfEvent || null,
           reportTitle,
@@ -271,11 +273,22 @@ export async function GET() {
       );
     }
 
-    // Fetch SMS reports filtered by company
+    // Build where clause based on user privilege
+    const whereClause: {
+      companyId: string;
+      userId?: string;
+    } = {
+      companyId: session.user.companyId
+    };
+
+    // If user is not admin, filter to only their own reports
+    if (session.user.privilege !== 'admin') {
+      whereClause.userId = session.user.id;
+    }
+
+    // Fetch SMS reports filtered by company and user privilege
     const smsReports = await prisma.sMSReport.findMany({
-      where: {
-        companyId: session.user.companyId
-      },
+      where: whereClause,
       include: {
         Attachment: {
           select: {
@@ -284,6 +297,14 @@ export async function GET() {
             fileSize: true,
             fileType: true,
             createdAt: true
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
           }
         }
       },

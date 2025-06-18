@@ -14,7 +14,6 @@ import {
   ChartNoAxesCombinedIcon,
   ClipboardIcon,
   PackageOpenIcon,
-  FileCogIcon,
   CalendarCheck2Icon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -72,11 +71,6 @@ const menuItems = [
     title: "Temperature Control",
     url: "/dashboard/temperature-control",
     icon: ThermometerSnowflake,
-  },
-  {
-    title: "Aircraft Parts Cycle",
-    url: "/dashboard/aircraft-parts-cycle",
-    icon: FileCogIcon,
   },
   {
     title: "Technical Queries",
@@ -287,7 +281,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => getFilteredMenuItems(["Flight Records", "Stock Inventory", "Incoming Inspections", "Temperature Control", "Aircraft Parts Cycle", "Technical Queries"]).includes(item.title))
+                  .filter(item => getFilteredMenuItems(["Flight Records", "Stock Inventory", "Incoming Inspections", "Temperature Control", "Technical Queries"]).includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -479,7 +473,7 @@ export function AppSidebar() {
               <span className="font-medium uppercase">{session.user.companyName}</span>
             </div>
           )}
-          <p>&copy; 2025 MRO Logix V. 1.1 Beta</p>
+          <p>&copy; 2025 MRO Logix V. 1.2 Beta</p>
         </div>
       </SidebarFooter>
     </Sidebar>

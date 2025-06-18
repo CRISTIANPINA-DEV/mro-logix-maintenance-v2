@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ActivityIcon, SearchIcon, FilterIcon, RefreshCwIcon, UserIcon, CalendarIcon, ClockIcon, UsersIcon } from "lucide-react";
+import { ActivityIcon, SearchIcon, FilterIcon, RefreshCwIcon, UserIcon, CalendarIcon, ClockIcon, ArrowLeftIcon, UsersIcon } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -19,6 +19,9 @@ interface User {
   lastName: string;
   username: string;
   email: string;
+  _count?: {
+    activities: number;
+  };
 }
 
 interface UserActivity {
@@ -45,7 +48,7 @@ interface ActivityData {
   };
 }
 
-export default function UserActivityPage() {
+export default function AllUsersActivityPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -53,22 +56,106 @@ export default function UserActivityPage() {
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState("all_actions");
   const [resourceTypeFilter, setResourceTypeFilter] = useState("all_resources");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [activitySearchTerm, setActivitySearchTerm] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [allUsersWithActivities, setAllUsersWithActivities] = useState<User[]>([]);
+  const [searchedUsers, setSearchedUsers] = useState<any[]>([]);
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
-  // Check if user is admin
-  const isAdmin = session?.user?.privilege === "admin";
+  // Check if user is admin - if not, redirect
+  useEffect(() => {
+    if (session && session.user.privilege !== "admin") {
+      router.push("/dashboard/user-activity");
+      toast.error("You don't have permission to view other users' activities");
+    }
+  }, [session, router]);
+
+  // Fetch all users who have activities
+  const fetchUsersWithActivities = useCallback(async () => {
+    try {
+      const response = await fetch('/api/user-activity/users-with-activities');
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setAllUsersWithActivities(result.users);
+      } else {
+        console.error('Failed to fetch users with activities');
+      }
+    } catch (error) {
+      console.error('Error fetching users with activities:', error);
+    }
+  }, []);
+
+  // Search users in the database
+  const searchUsersInDatabase = useCallback(async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      setSearchedUsers([]);
+      return;
+    }
+
+    setIsSearchingUsers(true);
+    try {
+      const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchTerm)}`);
+      const result = await response.json();
+
+      if (response.ok) {
+        setSearchedUsers(result.users || []);
+      }
+    } catch (error) {
+      console.error('Error searching users:', error);
+    } finally {
+      setIsSearchingUsers(false);
+    }
+  }, []);
+
+  // Debounced user search
+  useEffect(() => {
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
+
+    const timer = setTimeout(() => {
+      searchUsersInDatabase(userSearchTerm);
+    }, 300);
+
+    setSearchDebounceTimer(timer);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [userSearchTerm]);
+
+  // Fetch users with activities when component mounts
+  useEffect(() => {
+    if (session?.user?.privilege === "admin") {
+      fetchUsersWithActivities();
+    }
+  }, [session, fetchUsersWithActivities]);
 
   const filteredActivities = useMemo(() => {
     if (!data?.activities) return [];
     
     return data.activities.filter(activity => {
-      const matchesSearch = searchTerm === "" || 
-        activity.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (activity.resourceTitle && activity.resourceTitle.toLowerCase().includes(searchTerm.toLowerCase()));
+      // Filter by activity search
+      const matchesActivitySearch = activitySearchTerm === "" || 
+        activity.action.toLowerCase().includes(activitySearchTerm.toLowerCase()) ||
+        (activity.resourceTitle && activity.resourceTitle.toLowerCase().includes(activitySearchTerm.toLowerCase()));
       
-      return matchesSearch;
+      // Filter by selected user
+      const matchesSelectedUser = !selectedUserId || activity.userId === selectedUserId;
+      
+      // Filter by searched users if search term exists
+      let matchesUserSearch = true;
+      if (userSearchTerm && searchedUsers.length > 0) {
+        const searchedUserIds = searchedUsers.map(u => u.id);
+        matchesUserSearch = searchedUserIds.includes(activity.userId);
+      }
+      
+      return matchesActivitySearch && matchesSelectedUser && matchesUserSearch;
     });
-  }, [data?.activities, searchTerm]);
+  }, [data?.activities, activitySearchTerm, selectedUserId, userSearchTerm, searchedUsers]);
 
   const fetchActivities = useCallback(async () => {
     try {
@@ -76,18 +163,23 @@ export default function UserActivityPage() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: "20",
+        allUsers: "true", // Flag to indicate we want all users' data
       });
       
       if (actionFilter && actionFilter !== "all_actions") params.append("action", actionFilter);
       if (resourceTypeFilter && resourceTypeFilter !== "all_resources") params.append("resourceType", resourceTypeFilter);
+      if (selectedUserId) params.append("userId", selectedUserId);
 
-      const response = await fetch(`/api/user-activity?${params}`);
+      const response = await fetch(`/api/user-activity/all-users?${params}`);
       const result = await response.json();
 
       if (response.ok && result.success) {
         setData(result.data);
       } else {
         toast.error(result.message || "Failed to fetch user activities");
+        if (response.status === 403) {
+          router.push("/dashboard/user-activity");
+        }
       }
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -95,11 +187,11 @@ export default function UserActivityPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, actionFilter, resourceTypeFilter]);
+  }, [page, actionFilter, resourceTypeFilter, selectedUserId, router]);
 
   useEffect(() => {
     fetchActivities();
-  }, [page, actionFilter, resourceTypeFilter, fetchActivities]);
+  }, [page, actionFilter, resourceTypeFilter, selectedUserId, fetchActivities]);
 
   const getActionBadgeColor = (action: string) => {
     if (action.includes("LOGIN")) return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
@@ -134,32 +226,38 @@ export default function UserActivityPage() {
     return resourceType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
   };
 
+  // Get unique users count from all users with activities
+  const totalUniqueUsers = allUsersWithActivities.length;
+
+  if (!session || session.user.privilege !== "admin") {
+    return null;
+  }
+
   return (
     <div className="container mx-auto p-4 sm:p-4 space-y-4 sm:space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-2">
+          <Button
+            onClick={() => router.push("/dashboard/user-activity")}
+            variant="ghost"
+            size="icon"
+            className="mr-2 h-8 w-8 sm:h-8 sm:w-8 rounded-none"
+          >
+            <ArrowLeftIcon className="h-4 w-4 sm:h-4 sm:w-4" />
+          </Button>
           <div className="p-1.5 bg-primary/10">
-            <ActivityIcon className="h-5 w-5 sm:h-5 sm:w-5 text-primary" />
+            <UsersIcon className="h-5 w-5 sm:h-5 sm:w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-2xl font-bold">My Activity Log</h1>
-            <p className="text-sm sm:text-sm text-muted-foreground">Track your personal actions and system activities</p>
+            <h1 className="text-2xl sm:text-2xl font-bold">All Users Activity Log</h1>
+            <p className="text-sm sm:text-sm text-muted-foreground">Monitor all user activities within your company</p>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-          {isAdmin && (
-            <Button onClick={() => router.push("/dashboard/user-activity/all-users")} variant="neutral" size="sm" className="w-full sm:w-auto">
-              <UsersIcon className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">See Other Users Activity</span>
-              <span className="sm:hidden">Other Users</span>
-            </Button>
-          )}
-          <Button onClick={fetchActivities} disabled={loading} variant="neutral" size="sm" className="w-full sm:w-auto">
-            <RefreshCwIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-        </div>
+        <Button onClick={() => { fetchActivities(); fetchUsersWithActivities(); }} disabled={loading} variant="neutral" size="sm" className="w-full sm:w-auto">
+          <RefreshCwIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -175,18 +273,18 @@ export default function UserActivityPage() {
           </Card>
           <Card className="rounded-none">
             <CardHeader className="pb-2 sm:pb-2 px-4 sm:px-4 pt-3 sm:pt-3">
-              <CardTitle className="text-xs sm:text-xs font-medium text-muted-foreground">Current Page</CardTitle>
+              <CardTitle className="text-xs sm:text-xs font-medium text-muted-foreground">Total Users</CardTitle>
             </CardHeader>
             <CardContent className="px-4 sm:px-4 pb-3 sm:pb-3">
-              <div className="text-xl sm:text-lg font-bold">{data.pagination.page} of {data.pagination.totalPages}</div>
+              <div className="text-xl sm:text-lg font-bold">{totalUniqueUsers}</div>
             </CardContent>
           </Card>
           <Card className="rounded-none">
             <CardHeader className="pb-2 sm:pb-2 px-4 sm:px-4 pt-3 sm:pt-3">
-              <CardTitle className="text-xs sm:text-xs font-medium text-muted-foreground">Records per Page</CardTitle>
+              <CardTitle className="text-xs sm:text-xs font-medium text-muted-foreground">Current Page</CardTitle>
             </CardHeader>
             <CardContent className="px-4 sm:px-4 pb-3 sm:pb-3">
-              <div className="text-xl sm:text-lg font-bold">{data.pagination.limit}</div>
+              <div className="text-xl sm:text-lg font-bold">{data.pagination.page} of {data.pagination.totalPages}</div>
             </CardContent>
           </Card>
           <Card className="rounded-none">
@@ -207,23 +305,64 @@ export default function UserActivityPage() {
             <FilterIcon className="h-4 w-4 sm:h-4 sm:w-4" />
             Filters & Search
           </CardTitle>
-          <CardDescription className="text-sm">Filter activities by action, resource type, or search by keywords</CardDescription>
+          <CardDescription className="text-sm">Filter activities by user, action, resource type, or search by keywords</CardDescription>
         </CardHeader>
         <CardContent className="pb-4 sm:pb-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-3">
-            <div className="space-y-1.5">
-              <label className="text-xs sm:text-xs font-medium">Search</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-3">
+            <div className="space-y-1.5 sm:col-span-1">
+              <label className="text-xs sm:text-xs font-medium">Search Users</label>
+              <div className="relative">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Name, username or email..."
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)}
+                  className="pl-10 text-sm h-9 rounded-none"
+                />
+                {isSearchingUsers && (
+                  <RefreshCwIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground animate-spin" />
+                )}
+              </div>
+              {userSearchTerm && searchedUsers.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Found {searchedUsers.length} user{searchedUsers.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1.5 sm:col-span-1">
+              <label className="text-xs sm:text-xs font-medium">Select User</label>
+              <Select value={selectedUserId || "all_users"} onValueChange={(value) => setSelectedUserId(value === "all_users" ? null : value)}>
+                <SelectTrigger className="text-sm h-9 rounded-none">
+                  <SelectValue placeholder="All users" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all_users">All Users</SelectItem>
+                  {allUsersWithActivities.map(user => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName} ({user.username})
+                      {user._count && (
+                        <span className="text-xs text-muted-foreground ml-1">
+                          - {user._count.activities} activities
+                        </span>
+                      )}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5 sm:col-span-1">
+              <label className="text-xs sm:text-xs font-medium">Search Activities</label>
               <div className="relative">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search activities..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={activitySearchTerm}
+                  onChange={(e) => setActivitySearchTerm(e.target.value)}
                   className="pl-10 text-sm h-9 rounded-none"
                 />
               </div>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-1">
               <label className="text-xs sm:text-xs font-medium">Action</label>
               <Select value={actionFilter} onValueChange={setActionFilter}>
                 <SelectTrigger className="text-sm h-9 rounded-none">
@@ -239,7 +378,7 @@ export default function UserActivityPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
               <label className="text-xs sm:text-xs font-medium">Resource Type</label>
               <Select value={resourceTypeFilter} onValueChange={setResourceTypeFilter}>
                 <SelectTrigger className="text-sm h-9 rounded-none">
@@ -256,23 +395,23 @@ export default function UserActivityPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs sm:text-xs font-medium">Actions</label>
-              <div className="flex gap-2">
-                <Button
-                  variant="neutral"
-                  size="sm"
-                  onClick={() => {
-                    setActionFilter("all_actions");
-                    setResourceTypeFilter("all_resources");
-                    setSearchTerm("");
-                  }}
-                  className="w-full text-sm h-9"
-                >
-                  Clear All
-                </Button>
-              </div>
-            </div>
+          </div>
+          <div className="mt-3 flex justify-end">
+            <Button
+              variant="neutral"
+              size="sm"
+              onClick={() => {
+                setActionFilter("all_actions");
+                setResourceTypeFilter("all_resources");
+                setUserSearchTerm("");
+                setActivitySearchTerm("");
+                setSelectedUserId(null);
+                setSearchedUsers([]);
+              }}
+              className="text-sm h-8"
+            >
+              Clear All Filters
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -280,9 +419,9 @@ export default function UserActivityPage() {
       {/* Activities Table */}
       <Card className="rounded-none">
         <CardHeader className="pb-3 sm:pb-3 pt-3 sm:pt-3">
-          <CardTitle className="text-lg sm:text-base">Your Recent Activities</CardTitle>
+          <CardTitle className="text-lg sm:text-base">All Users Activities</CardTitle>
           <CardDescription className="text-sm">
-            {data ? `Showing ${filteredActivities.length} of ${data.pagination.total} of your activities` : "Loading activities..."}
+            {data ? `Showing ${filteredActivities.length} of ${data.pagination.total} activities across all users` : "Loading activities..."}
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0 sm:px-4 pb-0">
@@ -294,14 +433,14 @@ export default function UserActivityPage() {
             <div className="text-center py-8 text-muted-foreground px-4">
               <ActivityIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p className="text-base sm:text-sm font-medium">No activities found</p>
-              <p className="text-sm">You haven't performed any actions yet, or try adjusting your filters</p>
+              <p className="text-sm">Try adjusting your filters or search criteria</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[150px] h-9">User</TableHead>
+                    <TableHead className="min-w-[180px] h-9">User</TableHead>
                     <TableHead className="min-w-[120px] h-9">Action</TableHead>
                     <TableHead className="min-w-[140px] hidden sm:table-cell h-9">Resource</TableHead>
                     <TableHead className="min-w-[200px] hidden md:table-cell h-9">Details</TableHead>
@@ -321,6 +460,7 @@ export default function UserActivityPage() {
                             <p className="font-medium text-xs sm:text-xs truncate">
                               {activity.user.firstName} {activity.user.lastName}
                             </p>
+                            <p className="text-xs text-muted-foreground truncate">{activity.user.email}</p>
                           </div>
                         </div>
                       </TableCell>

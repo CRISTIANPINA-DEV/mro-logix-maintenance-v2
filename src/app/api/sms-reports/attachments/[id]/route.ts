@@ -30,7 +30,8 @@ export async function GET(
           select: {
             id: true,
             reportNumber: true,
-            reportTitle: true
+            reportTitle: true,
+            userId: true
           }
         }
       }
@@ -40,6 +41,14 @@ export async function GET(
       return NextResponse.json(
         { success: false, message: 'Attachment not found' },
         { status: 404 }
+      );
+    }
+
+    // If user is not admin, check if they own the SMS report
+    if (session.user.privilege !== 'admin' && attachment.SMSReport.userId !== session.user.id) {
+      return NextResponse.json(
+        { success: false, message: 'Access denied' },
+        { status: 403 }
       );
     }
 

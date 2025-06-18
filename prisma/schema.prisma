@@ -157,6 +157,9 @@ model User {
   receivedNotifications Notification[] @relation("ReceivedNotifications")
   sentNotifications    Notification[] @relation("SentNotifications")
 
+  // SMS Reports Relations
+  smsReports           SMSReport[]
+
   @@index([companyId])
 }
 
@@ -608,6 +611,8 @@ model SMSReport {
   reportNumber      String                @unique
   reporterName      String?
   reporterEmail     String?
+  userId            String?               // Track which user created the report
+  user              User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
   date              DateTime
   timeOfEvent       String?
   reportTitle       String
@@ -620,6 +625,7 @@ model SMSReport {
   @@index([reportNumber])
   @@index([date])
   @@index([createdAt])
+  @@index([userId])
   @@index([companyId])
 }
 

@@ -114,28 +114,30 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
   };
 
   return (
-    <div className="bg-card p-4 rounded-lg shadow border w-full">
+    <div className="bg-card p-3 sm:p-4 rounded-lg shadow border w-full">
       <div className="mb-4">
-        <h2 className="text-lg font-semibold">Add New Temperature Control</h2>
+        <h2 className="text-base sm:text-lg font-semibold">Add New Temperature Control</h2>
       </div>
       <form className="space-y-4" onSubmit={handleSubmit}>
-        {/* Flexible grid layout */}
-        <div className="flex flex-wrap -mx-2">
+        {/* Mobile-optimized flexible grid layout */}
+        <div className="flex flex-wrap -mx-1 sm:-mx-2">
           {/* Date field */}
-          <div className="w-full md:w-1/3 px-2 mb-4">
-            <Label htmlFor="date" className="text-sm sm:text-base">Date</Label>
+          <div className="w-full sm:w-1/2 lg:w-1/3 px-1 sm:px-2 mb-3 sm:mb-4">
+            <Label htmlFor="date" className="text-sm">Date</Label>
             <Input
               type="date"
               id="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className={`mt-1 w-full ${date ? 'bg-green-50' : ''}`}
+              className={`mt-1 w-full text-sm ${date ? 'bg-green-50' : ''}`}
             />
-          </div>          {/* Location field */}
-          <div className="w-full md:w-1/3 px-2 mb-4">
-            <Label htmlFor="location" className="text-sm sm:text-base">Location</Label>
+          </div>
+
+          {/* Location field */}
+          <div className="w-full sm:w-1/2 lg:w-1/3 px-1 sm:px-2 mb-3 sm:mb-4">
+            <Label htmlFor="location" className="text-sm">Location</Label>
             <Select value={location} onValueChange={setLocation}>
-              <SelectTrigger id="location" className="mt-1">
+              <SelectTrigger id="location" className="mt-1 text-sm">
                 <SelectValue placeholder="Select location" />
               </SelectTrigger>
               <SelectContent>
@@ -148,20 +150,22 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
 
           {/* Custom location field - only shown when "Other" is selected */}
           {location === "Other" && (
-            <div className="w-full md:w-1/3 px-2 mb-4">
-              <Label htmlFor="customLocation" className="text-sm sm:text-base">Specify Location</Label>
+            <div className="w-full sm:w-1/2 lg:w-1/3 px-1 sm:px-2 mb-3 sm:mb-4">
+              <Label htmlFor="customLocation" className="text-sm">Specify Location</Label>
               <Input
                 type="text"
                 id="customLocation"
                 value={customLocation}
                 onChange={(e) => setCustomLocation(e.target.value)}
                 placeholder="Enter location details"
-                className={`mt-1 w-full ${customLocation ? 'bg-green-50' : ''}`}
+                className={`mt-1 w-full text-sm ${customLocation ? 'bg-green-50' : ''}`}
               />
             </div>
-          )}          {/* Time field */}
-          <div className="w-full md:w-1/3 px-2 mb-4">
-            <Label htmlFor="time" className="text-sm sm:text-base">Time</Label>
+          )}
+
+          {/* Time field */}
+          <div className="w-full sm:w-1/2 lg:w-1/3 px-1 sm:px-2 mb-3 sm:mb-4">
+            <Label htmlFor="time" className="text-sm">Time</Label>
             <Input
               type="text"
               id="time"
@@ -201,11 +205,13 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
                 }
               }}
               placeholder="Enter time (e.g., 13:05)"
-              className={`mt-1 w-full ${time ? 'bg-green-50' : ''}`}
+              className={`mt-1 w-full text-sm ${time ? 'bg-green-50' : ''}`}
             />
-          </div>{/* Temperature field */}
-          <div className="w-full md:w-1/3 px-2 mb-4">
-            <Label htmlFor="temperature" className="text-sm sm:text-base">Temperature (°C)</Label>
+          </div>
+
+          {/* Temperature field */}
+          <div className="w-full sm:w-1/2 lg:w-1/3 px-1 sm:px-2 mb-3 sm:mb-4">
+            <Label htmlFor="temperature" className="text-sm">Temperature (°C)</Label>
             <Input
               type="number"
               step="0.1"
@@ -213,11 +219,13 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
               value={temperature}
               onChange={(e) => setTemperature(e.target.value)}
               placeholder="Enter temperature in Celsius"
-              className={`mt-1 w-full ${temperature ? 'bg-green-50' : ''}`}
+              className={`mt-1 w-full text-sm ${temperature ? 'bg-green-50' : ''}`}
             />
-          </div>          {/* Humidity field */}
-          <div className="w-full md:w-1/3 px-2 mb-4">
-            <Label htmlFor="humidity" className="text-sm sm:text-base">Humidity (%)</Label>
+          </div>
+
+          {/* Humidity field */}
+          <div className="w-full sm:w-1/2 lg:w-1/3 px-1 sm:px-2 mb-3 sm:mb-4">
+            <Label htmlFor="humidity" className="text-sm">Humidity (%)</Label>
             <Input
               type="number"
               step="0.1"
@@ -227,26 +235,28 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
               value={humidity}
               onChange={(e) => setHumidity(e.target.value)}
               placeholder="Enter humidity percentage"
-              className={`mt-1 w-full ${humidity ? 'bg-green-50' : ''}`}
+              className={`mt-1 w-full text-sm ${humidity ? 'bg-green-50' : ''}`}
             />
-          </div>          {/* Employee Name field */}
-          <div className="w-full md:w-1/3 px-2 mb-4">
-            <Label htmlFor="employeeName" className="text-sm sm:text-base">Employee Name</Label>
+          </div>
+
+          {/* Employee Name field */}
+          <div className="w-full sm:w-1/2 lg:w-1/3 px-1 sm:px-2 mb-3 sm:mb-4">
+            <Label htmlFor="employeeName" className="text-sm">Employee Name</Label>
             <Input
               type="text"
               id="employeeName"
               value={employeeName}
               onChange={(e) => setEmployeeName(e.target.value)}
               placeholder="Enter name of employee taking readings"
-              className={`mt-1 w-full ${employeeName ? 'bg-green-50' : ''}`}
+              className={`mt-1 w-full text-sm ${employeeName ? 'bg-green-50' : ''}`}
             />
           </div>
 
           {/* Any Comment field */}
-          <div className="w-full md:w-1/3 px-2 mb-4">
-            <Label htmlFor="hasComment" className="text-sm sm:text-base">Any Comment?</Label>
+          <div className="w-full sm:w-1/2 lg:w-1/3 px-1 sm:px-2 mb-3 sm:mb-4">
+            <Label htmlFor="hasComment" className="text-sm">Any Comment?</Label>
             <Select value={hasComment} onValueChange={setHasComment}>
-              <SelectTrigger id="hasComment" className="mt-1">
+              <SelectTrigger id="hasComment" className="mt-1 text-sm">
                 <SelectValue placeholder="Select option" />
               </SelectTrigger>
               <SelectContent>
@@ -258,26 +268,27 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
 
           {/* Comment textarea - only shown when "Yes" is selected */}
           {hasComment === "Yes" && (
-            <div className="w-full px-2 mb-4">
-              <Label htmlFor="comment" className="text-sm sm:text-base">Comment</Label>
+            <div className="w-full px-1 sm:px-2 mb-3 sm:mb-4">
+              <Label htmlFor="comment" className="text-sm">Comment</Label>
               <Textarea
                 id="comment"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Enter your comment"
-                className={`mt-1 w-full ${comment ? 'bg-green-50' : ''}`}
+                className={`mt-1 w-full text-sm ${comment ? 'bg-green-50' : ''}`}
+                rows={3}
               />
             </div>
           )}
         </div>
 
         {/* Form actions */}
-        <div className="flex justify-end space-x-2">
+        <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t border-gray-200">
           <Button 
             type="submit" 
             variant="save"
             disabled={isSubmitting}
-            className="cursor-pointer"
+            className="cursor-pointer text-sm order-2 sm:order-1"
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Record
@@ -286,7 +297,7 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
             type="button" 
             variant="neutral" 
             onClick={onClose}
-            className="cursor-pointer"
+            className="cursor-pointer text-sm order-1 sm:order-2"
           >
             Cancel
           </Button>

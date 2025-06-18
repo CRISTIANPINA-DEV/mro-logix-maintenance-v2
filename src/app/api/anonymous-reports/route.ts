@@ -102,6 +102,7 @@ export async function POST(request: Request) {
           reportNumber,
           reporterName: null, // Anonymous report
           reporterEmail: null, // Anonymous report
+          userId: null, // Anonymous report - no user tracking
           date: correctedDate,
           timeOfEvent: timeOfEvent || null,
           reportTitle,

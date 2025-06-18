@@ -6,7 +6,7 @@ import { FlightRecordsList } from "./FlightRecordsList";
 import { FlightRecordsFilters } from "./flight-records-filters";
 import FlightRecordsHeader from './flight-records-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ActivityIcon, AlertTriangle } from "lucide-react";
+import { ActivityIcon, AlertTriangle, Info } from "lucide-react";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -77,7 +77,7 @@ export default function FlightRecordsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-4">
       <FlightRecordsHeader showForm={showForm} onAddFlightClick={() => setShowForm(true)} />
 
       {showForm ? (
@@ -98,6 +98,14 @@ export default function FlightRecordsPage() {
             stationList={stationList}
             serviceList={serviceList}
           />
+
+          {/* Mobile Layout Message */}
+          <div className="sm:hidden bg-blue-50 border border-blue-100 rounded-none p-3">
+            <div className="flex items-center gap-2 text-sm text-blue-700">
+              <Info className="h-4 w-4" />
+              <p>You&apos;re viewing a simplified layout. For all details, switch to desktop view.</p>
+            </div>
+          </div>
 
           <FlightRecordsList
             searchTerm={searchTerm}

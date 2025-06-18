@@ -90,6 +90,7 @@ export const config: NextAuthOptions = {
           lastName: user.lastName,
           companyId: user.companyId,
           companyName: user.companyName,
+          privilege: user.privilege,
         };
       }
       return token;
@@ -104,6 +105,7 @@ export const config: NextAuthOptions = {
           lastName: token.lastName,
           companyId: token.companyId,
           companyName: token.companyName,
+          privilege: token.privilege,
         },
       };
     },

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
 import { logActivity, getRequestInfo } from '@/lib/activity-logger';
-import { getUserPermissions } from '@/lib/user-permissions';
 
 // GET /api/audits - Get all audits with optional filtering
 export async function GET(request: NextRequest) {
@@ -13,15 +12,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
-      );
-    }
-
-    // Check if user has permission to access audits
-    const permissions = await getUserPermissions(session.user.id);
-    if (!permissions?.canSeeAuditManagement) {
-      return NextResponse.json(
-        { success: false, message: 'Permission denied' },
-        { status: 403 }
       );
     }
 
@@ -102,15 +92,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
-      );
-    }
-
-    // Check if user has permission to access audits
-    const permissions = await getUserPermissions(session.user.id);
-    if (!permissions?.canSeeAuditManagement) {
-      return NextResponse.json(
-        { success: false, message: 'Permission denied' },
-        { status: 403 }
       );
     }
 
