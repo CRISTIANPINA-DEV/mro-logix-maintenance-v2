@@ -21,6 +21,9 @@ interface SDRReport {
   condition: string;
   hasAttachments: boolean;
   createdAt: string;
+  hasFlightNumber?: boolean;
+  flightNumber?: string;
+  airlineName?: string;
   Attachment?: any[];
 }
 
@@ -166,10 +169,10 @@ export default function SDRReports() {
   return (
     <div className="w-full max-w-full mx-auto px-2 pt-1 pb-10">
       {/* Compliance Notice */}
-      <Card className="bg-slate-50 border-slate-200 mb-6 rounded-none">
-        <CardContent className="py-1">
+      <Card className="bg-slate-50 border-slate-200 mb-4 sm:mb-6 rounded-none">
+        <CardContent className="py-2 sm:py-1 px-3 sm:px-6">
           <div className="text-center">
-            <p className="text-sm text-slate-700 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
               This form is used to comply with Service Difficulty Reports (SDR) requirements under regulations{' '}
               <span className="font-bold italic text-slate-900">122</span>,{' '}
               <span className="font-bold italic text-slate-900">125</span>,{' '}
@@ -205,18 +208,18 @@ export default function SDRReports() {
 
       {/* Show Reports List (hidden when form or details are shown) */}
       {!showForm && !selectedReport && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Search and Stats */}
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-4">
-            <Card className="md:col-span-2">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="sm:col-span-2 lg:col-span-2">
               <CardContent className="pt-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                   <Input
-                    placeholder="Search reports by control number, title, submitter, or station..."
+                    placeholder="Search reports..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 text-sm"
                   />
                 </div>
               </CardContent>
@@ -224,14 +227,14 @@ export default function SDRReports() {
             
             <Card>
               <CardHeader className="text-center py-2">
-                <CardTitle className="text-xl font-bold text-blue-600">{reports.length}</CardTitle>
+                <CardTitle className="text-lg sm:text-xl font-bold text-blue-600">{reports.length}</CardTitle>
                 <CardDescription className="text-xs">Total Reports</CardDescription>
               </CardHeader>
             </Card>
             
             <Card>
               <CardHeader className="text-center py-2">
-                <CardTitle className="text-xl font-bold text-green-600">
+                <CardTitle className="text-lg sm:text-xl font-bold text-green-600">
                   {reports.filter(r => r.hasAttachments).length}
                 </CardTitle>
                 <CardDescription className="text-xs">With Attachments</CardDescription>
@@ -241,9 +244,9 @@ export default function SDRReports() {
 
           {/* Reports List */}
           <Card>
-            <CardHeader>
-              <CardTitle>SDR Reports</CardTitle>
-              <CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg sm:text-xl">SDR Reports</CardTitle>
+              <CardDescription className="text-sm">
                 Click on any report to view full details
               </CardDescription>
             </CardHeader>
@@ -254,14 +257,14 @@ export default function SDRReports() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
                     {searchTerm ? 'No reports found' : 'No SDR reports yet'}
                   </h3>
-                  <p className="text-gray-500">
+                  <p className="text-gray-500 text-sm">
                     {searchTerm 
                       ? 'Try adjusting your search terms' 
                       : 'Create your first SDR report to get started'
                     }
                   </p>
                   {!searchTerm && (
-                    <Button onClick={handleNewSDR} className="mt-4 cursor-pointer">
+                    <Button onClick={handleNewSDR} className="mt-4 cursor-pointer" size="sm">
                       Create New SDR Report
                     </Button>
                   )}
@@ -274,20 +277,20 @@ export default function SDRReports() {
                       className="cursor-pointer hover:shadow-md hover:bg-gray-50 transition-all border-l-4 border-l-[#f43f5e] rounded-none"
                       onClick={() => handleReportClick(report.id)}
                     >
-                      <CardContent className="py-3 px-4">
-                        <div className="flex items-center justify-between gap-4">
-                          {/* Left side - Control Number and Title */}
-                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <CardContent className="py-3 px-3 sm:px-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+                          {/* Top row on mobile - Control Number and Title */}
+                          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
                             <Badge variant="outline" className="font-mono text-xs shrink-0">
                               {report.controlNumber}
                             </Badge>
                             <h3 className="font-semibold text-sm truncate flex-1">
-                              {truncateTitle(report.reportTitle)}
+                              {truncateTitle(report.reportTitle, window.innerWidth < 640 ? 6 : 10)}
                             </h3>
                           </div>
                           
-                          {/* Middle - Details */}
-                          <div className="hidden md:flex items-center gap-6 text-xs text-gray-600">
+                          {/* Middle section - Details (hidden on mobile, shown on desktop) */}
+                          <div className="hidden md:flex items-center gap-4 lg:gap-6 text-xs text-gray-600">
                             <div className="flex items-center gap-1">
                               <Calendar size={12} />
                               <span className="whitespace-nowrap">{formatDate(report.difficultyDate)}</span>
@@ -303,16 +306,31 @@ export default function SDRReports() {
                           </div>
                           
                           {/* Right side - Status and Attachments */}
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Badge variant="outline" className="text-xs">
-                              {report.condition}
-                            </Badge>
-                            {report.hasAttachments && (
-                              <Badge variant="secondary" className="flex items-center gap-1 text-xs">
-                                <Paperclip size={10} />
-                                <span className="hidden sm:inline">Files</span>
+                          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-2 shrink-0">
+                            {/* Mobile details row */}
+                            <div className="flex items-center gap-2 text-xs text-gray-600 sm:hidden">
+                              <div className="flex items-center gap-1">
+                                <Calendar size={10} />
+                                <span className="text-xs">{formatDate(report.difficultyDate)}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <User size={10} />
+                                <span className="text-xs truncate max-w-16">{report.submitterName}</span>
+                              </div>
+                            </div>
+                            
+                            {/* Status badges */}
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {report.condition}
                               </Badge>
-                            )}
+                              {report.hasAttachments && (
+                                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                                  <Paperclip size={8} />
+                                  <span className="hidden sm:inline">Files</span>
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </CardContent>

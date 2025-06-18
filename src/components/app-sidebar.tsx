@@ -6,7 +6,6 @@ import {
   FileTextIcon, 
   HomeIcon, 
   UsersIcon, 
-  Clock3Icon,
   ShieldAlertIcon,
   FileSpreadsheetIcon,
   TriangleAlertIcon,
@@ -82,16 +81,7 @@ const menuItems = [
     url: "/dashboard/work-orders",
     icon: CalendarCheck2Icon,
   },
-  {
-    title: "Employee Roster",
-    url: "/dashboard/roster",
-    icon: UsersIcon,
-  },
-  {
-    title: "Employee Shifts",
-    url: "/dashboard/employee-shifts",
-    icon: Clock3Icon,
-  },
+
   {
     title: "Airport ID",
     url: "/dashboard/airport-id",
@@ -364,7 +354,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => ["Employee Roster", "Employee Shifts", "Airport ID", "Technician Training"].includes(item.title))
+                  .filter(item => ["Airport ID", "Technician Training"].includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -473,7 +463,7 @@ export function AppSidebar() {
               <span className="font-medium uppercase">{session.user.companyName}</span>
             </div>
           )}
-          <p>&copy; 2025 MRO Logix V. 1.2 Beta</p>
+          <p>&copy; V.1.2 Beta 18-Jun-25 / 8:38 a. m.</p>
         </div>
       </SidebarFooter>
     </Sidebar>

@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
     const howDiscoveredOther = formData.get('howDiscoveredOther') as string;
     const hasFlightNumber = formData.get('hasFlightNumber') === 'true';
     const flightNumber = formData.get('flightNumber') as string;
+    const airlineName = formData.get('airlineName') as string;
     const partOrAirplane = formData.get('partOrAirplane') as string;
     const airplaneModel = formData.get('airplaneModel') as string;
     const airplaneTailNumber = formData.get('airplaneTailNumber') as string;
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
         howDiscoveredOther: howDiscoveredOther || null,
         hasFlightNumber,
         flightNumber: flightNumber || null,
+        airlineName: airlineName || null,
         partOrAirplane,
         airplaneModel: airplaneModel || null,
         airplaneTailNumber: airplaneTailNumber || null,

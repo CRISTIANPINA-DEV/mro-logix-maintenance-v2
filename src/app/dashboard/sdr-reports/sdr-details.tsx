@@ -112,6 +112,10 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
       if (report.hasFlightNumber) {
         doc.text(`Flight Number: ${report.flightNumber}`, 20, yPosition);
         yPosition += 8;
+        if (report.airlineName) {
+          doc.text(`Airline: ${report.airlineName}`, 20, yPosition);
+          yPosition += 8;
+        }
       }
       
       if (report.timeOfDiscover) {
@@ -315,69 +319,72 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
     value: string | React.ReactNode;
     className?: string;
   }) => (
-    <div className={`flex items-start gap-3 ${className}`}>
-      <Icon size={18} className="text-muted-foreground mt-0.5 flex-shrink-0" />
+    <div className={`flex items-start gap-2 sm:gap-3 ${className}`}>
+      <Icon size={16} className="text-muted-foreground mt-0.5 flex-shrink-0 sm:w-[18px] sm:h-[18px]" />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-medium text-muted-foreground">{label}</div>
-        <div className="text-base font-semibold text-foreground break-words">{value}</div>
+        <div className="text-xs sm:text-sm font-medium text-muted-foreground">{label}</div>
+        <div className="text-sm sm:text-base font-semibold text-foreground break-words">{value}</div>
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-4xl max-h-[90vh] mx-auto flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50">
+      <Card className="w-full max-w-[95vw] sm:max-w-6xl lg:max-w-7xl max-h-[95vh] mx-auto flex flex-col rounded-none sm:rounded-lg">
         {/* Header */}
-        <CardHeader className="border-b bg-muted/30 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="text-sm font-mono px-2 py-1">
+        <CardHeader className="border-b bg-muted/30 flex-shrink-0 p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <Badge variant="outline" className="text-xs sm:text-sm font-mono px-2 py-1">
                   {report.controlNumber}
                 </Badge>
-                <h1 className="text-xl font-bold">SDR Report</h1>
+                <h1 className="text-lg sm:text-xl font-bold">SDR Report</h1>
               </div>
-              <h2 className="text-base text-muted-foreground font-medium line-clamp-1">
+              <h2 className="text-sm sm:text-base text-muted-foreground font-medium line-clamp-2 sm:line-clamp-1">
                 {report.reportTitle}
               </h2>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <Button
                 variant="default"
                 size="sm"
                 onClick={handleDownloadPDF}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
               >
-                <FileDown size={16} />
-                Download PDF
+                <FileDown size={14} />
+                <span className="hidden sm:inline">Download PDF</span>
+                <span className="sm:hidden">PDF</span>
               </Button>
               <Button 
                 variant="delete" 
                 size="sm" 
                 onClick={handleDelete} 
                 disabled={isDeleting}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
               >
-                <Trash2 size={16} />
-                {isDeleting ? 'Deleting...' : 'Delete'}
+                <Trash2 size={14} />
+                <span className="hidden sm:inline">{isDeleting ? 'Deleting...' : 'Delete'}</span>
+                <span className="sm:hidden">{isDeleting ? '...' : 'Del'}</span>
               </Button>
-              <Button variant="neutral" size="sm" onClick={onClose} className="flex items-center gap-2">
-                <X size={16} />
-                Close
+              <Button variant="neutral" size="sm" onClick={onClose} className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <X size={14} />
+                <span className="hidden sm:inline">Close</span>
+                <span className="sm:hidden">×</span>
               </Button>
             </div>
           </div>
         </CardHeader>
 
-        <CardContent className="p-6 overflow-y-auto flex-1">
-          <div className="space-y-6">
+        <CardContent className="p-3 sm:p-6 overflow-y-auto flex-1">
+          <div className="space-y-4 sm:space-y-6">
             {/* Key Information */}
             <section>
-              <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-                <AlertTriangle size={18} className="text-amber-600" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                <AlertTriangle size={16} className="text-amber-600 sm:w-[18px] sm:h-[18px]" />
                 Event Summary
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 <InfoItem
                   icon={Calendar}
                   label="Difficulty Date"
@@ -400,11 +407,11 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
 
             {/* Event Details */}
             <section>
-              <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-                <Settings size={18} className="text-blue-600" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                <Settings size={16} className="text-blue-600 sm:w-[18px] sm:h-[18px]" />
                 Event Details
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 <InfoItem
                   icon={AlertTriangle}
                   label="Condition"
@@ -430,11 +437,20 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
                   }
                 />
                 {report.hasFlightNumber && (
-                  <InfoItem
-                    icon={Plane}
-                    label="Flight Number"
-                    value={report.flightNumber}
-                  />
+                  <>
+                    <InfoItem
+                      icon={Plane}
+                      label="Flight Number"
+                      value={report.flightNumber}
+                    />
+                    {report.airlineName && (
+                      <InfoItem
+                        icon={Plane}
+                        label="Airline"
+                        value={report.airlineName}
+                      />
+                    )}
+                  </>
                 )}
                 {report.timeOfDiscover && (
                   <InfoItem
@@ -457,11 +473,11 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
 
             {/* Aircraft/Part Information */}
             <section>
-              <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-                <Plane size={18} className="text-green-600" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                <Plane size={16} className="text-green-600 sm:w-[18px] sm:h-[18px]" />
                 {report.partOrAirplane === 'Airplane' ? 'Aircraft Information' : 'Part Information'}
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <InfoItem
                   icon={Settings}
                   label="Type"
@@ -469,13 +485,13 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
                     <div className="space-y-1">
                       <div>{report.partOrAirplane}</div>
                       {report.partOrAirplane === 'Airplane' && (
-                        <div className="text-sm text-muted-foreground space-y-0.5">
+                        <div className="text-xs sm:text-sm text-muted-foreground space-y-0.5">
                           {report.airplaneModel && <div>Model: {report.airplaneModel}</div>}
                           {report.airplaneTailNumber && <div>Tail Number: {report.airplaneTailNumber}</div>}
                         </div>
                       )}
                       {report.partOrAirplane === 'Part' && (
-                        <div className="text-sm text-muted-foreground space-y-0.5">
+                        <div className="text-xs sm:text-sm text-muted-foreground space-y-0.5">
                           {report.partNumber && <div>Part Number: {report.partNumber}</div>}
                           {report.serialNumber && <div>Serial Number: {report.serialNumber}</div>}
                         </div>
@@ -490,13 +506,13 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
 
             {/* Problem Description */}
             <section>
-              <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-                <FileText size={18} className="text-red-600" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                <FileText size={16} className="text-red-600 sm:w-[18px] sm:h-[18px]" />
                 Problem Description
               </h3>
-              <Card className="bg-muted/50">
-                <CardContent className="p-4">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+              <Card className="bg-muted/50 rounded-lg">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed text-foreground">
                     {report.problemDescription}
                   </div>
                 </CardContent>
@@ -508,17 +524,17 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
               <>
                 <Separator />
                 <section>
-                  <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-                    <FileText size={18} className="text-orange-600" />
+                  <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                    <FileText size={16} className="text-orange-600 sm:w-[18px] sm:h-[18px]" />
                     Additional Details
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {report.symptoms && (
                       <div>
-                        <h4 className="font-medium text-sm mb-2 text-muted-foreground">Symptoms</h4>
-                        <Card className="bg-muted/30">
-                          <CardContent className="p-3">
-                            <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                        <h4 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2 text-muted-foreground">Symptoms</h4>
+                        <Card className="bg-muted/30 rounded-lg">
+                          <CardContent className="p-2 sm:p-3">
+                            <div className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed text-foreground">
                               {report.symptoms}
                             </div>
                           </CardContent>
@@ -528,10 +544,10 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
                     
                     {report.consequences && (
                       <div>
-                        <h4 className="font-medium text-sm mb-2 text-muted-foreground">Consequences</h4>
-                        <Card className="bg-muted/30">
-                          <CardContent className="p-3">
-                            <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                        <h4 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2 text-muted-foreground">Consequences</h4>
+                        <Card className="bg-muted/30 rounded-lg">
+                          <CardContent className="p-2 sm:p-3">
+                            <div className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed text-foreground">
                               {report.consequences}
                             </div>
                           </CardContent>
@@ -541,10 +557,10 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
                     
                     {report.correctiveAction && (
                       <div>
-                        <h4 className="font-medium text-sm mb-2 text-muted-foreground">Corrective Action</h4>
-                        <Card className="bg-muted/30">
-                          <CardContent className="p-3">
-                            <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                        <h4 className="font-medium text-xs sm:text-sm mb-1 sm:mb-2 text-muted-foreground">Corrective Action</h4>
+                        <Card className="bg-muted/30 rounded-lg">
+                          <CardContent className="p-2 sm:p-3">
+                            <div className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed text-foreground">
                               {report.correctiveAction}
                             </div>
                           </CardContent>
@@ -558,11 +574,11 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
 
             {/* Submitter Information */}
             <section>
-              <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-                <User size={18} className="text-purple-600" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                <User size={16} className="text-purple-600 sm:w-[18px] sm:h-[18px]" />
                 Submitter Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <InfoItem
                   icon={User}
                   label="Submitter Type"
@@ -588,17 +604,17 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
               <>
                 <Separator />
                 <section>
-                  <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-                    <FileText size={18} className="text-orange-600" />
+                  <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                    <FileText size={16} className="text-orange-600 sm:w-[18px] sm:h-[18px]" />
                     Attachments ({report.Attachment.length})
                   </h3>
                   <div className="space-y-2">
                     {report.Attachment.map((attachment: any) => (
-                      <div key={attachment.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <FileText size={18} className="text-muted-foreground flex-shrink-0" />
+                      <div key={attachment.id} className="flex items-center justify-between p-2 sm:p-3 bg-muted/30 rounded-lg border">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                          <FileText size={16} className="text-muted-foreground flex-shrink-0 sm:w-[18px] sm:h-[18px]" />
                           <div className="min-w-0 flex-1">
-                            <div className="font-medium text-sm truncate">{attachment.fileName}</div>
+                            <div className="font-medium text-xs sm:text-sm truncate">{attachment.fileName}</div>
                             <div className="text-xs text-muted-foreground">
                               {(attachment.fileSize / 1024 / 1024).toFixed(2)} MB
                             </div>
@@ -608,9 +624,9 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
                           variant="outline"
                           size="sm"
                           onClick={() => handleDownloadAttachment(attachment.id, attachment.fileName)}
-                          className="flex items-center gap-1 ml-3 flex-shrink-0"
+                          className="flex items-center gap-1 ml-2 sm:ml-3 flex-shrink-0 text-xs"
                         >
-                          <Download size={14} />
+                          <Download size={12} />
                           <span className="hidden sm:inline">Download</span>
                         </Button>
                       </div>
@@ -624,11 +640,11 @@ const SDRDetails: React.FC<SDRDetailsProps> = ({ report, onClose, onDelete }) =>
 
             {/* Report Metadata */}
             <section>
-              <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
-                <Clock size={18} className="text-gray-600" />
+              <h3 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3 flex items-center gap-2">
+                <Clock size={16} className="text-gray-600 sm:w-[18px] sm:h-[18px]" />
                 Report Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <InfoItem
                   icon={Calendar}
                   label="Created"

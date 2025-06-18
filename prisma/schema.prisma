@@ -661,6 +661,7 @@ model SDRReport {
   howDiscoveredOther    String?
   hasFlightNumber       Boolean               @default(false)
   flightNumber          String?
+  airlineName           String?
   partOrAirplane        String
   airplaneModel         String?
   airplaneTailNumber    String?

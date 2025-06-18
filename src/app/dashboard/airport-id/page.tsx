@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
-import { DownloadIcon, Trash2Icon, MessageSquareIcon, AlertCircle, AlertTriangle, Clock, Search } from "lucide-react";
+import { DownloadIcon, Trash2Icon, MessageSquareIcon, AlertCircle, AlertTriangle, Clock, Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,8 +55,6 @@ interface AirportID {
   }[];
   createdAt: string;
 }
-
-const STATIONS = ['STA-1', 'STA-2', 'STA-3', 'STA-4', 'STA-5', 'Other'];
 
 // Add this helper function at the top level, before the component
 const formatDate = (dateString: string): string => {
@@ -111,7 +109,6 @@ export default function AirportIDPage() {
   // Form state
   const [employeeName, setEmployeeName] = useState("");
   const [station, setStation] = useState("");
-  const [customStation, setCustomStation] = useState("");
   const [idIssuedDate, setIdIssuedDate] = useState("");
   const [badgeIdNumber, setBadgeIdNumber] = useState("");
   const [expireDate, setExpireDate] = useState("");
@@ -168,9 +165,6 @@ export default function AirportIDPage() {
     const formData = new FormData();
     formData.append('employeeName', employeeName);
     formData.append('station', station);
-    if (station === 'Other') {
-      formData.append('customStation', customStation);
-    }
     formData.append('idIssuedDate', adjustDateToNoonUTC(idIssuedDate));
     formData.append('badgeIdNumber', badgeIdNumber);
     formData.append('expireDate', adjustDateToNoonUTC(expireDate));
@@ -201,7 +195,6 @@ export default function AirportIDPage() {
       // Reset form
       setEmployeeName("");
       setStation("");
-      setCustomStation("");
       setIdIssuedDate("");
       setBadgeIdNumber("");
       setExpireDate("");
@@ -286,7 +279,7 @@ export default function AirportIDPage() {
     const search = searchTerm.toLowerCase().trim();
     return airportIds.filter((id) => {
       const employeeName = id.employeeName.toLowerCase();
-      const station = id.station === 'Other' ? (id.customStation?.toLowerCase() || '') : id.station.toLowerCase();
+      const station = id.station.toLowerCase();
       const badgeId = id.badgeIdNumber.toLowerCase();
       
       return employeeName.includes(search) || 
@@ -318,19 +311,31 @@ export default function AirportIDPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Airport ID Management</h1>
+    <div className="container mx-auto px-4 py-6 space-y-6 max-w-full">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold">Airport ID Management</h1>
         <Button
           onClick={() => setShowForm(!showForm)}
-          variant={showForm ? "destructive" : "default"}
+          variant={showForm ? "outline" : "outline"}
+          size="sm"
+          className={cn(
+            "w-full sm:w-auto",
+            showForm && "bg-white text-black border-black hover:bg-gray-50"
+          )}
         >
-          {showForm ? "Cancel" : "Add New ID"}
+          {showForm ? (
+            "Cancel"
+          ) : (
+            <>
+              <Plus className="h-4 w-4 mr-2" />
+              Add New ID
+            </>
+          )}
         </Button>
       </div>
 
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <Card className="p-2">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-2">
               <CardTitle className="text-xs font-medium">Expiring in 90 Days</CardTitle>
@@ -367,8 +372,8 @@ export default function AirportIDPage() {
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="space-y-6 bg-card p-6 rounded-lg border">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-card p-4 sm:p-6 rounded-lg border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="space-y-2">
               <Label htmlFor="employeeName">Employee Name</Label>
               <Input
@@ -381,26 +386,13 @@ export default function AirportIDPage() {
 
             <div className="space-y-2">
               <Label htmlFor="station">Station</Label>
-              <Select value={station} onValueChange={setStation} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select station" />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATIONS.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {station === 'Other' && (
-                <Input
-                  placeholder="Enter custom station"
-                  value={customStation}
-                  onChange={(e) => setCustomStation(e.target.value)}
-                  required
-                />
-              )}
+              <Input
+                id="station"
+                placeholder="Enter station name"
+                value={station}
+                onChange={(e) => setStation(e.target.value)}
+                required
+              />
             </div>
 
             <div className="space-y-2">
@@ -449,14 +441,14 @@ export default function AirportIDPage() {
                 </SelectContent>
               </Select>
               {hasAttachment === 'Yes' && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                   <Input
                     type="file"
                     onChange={handleFileChange}
                     className="cursor-pointer"
                   />
                   {file && (
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm text-muted-foreground break-all">
                       {file.name}
                     </span>
                   )}
@@ -464,7 +456,7 @@ export default function AirportIDPage() {
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
               <Label>Comment</Label>
               <Select value={hasComment} onValueChange={setHasComment}>
                 <SelectTrigger>
@@ -481,21 +473,29 @@ export default function AirportIDPage() {
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   required
+                  className="mt-2"
                 />
               )}
             </div>
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit" variant="save">Save</Button>
+            <Button 
+              type="submit" 
+              variant="save"
+              size="sm"
+              className="w-full sm:w-auto px-10"
+            >
+              Save Aiport ID
+            </Button>
           </div>
         </form>
       )}
 
       {/* Search Input */}
       {!loading && (
-        <div className="flex items-center gap-2 max-w-md">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <div className="relative flex-1 w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               type="text"
@@ -510,7 +510,7 @@ export default function AirportIDPage() {
               variant="ghost"
               size="sm"
               onClick={() => setSearchTerm("")}
-              className="px-2"
+              className="px-2 w-full sm:w-auto"
             >
               Clear
             </Button>
@@ -521,111 +521,206 @@ export default function AirportIDPage() {
       {loading ? (
         <div className="text-center">Loading...</div>
       ) : (
-        <div className="rounded-md border">
-          <Table className="[&_td]:py-1.5 [&_th]:py-2 [&_td]:text-sm [&_th]:text-sm">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[180px]">Employee Name</TableHead>
-                <TableHead className="w-[120px]">Station</TableHead>
-                <TableHead className="w-[120px]">Badge ID</TableHead>
-                <TableHead className="w-[120px]">Issued Date</TableHead>
-                <TableHead className="w-[100px]">Has Comment</TableHead>
-                <TableHead className="w-[120px]">Has Attachment</TableHead>
-                <TableHead className="w-[120px]">Expire Date</TableHead>
-                <TableHead className="w-[100px]">Due Days</TableHead>
-                <TableHead className="w-[60px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAirportIds.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                    {searchTerm ? "No records found matching your search." : "No airport ID records found."}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredAirportIds.map((id) => {
+        <div className="rounded-md border overflow-hidden">
+          {/* Mobile Card View */}
+          <div className="block sm:hidden">
+            {filteredAirportIds.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchTerm ? "No records found matching your search." : "No airport ID records found."}
+              </div>
+            ) : (
+              <div className="space-y-4 p-4">
+                {filteredAirportIds.map((id) => {
                   const { days, status } = calculateDaysRemaining(id.expireDate);
                   return (
-                  <TableRow key={id.id}>
-                    <TableCell className="font-medium">{id.employeeName}</TableCell>
-                    <TableCell>
-                      {id.station === 'Other' ? id.customStation : id.station}
-                    </TableCell>
-                    <TableCell>{id.badgeIdNumber}</TableCell>
-                    <TableCell>
-                      {formatDate(id.idIssuedDate)}
-                    </TableCell>
-                    <TableCell>
-                      {id.hasComment ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewComment(id.employeeName, id.comment)}
-                          className="h-7 w-7 p-0"
-                        >
-                          <MessageSquareIcon className="h-3.5 w-3.5" />
-                        </Button>
-                      ) : (
-                        "No"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {id.hasAttachment ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const fileUrl = `https://mro-logix-amazons3-bucket.s3.amazonaws.com/${id.Attachment[0].fileKey}`;
-                            window.open(fileUrl, '_blank');
-                          }}
-                          className="h-7 px-2"
-                        >
-                          <DownloadIcon className="h-3.5 w-3.5 mr-1" />
-                          Download
-                        </Button>
-                      ) : (
-                        "No"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {formatDate(id.expireDate)}
-                    </TableCell>
-                    <TableCell>
-                      <div className={cn(
-                        "px-1.5 py-0.5 rounded text-center text-xs font-medium",
-                        status === 'expired' && "bg-red-100 text-red-700",
-                        status === 'critical' && "bg-orange-100 text-orange-700",
-                        status === 'warning' && "bg-yellow-100 text-yellow-700",
-                        status === 'normal' && "bg-green-100 text-green-700"
-                      )}>
-                        {status === 'expired' ? 'Expired' : `${days} days`}
+                    <Card key={id.id} className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium text-sm">{id.employeeName}</h3>
+                            <p className="text-xs text-muted-foreground">{id.station}</p>
+                          </div>
+                          <Button
+                            variant="delete"
+                            size="sm"
+                            onClick={() => handleDelete(id.id)}
+                            className="h-7 w-7 p-0"
+                          >
+                            <Trash2Icon className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Badge ID:</span>
+                            <p className="font-medium">{id.badgeIdNumber}</p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Issued:</span>
+                            <p className="font-medium">{formatDate(id.idIssuedDate)}</p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Expires:</span>
+                            <p className="font-medium">{formatDate(id.expireDate)}</p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Status:</span>
+                            <div className={cn(
+                              "inline-block px-2 py-1 rounded text-xs font-medium mt-1",
+                              status === 'expired' && "bg-red-100 text-red-700",
+                              status === 'critical' && "bg-orange-100 text-orange-700",
+                              status === 'warning' && "bg-yellow-100 text-yellow-700",
+                              status === 'normal' && "bg-green-100 text-green-700"
+                            )}>
+                              {status === 'expired' ? 'Expired' : `${days} days`}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {id.hasComment && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewComment(id.employeeName, id.comment)}
+                              className="h-7 px-2 text-xs"
+                            >
+                              <MessageSquareIcon className="h-3 w-3 mr-1" />
+                              Comment
+                            </Button>
+                          )}
+                          {id.hasAttachment ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const fileKey = encodeURIComponent(id.Attachment[0].fileKey);
+                                const downloadUrl = `/api/airport-id/attachments/${fileKey}`;
+                                window.open(downloadUrl, '_blank');
+                              }}
+                              className="h-7 px-3 text-xs bg-white border border-gray-300 hover:bg-gray-50 text-gray-700"
+                            >
+                              <DownloadIcon className="h-3 w-3 mr-1" />
+                              Download
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No files attached</span>
+                          )}
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="delete"
-                        size="sm"
-                        onClick={() => handleDelete(id.id)}
-                        className="h-7 w-7 p-0"
-                      >
-                        <Trash2Icon className="h-3.5 w-3.5" />
-                      </Button>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden sm:block overflow-x-auto">
+            <Table className="[&_td]:py-1.5 [&_th]:py-2 [&_td]:text-sm [&_th]:text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[150px]">Employee Name</TableHead>
+                  <TableHead className="min-w-[100px]">Station</TableHead>
+                  <TableHead className="min-w-[100px]">Badge ID</TableHead>
+                  <TableHead className="min-w-[100px]">Issued Date</TableHead>
+                  <TableHead className="min-w-[80px]">Comment</TableHead>
+                  <TableHead className="min-w-[100px]">Attachment</TableHead>
+                  <TableHead className="min-w-[100px]">Expire Date</TableHead>
+                  <TableHead className="min-w-[80px]">Due Days</TableHead>
+                  <TableHead className="min-w-[60px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAirportIds.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                      {searchTerm ? "No records found matching your search." : "No airport ID records found."}
                     </TableCell>
                   </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  filteredAirportIds.map((id) => {
+                    const { days, status } = calculateDaysRemaining(id.expireDate);
+                    return (
+                    <TableRow key={id.id}>
+                      <TableCell className="font-medium">{id.employeeName}</TableCell>
+                      <TableCell>{id.station}</TableCell>
+                      <TableCell>{id.badgeIdNumber}</TableCell>
+                      <TableCell>
+                        {formatDate(id.idIssuedDate)}
+                      </TableCell>
+                      <TableCell>
+                        {id.hasComment ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewComment(id.employeeName, id.comment)}
+                            className="h-7 w-7 p-0"
+                          >
+                            <MessageSquareIcon className="h-3.5 w-3.5" />
+                          </Button>
+                        ) : (
+                          "No"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {id.hasAttachment ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const fileKey = encodeURIComponent(id.Attachment[0].fileKey);
+                              const downloadUrl = `/api/airport-id/attachments/${fileKey}`;
+                              window.open(downloadUrl, '_blank');
+                            }}
+                            className="h-7 px-3 text-xs bg-white border border-gray-300 hover:bg-gray-50 text-gray-700"
+                          >
+                            <DownloadIcon className="h-3.5 w-3.5 mr-1" />
+                            Download
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No files attached</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {formatDate(id.expireDate)}
+                      </TableCell>
+                      <TableCell>
+                        <div className={cn(
+                          "px-1.5 py-0.5 rounded text-center text-xs font-medium",
+                          status === 'expired' && "bg-red-100 text-red-700",
+                          status === 'critical' && "bg-orange-100 text-orange-700",
+                          status === 'warning' && "bg-yellow-100 text-yellow-700",
+                          status === 'normal' && "bg-green-100 text-green-700"
+                        )}>
+                          {status === 'expired' ? 'Expired' : `${days} days`}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="delete"
+                          size="sm"
+                          onClick={() => handleDelete(id.id)}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Trash2Icon className="h-3.5 w-3.5" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="mx-4 max-w-md rounded-none">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-red-600">
               This action cannot be undone. This will permanently delete the airport ID record
               and any associated attachments.
             </AlertDialogDescription>
@@ -644,7 +739,7 @@ export default function AirportIDPage() {
               disabled={isDeleting}
             />
           </div>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
             <AlertDialogCancel 
               disabled={isDeleting}
               onClick={() => {
@@ -667,10 +762,10 @@ export default function AirportIDPage() {
       </AlertDialog>
 
       <AlertDialog open={commentDialogOpen} onOpenChange={setCommentDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="mx-4 max-w-md rounded-none">
           <AlertDialogHeader>
             <AlertDialogTitle>Comment for {selectedComment?.name}</AlertDialogTitle>
-            <AlertDialogDescription className="mt-4 bg-muted p-4 rounded-lg whitespace-pre-wrap">
+            <AlertDialogDescription className="mt-4 bg-muted p-4 rounded-lg whitespace-pre-wrap max-h-60 overflow-y-auto">
               {selectedComment?.comment}
             </AlertDialogDescription>
           </AlertDialogHeader>
