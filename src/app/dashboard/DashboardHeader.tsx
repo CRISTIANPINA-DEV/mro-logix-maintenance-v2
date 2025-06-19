@@ -386,48 +386,20 @@ export default function DashboardHeader() {
               </div>
             </div>
             
-            <Dialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="flex items-center gap-2 w-full mt-4"
-                >
-                  Sign out <LogOut className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Sign out confirmation</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to sign out of your account?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="mt-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowSignOutDialog(false)}
-                    className="bg-background hover:bg-accent border border-input"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleSignOut}
-                    disabled={signingOut}
-                    variant="default"
-                    className="ml-2"
-                  >
-                    {signingOut ? "Signing out..." : "Sign out"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 w-full mt-4"
+              onClick={() => setShowSignOutDialog(true)}
+            >
+              Sign out <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       )}
 
       {/* Sign Out Dialog */}
       <Dialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md rounded-none">
           <DialogHeader>
             <DialogTitle>Sign out confirmation</DialogTitle>
             <DialogDescription>
@@ -437,6 +409,7 @@ export default function DashboardHeader() {
           <DialogFooter className="mt-4">
             <Button 
               variant="outline" 
+              size="sm"
               onClick={() => setShowSignOutDialog(false)}
               className="bg-background hover:bg-accent border border-input"
             >
@@ -446,6 +419,7 @@ export default function DashboardHeader() {
               onClick={handleSignOut}
               disabled={signingOut}
               variant="default"
+              size="sm"
               className="ml-2"
             >
               {signingOut ? "Signing out..." : "Sign out"}

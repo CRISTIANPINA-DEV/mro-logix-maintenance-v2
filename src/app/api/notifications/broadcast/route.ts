@@ -10,6 +10,20 @@ export async function POST(request: NextRequest) {
     }
     const currentUser = auth.user;
 
+    // Get user session to check privileges
+    const session = await prisma.user.findUnique({
+      where: { id: currentUser.id },
+      select: { privilege: true }
+    });
+
+    // Check if user has admin privileges
+    if (session?.privilege !== 'admin') {
+      return NextResponse.json(
+        { success: false, message: 'Admin privileges required to broadcast notifications' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { message, priority } = body;
 

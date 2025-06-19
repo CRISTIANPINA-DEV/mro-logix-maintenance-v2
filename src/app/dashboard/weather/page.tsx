@@ -157,11 +157,11 @@ export default function WeatherDashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
           <div className="flex justify-center items-center min-h-[60vh]">
             <div className="text-center space-y-4">
-              <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
-              <p className="text-muted-foreground">Loading weather data...</p>
+              <div className="animate-spin h-10 w-10 sm:h-12 sm:w-12 border-4 border-primary border-t-transparent rounded-full mx-auto"></div>
+              <p className="text-muted-foreground text-sm sm:text-base">Loading weather data...</p>
             </div>
           </div>
         </div>
@@ -172,16 +172,16 @@ export default function WeatherDashboard() {
   if (!weatherData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 sm:space-y-6">
             <div className="text-center space-y-4">
-              <Cloud className="h-16 w-16 text-muted-foreground mx-auto" />
+              <Cloud className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto" />
               <div>
-                <h2 className="text-xl font-semibold mb-2">Weather data unavailable</h2>
-                <p className="text-muted-foreground">Unable to load weather information</p>
+                <h2 className="text-lg sm:text-xl font-semibold mb-2">Weather data unavailable</h2>
+                <p className="text-muted-foreground text-sm sm:text-base">Unable to load weather information</p>
               </div>
             </div>
-            <Button onClick={getCurrentLocationWeather} size="lg">
+            <Button onClick={getCurrentLocationWeather} size="default" className="w-fit">
               <RefreshCw className="h-4 w-4 mr-2" />
               Try Again
             </Button>
@@ -197,33 +197,37 @@ export default function WeatherDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-8">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="hover:bg-white/50">
+              <Button variant="ghost" size="sm" className="hover:bg-white/50 w-fit">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
             </Link>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent truncate">
                 Weather Dashboard
               </h1>
-              <div className="flex items-center gap-2 text-muted-foreground mt-1">
-                <MapPin className="h-4 w-4" />
-                <span>{weatherData.location}, {weatherData.region}</span>
-                <Separator orientation="vertical" className="h-4" />
-                <Calendar className="h-4 w-4" />
-                <span>{weatherData.timezone}</span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-muted-foreground mt-1">
+                <div className="flex items-center gap-2 min-w-0">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{weatherData.location}, {weatherData.region}</span>
+                </div>
+                <Separator orientation="vertical" className="h-4 hidden sm:block" />
+                <div className="flex items-center gap-2 min-w-0">
+                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate text-sm sm:text-base">{weatherData.timezone}</span>
+                </div>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
             {lastRefresh && (
-              <div className="text-sm text-muted-foreground text-right">
+              <div className="text-sm text-muted-foreground sm:text-right">
                 <div>Last updated</div>
                 <div className="font-medium">{lastRefresh.toLocaleTimeString()}</div>
               </div>
@@ -233,7 +237,7 @@ export default function WeatherDashboard() {
               size="sm" 
               onClick={getCurrentLocationWeather}
               disabled={loading}
-              className="hover:bg-white/50 min-w-[100px]"
+              className="hover:bg-white/50 min-w-[100px] w-fit sm:w-auto"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               {loading ? 'Updating...' : 'Refresh'}
@@ -244,78 +248,78 @@ export default function WeatherDashboard() {
         {/* Hero Weather Card */}
         <Card className="relative overflow-hidden border-none shadow-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white">
           <div className="absolute inset-0 bg-black/10"></div>
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
+          <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-white/10 rounded-full -translate-y-12 translate-x-12 sm:-translate-y-16 sm:translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 bg-white/5 rounded-full translate-y-8 -translate-x-8 sm:translate-y-12 sm:-translate-x-12"></div>
           
-          <CardContent className="relative p-8">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+          <CardContent className="relative p-4 sm:p-6 lg:p-8">
+            <div className="grid gap-6 sm:gap-8 lg:grid-cols-2 items-center">
+              <div className="space-y-4 text-center lg:text-left">
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-3">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs sm:text-sm">
                     {weatherData.isDay ? '☀️ Day' : '🌙 Night'}
                   </Badge>
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs sm:text-sm">
                     Updated {new Date(weatherData.lastUpdated).toLocaleTimeString()}
                   </Badge>
                 </div>
                 
                 <div>
-                  <div className="text-6xl font-bold mb-2">
+                  <div className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-2">
                     {weatherData.temperature}°
                   </div>
-                  <div className="text-xl text-blue-100 mb-1">
+                  <div className="text-lg sm:text-xl text-blue-100 mb-1">
                     {weatherData.temperatureF}°F
                   </div>
-                  <div className="text-2xl font-medium capitalize text-blue-100">
+                  <div className="text-xl sm:text-2xl font-medium capitalize text-blue-100">
                     {weatherData.conditionText}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-blue-100">
+                <div className="flex items-center justify-center lg:justify-start gap-4 text-blue-100">
                   <div className="flex items-center gap-1">
                     <Thermometer className="h-4 w-4" />
-                    <span>Feels like {weatherData.feelsLike}°C</span>
+                    <span className="text-sm sm:text-base">Feels like {weatherData.feelsLike}°C</span>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
                     <Droplets className="h-4 w-4" />
-                    <span className="text-sm font-medium">Humidity</span>
+                    <span className="text-xs sm:text-sm font-medium">Humidity</span>
                   </div>
-                  <div className="text-2xl font-bold">{weatherData.humidity}%</div>
-                  <div className={`text-sm ${comfortLevel.color.replace('text-', 'text-white ')}`}>
+                  <div className="text-xl sm:text-2xl font-bold">{weatherData.humidity}%</div>
+                  <div className={`text-xs sm:text-sm ${comfortLevel.color.replace('text-', 'text-white ')}`}>
                     {comfortLevel.level}
                   </div>
                 </div>
 
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
                     <Wind className="h-4 w-4" />
-                    <span className="text-sm font-medium">Wind</span>
+                    <span className="text-xs sm:text-sm font-medium">Wind</span>
                   </div>
-                  <div className="text-2xl font-bold">{weatherData.windSpeed}</div>
-                  <div className="text-sm text-blue-100">km/h {weatherData.windDir}</div>
+                  <div className="text-xl sm:text-2xl font-bold">{weatherData.windSpeed}</div>
+                  <div className="text-xs sm:text-sm text-blue-100">km/h {weatherData.windDir}</div>
                 </div>
 
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
                     <Gauge className="h-4 w-4" />
-                    <span className="text-sm font-medium">Pressure</span>
+                    <span className="text-xs sm:text-sm font-medium">Pressure</span>
                   </div>
-                  <div className="text-2xl font-bold">{weatherData.pressure}</div>
-                  <div className="text-sm text-blue-100">mb</div>
+                  <div className="text-xl sm:text-2xl font-bold">{weatherData.pressure}</div>
+                  <div className="text-xs sm:text-sm text-blue-100">mb</div>
                 </div>
 
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
                     <Cloud className="h-4 w-4" />
-                    <span className="text-sm font-medium">Rain</span>
+                    <span className="text-xs sm:text-sm font-medium">Rain</span>
                   </div>
-                  <div className="text-2xl font-bold">{weatherData.rainProbability}%</div>
-                  <div className="text-sm text-blue-100">chance</div>
+                  <div className="text-xl sm:text-2xl font-bold">{weatherData.rainProbability}%</div>
+                  <div className="text-xs sm:text-sm text-blue-100">chance</div>
                 </div>
               </div>
             </div>
@@ -323,7 +327,7 @@ export default function WeatherDashboard() {
         </Card>
 
         {/* Detailed Metrics Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {/* Wind Information */}
           <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="pb-3">
@@ -458,7 +462,7 @@ export default function WeatherDashboard() {
         </div>
 
         {/* Temperature Analysis */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2 text-red-700">
@@ -470,10 +474,10 @@ export default function WeatherDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-center space-y-2">
-                <div className="text-3xl font-bold text-red-600">{weatherData.heatindexC}°C</div>
-                <div className="text-lg text-muted-foreground">{weatherData.heatindexF}°F</div>
-                <p className="text-sm text-muted-foreground">How hot it feels with humidity</p>
-                <div className="mt-3 p-3 bg-red-50 rounded-lg">
+                <div className="text-2xl sm:text-3xl font-bold text-red-600">{weatherData.heatindexC}°C</div>
+                <div className="text-base sm:text-lg text-muted-foreground">{weatherData.heatindexF}°F</div>
+                <p className="text-xs sm:text-sm text-muted-foreground">How hot it feels with humidity</p>
+                <div className="mt-3 p-2 sm:p-3 bg-red-50 rounded-lg">
                   <p className="text-xs text-red-700 font-medium">
                     {weatherData.heatindexC > 32 ? 'Caution: Very hot conditions' : 
                      weatherData.heatindexC > 27 ? 'Warm and humid' : 'Comfortable heat level'}
@@ -494,10 +498,10 @@ export default function WeatherDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-center space-y-2">
-                <div className="text-3xl font-bold text-blue-600">{weatherData.windchillC}°C</div>
-                <div className="text-lg text-muted-foreground">{weatherData.windchillF}°F</div>
-                <p className="text-sm text-muted-foreground">How cold it feels with wind</p>
-                <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600">{weatherData.windchillC}°C</div>
+                <div className="text-base sm:text-lg text-muted-foreground">{weatherData.windchillF}°F</div>
+                <p className="text-xs sm:text-sm text-muted-foreground">How cold it feels with wind</p>
+                <div className="mt-3 p-2 sm:p-3 bg-blue-50 rounded-lg">
                   <p className="text-xs text-blue-700 font-medium">
                     {weatherData.windchillC < 0 ? 'Warning: Freezing conditions' : 
                      weatherData.windchillC < 10 ? 'Cool with wind effect' : 'Mild wind chill'}
@@ -507,7 +511,7 @@ export default function WeatherDashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="border-none shadow-lg hover:shadow-xl transition-shadow sm:col-span-2 lg:col-span-1">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2 text-teal-700">
                 <div className="p-2 bg-teal-100 rounded-lg">
@@ -518,10 +522,10 @@ export default function WeatherDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-center space-y-2">
-                <div className="text-3xl font-bold text-teal-600">{weatherData.dewpointC}°C</div>
-                <div className="text-lg text-muted-foreground">{weatherData.dewpointF}°F</div>
-                <p className="text-sm text-muted-foreground">Humidity comfort level</p>
-                <div className="mt-3 p-3 bg-teal-50 rounded-lg">
+                <div className="text-2xl sm:text-3xl font-bold text-teal-600">{weatherData.dewpointC}°C</div>
+                <div className="text-base sm:text-lg text-muted-foreground">{weatherData.dewpointF}°F</div>
+                <p className="text-xs sm:text-sm text-muted-foreground">Humidity comfort level</p>
+                <div className="mt-3 p-2 sm:p-3 bg-teal-50 rounded-lg">
                   <p className="text-xs text-teal-700 font-medium">
                     {weatherData.dewpointC > 20 ? 'Very humid and uncomfortable' : 
                      weatherData.dewpointC > 15 ? 'Humid but tolerable' : 'Comfortable humidity'}
@@ -535,20 +539,20 @@ export default function WeatherDashboard() {
         {/* Precipitation Details */}
         <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-700">
+            <CardTitle className="flex items-center gap-2 text-blue-700 text-base sm:text-lg">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <Droplets className="h-5 w-5" />
+                <Droplets className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               Precipitation Analysis
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               Current precipitation levels and probability forecast
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <div className="text-center space-y-3">
-                <div className="text-4xl font-bold text-blue-600">{weatherData.precipMm}</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-600">{weatherData.precipMm}</div>
                 <div className="text-sm text-muted-foreground">mm today</div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
@@ -559,7 +563,7 @@ export default function WeatherDashboard() {
               </div>
               
               <div className="text-center space-y-3">
-                <div className="text-4xl font-bold text-blue-600">{weatherData.precipIn.toFixed(2)}</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-600">{weatherData.precipIn.toFixed(2)}</div>
                 <div className="text-sm text-muted-foreground">inches today</div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
@@ -569,8 +573,8 @@ export default function WeatherDashboard() {
                 </div>
               </div>
               
-              <div className="text-center space-y-3">
-                <div className="text-4xl font-bold text-blue-600">{weatherData.rainProbability}%</div>
+              <div className="text-center space-y-3 sm:col-span-2 lg:col-span-1">
+                <div className="text-3xl sm:text-4xl font-bold text-blue-600">{weatherData.rainProbability}%</div>
                 <div className="text-sm text-muted-foreground">chance of rain</div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
@@ -581,10 +585,10 @@ export default function WeatherDashboard() {
               </div>
             </div>
             
-            <Separator className="my-6" />
+            <Separator className="my-4 sm:my-6" />
             
             <div className="text-center">
-              <Badge variant={weatherData.rainProbability > 70 ? 'destructive' : weatherData.rainProbability > 30 ? 'secondary' : 'default'}>
+              <Badge variant={weatherData.rainProbability > 70 ? 'destructive' : weatherData.rainProbability > 30 ? 'secondary' : 'default'} className="text-xs sm:text-sm">
                 {weatherData.rainProbability > 70 ? 'High chance of rain' : 
                  weatherData.rainProbability > 30 ? 'Possible light rain' : 'Clear skies expected'}
               </Badge>

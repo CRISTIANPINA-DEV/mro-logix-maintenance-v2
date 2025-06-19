@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity } from "lucide-react";
+import { Activity, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -21,13 +21,14 @@ export function SystemStatusSection() {
             variant="outline"
             size="sm"
             className={cn(
-              "ml-8 px-3 h-7",
+              "ml-8 px-3 h-7 gap-2",
               "bg-[#e8f5e9] hover:bg-[#c8e6c9]",
               "border-[#2e7d32]",
               "text-black text-xs font-medium",
               "rounded-none"
             )}
           >
+            <BarChart3 className="h-3 w-3 text-[#1b5e20]" />
             View Metrics
           </Button>
         </Link>

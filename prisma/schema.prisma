@@ -51,6 +51,9 @@ model Company {
   correctiveActionAttachments   CorrectiveActionAttachment[]
   auditTemplates                AuditTemplate[]
   notifications                 Notification[]
+  technicalPublications         TechnicalPublication[]
+  technicalPublicationAttachments TechnicalPublicationAttachment[]
+  technicalPublicationRevisions TechnicalPublicationRevision[]
 }
 
 model Attachment {
@@ -159,6 +162,9 @@ model User {
 
   // SMS Reports Relations
   smsReports           SMSReport[]
+
+  // Technical Publications Relations
+  technicalPublicationRevisions TechnicalPublicationRevision[] @relation("TechnicalPublicationRevisions")
 
   @@index([companyId])
 }
@@ -979,5 +985,81 @@ model Notification {
   @@index([senderId])
   @@index([isRead])
   @@index([createdAt])
+  @@index([companyId])
+}
+
+// =========================
+// Technical Publications Models
+// =========================
+
+model TechnicalPublication {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String                @id @default(uuid())
+  revisionDate      DateTime
+  manualDescription String
+  revisionNumber    String
+  owner             String
+  comment           String?               // Optional comment field
+  hasAttachments    Boolean               @default(false)
+  uploadedBy        String?               // User who uploaded the manual
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  
+  // Relations
+  attachments       TechnicalPublicationAttachment[]
+  revisionHistory   TechnicalPublicationRevision[]
+
+  @@index([companyId])
+  @@index([revisionDate])
+  @@index([manualDescription])
+  @@index([revisionNumber])
+  @@index([owner])
+  @@index([createdAt])
+}
+
+model TechnicalPublicationAttachment {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                        String               @id @default(uuid())
+  fileName                  String
+  fileKey                   String
+  fileSize                  Int
+  fileType                  String
+  technicalPublicationId    String
+  uploadedBy                String?
+  createdAt                 DateTime             @default(now())
+
+  technicalPublication      TechnicalPublication @relation(fields: [technicalPublicationId], references: [id], onDelete: Cascade)
+
+  @@index([technicalPublicationId])
+  @@index([companyId])
+}
+
+model TechnicalPublicationRevision {
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                        String               @id @default(uuid())
+  technicalPublicationId    String
+  changeType                String               // "CREATED", "UPDATED", "ATTACHMENT_REPLACED", "ATTACHMENT_ADDED", "ATTACHMENT_REMOVED"
+  changeDescription         String               // Human-readable description of what changed
+  changedFields             Json?                // JSON object with field changes: {"field": {"old": "value", "new": "value"}}
+  previousValues            Json?                // JSON object with all previous values for reference
+  newValues                 Json?                // JSON object with all new values for reference
+  modifiedBy                String               // User who made the change
+  modifiedAt                DateTime             @default(now())
+  
+  // File-specific fields for attachment changes
+  attachmentFileName        String?              // Name of file that was added/replaced/removed
+  attachmentAction          String?              // "ADDED", "REPLACED", "REMOVED"
+  
+  // Relations
+  technicalPublication      TechnicalPublication @relation(fields: [technicalPublicationId], references: [id], onDelete: Cascade)
+  modifier                  User                 @relation("TechnicalPublicationRevisions", fields: [modifiedBy], references: [id], onDelete: Cascade)
+
+  @@index([technicalPublicationId])
+  @@index([modifiedBy])
+  @@index([modifiedAt])
+  @@index([changeType])
   @@index([companyId])
 }

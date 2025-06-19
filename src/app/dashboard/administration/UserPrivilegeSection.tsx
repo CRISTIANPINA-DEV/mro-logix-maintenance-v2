@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { UserPrivilegeTable } from "./UserPrivilegeTable";
 import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { Users, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -58,13 +58,14 @@ export function UserPrivilegeSection({ users }: Props) {
         onClick={() => setShowTable(true)}
         size="sm"
         className={cn(
-          "ml-8 px-3 h-7",
+          "ml-8 px-3 h-7 gap-2",
           "bg-amber-100 hover:bg-amber-200",
           "border border-amber-300",
           "text-black text-xs font-medium",
           "rounded-none"
         )}
       >
+        <Lock className="h-3 w-3 text-amber-800" />
         Edit User Privileges
       </Button>
     </div>

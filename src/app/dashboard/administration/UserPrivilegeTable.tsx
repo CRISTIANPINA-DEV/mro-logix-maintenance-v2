@@ -247,10 +247,10 @@ export function UserPrivilegeTable({ users: initialUsers }: Props) {
       </div>
 
       <Dialog open={confirmDialog?.isOpen} onOpenChange={() => setConfirmDialog(null)}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md rounded-none">
           <DialogHeader>
             <DialogTitle>Confirm Privilege Change</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-red-600">
               Are you sure you want to change {confirmDialog?.userName}&apos;s privilege from{" "}
               <span className="font-medium capitalize">{confirmDialog?.currentPrivilege}</span> to{" "}
               <span className="font-medium capitalize">{confirmDialog?.newPrivilege}</span>?
@@ -259,6 +259,7 @@ export function UserPrivilegeTable({ users: initialUsers }: Props) {
           <DialogFooter className="mt-4">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setConfirmDialog(null)}
               disabled={!!updatingUserId}
             >
@@ -267,6 +268,7 @@ export function UserPrivilegeTable({ users: initialUsers }: Props) {
             <Button
               onClick={confirmPrivilegeChange}
               disabled={!!updatingUserId}
+              size="sm"
               className="ml-2"
             >
               {updatingUserId ? "Updating..." : "Confirm Change"}

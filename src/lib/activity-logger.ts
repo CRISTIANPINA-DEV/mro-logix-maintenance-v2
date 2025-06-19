@@ -42,7 +42,11 @@ export type ActivityAction =
   | 'DOWNLOADED_MANUAL_VERSION'
   | 'ADDED_SDR_REPORT'
   | 'UPDATED_USER'
-  | 'GENERATED_PDF';
+  | 'GENERATED_PDF'
+  | 'ADDED_TECHNICAL_PUBLICATION'
+  | 'UPDATED_TECHNICAL_PUBLICATION'
+  | 'DELETED_TECHNICAL_PUBLICATION'
+  | 'DOWNLOADED_TECHNICAL_PUBLICATION';
 
 export type ResourceType = 
   | 'FLIGHT_RECORD'
@@ -58,7 +62,8 @@ export type ResourceType =
   | 'AUDIT'
   | 'MANUAL'
   | 'SDR_REPORT'
-  | 'USER';
+  | 'USER'
+  | 'TECHNICAL_PUBLICATION';
 
 interface LogActivityParams {
   userId: string;

@@ -144,7 +144,7 @@ const menuItems = [
   },
   {
     title: "Technical Publications",
-    url: "/dashboard/document-management",
+    url: "/dashboard/technical-publications",
     icon: FileTextIcon,
   },
 ];
@@ -463,7 +463,7 @@ export function AppSidebar() {
               <span className="font-medium uppercase">{session.user.companyName}</span>
             </div>
           )}
-          <p>&copy; V.1.2 Beta 18-Jun-25 / 8:38 a. m.</p>
+          <p>&copy; V.1.3 Beta 19-Jun-25 / 08:00 a. m.</p>
         </div>
       </SidebarFooter>
     </Sidebar>

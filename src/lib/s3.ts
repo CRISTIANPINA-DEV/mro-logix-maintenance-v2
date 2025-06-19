@@ -15,6 +15,7 @@ const DOCUMENT_STORAGE_FOLDER = 'document-storage';
 const MANUALS_FOLDER = 'manuals';
 const AIRPORT_ID_FOLDER = 'airport-id';
 const SDR_REPORTS_FOLDER = 'sdr-reports';
+const TECHNICAL_PUBLICATIONS_FOLDER = 'technical-publications';
 
 // Helper to upload a file
 async function uploadToSupabase(file: File, path: string, options?: { upsert?: boolean }) {
@@ -228,5 +229,21 @@ export async function uploadCorrectiveActionFile(file: File, correctiveActionId:
   return uploadToSupabase(file, key);
 }
 export async function deleteCorrectiveActionFile(fileKey: string): Promise<void> {
+  return deleteFromSupabase(fileKey);
+}
+
+// Technical Publications - Company-based folder structure
+export async function uploadTechnicalPublicationFile(file: File, technicalPublicationId: string, companyId?: string): Promise<string> {
+  const fileName = `${technicalPublicationId}/${Date.now()}-${file.name}`;
+  // Include company ID in the path for complete isolation
+  const key = companyId 
+    ? `${TECHNICAL_PUBLICATIONS_FOLDER}/${companyId}/${fileName}`
+    : `${TECHNICAL_PUBLICATIONS_FOLDER}/${fileName}`;
+  return uploadToSupabase(file, key);
+}
+export async function getTechnicalPublicationFile(fileKey: string): Promise<Blob | null> {
+  return downloadFromSupabase(fileKey);
+}
+export async function deleteTechnicalPublicationFile(fileKey: string): Promise<void> {
   return deleteFromSupabase(fileKey);
 }
