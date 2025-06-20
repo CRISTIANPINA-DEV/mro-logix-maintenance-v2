@@ -73,14 +73,14 @@ export function FlightRecordsFilters({
                 <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="default"
                     onClick={() => {
                       onStationFilterChange("all_stations");
                       onServiceFilterChange("all_services");
                       onDefectFilterChange("all_defects");
                       onSearchChange("");
                     }}
-                    className={`cursor-pointer ${isCollapsed ? 'h-6 text-xs' : 'h-8 text-sm'} sm:h-8 sm:text-sm rounded-none`}
+                    className="h-8 text-xs sm:text-sm bg-white text-black hover:bg-gray-100 cursor-pointer rounded"
                   >
                     Clear All
                   </Button>
@@ -95,10 +95,10 @@ export function FlightRecordsFilters({
                     onClick={onRefresh} 
                     disabled={loading} 
                     variant="outline" 
-                    size="sm"
-                    className={`cursor-pointer ${isCollapsed ? 'h-6 text-xs' : 'h-8 text-sm'} sm:h-8 sm:text-sm rounded-none`}
+                    size="default"
+                    className="h-8 text-xs sm:text-sm bg-white text-black hover:bg-gray-100 cursor-pointer rounded"
                   >
-                    <RefreshCwIcon className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCwIcon className={`h-[14px] w-[14px] sm:h-[16px] sm:w-[16px] mr-1 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
                     Refresh
                   </Button>
                 </TooltipTrigger>

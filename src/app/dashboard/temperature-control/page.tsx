@@ -8,6 +8,7 @@ import { TemperatureControlList } from "./TemperatureControlList";
 import { TemperatureConfigDialog } from "./TemperatureConfigDialog";
 import { TemperatureTrendCard } from "./TemperatureTrendCard";
 import { TemperatureTrendModal } from "./TemperatureTrendModal";
+import TemperatureControlHeader from "./TemperatureControlHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Tooltip,
@@ -108,55 +109,23 @@ export default function TemperatureControlPage() {
     setRefreshTrigger(prev => prev + 1); // Also refresh the list to apply new colors
   };
 
+  const handleAddTemperatureClick = () => {
+    setShowForm(true);
+  };
+
+  const handleConfigClick = () => {
+    setShowConfigDialog(true);
+  };
+
   return (
     <TooltipProvider>
       <div className="container mx-auto py-4 px-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Header Section - Mobile Optimized */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <ThermometerSnowflake className="h-5 w-5 sm:h-6 sm:w-6" />
-            <h1 className="text-2xl sm:text-3xl font-bold">Temperature Control</h1>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
-            {permissions?.canConfigureTemperatureRanges && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    onClick={() => setShowConfigDialog(true)}
-                    variant="outline"
-                    className="border-gray-300 hover:bg-gray-50 cursor-pointer text-sm sm:text-base"
-                    size="sm"
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Configure Ranges</span>
-                    <span className="sm:hidden">Configure</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Configure temperature and humidity ranges</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-            {permissions?.canAddTemperatureRecord && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    onClick={() => setShowForm(true)}
-                    className="bg-white text-black border border-black hover:bg-gray-50 cursor-pointer text-sm sm:text-base"
-                    size="sm"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Add Temperature</span>
-                    <span className="sm:hidden">Add Record</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Add a new temperature record</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-        </div>
+        {/* Header Section */}
+        <TemperatureControlHeader 
+          showForm={showForm}
+          onAddTemperatureClick={handleAddTemperatureClick}
+          onConfigClick={handleConfigClick}
+        />
 
         {/* Range Indicator Cards - Mobile Optimized Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">

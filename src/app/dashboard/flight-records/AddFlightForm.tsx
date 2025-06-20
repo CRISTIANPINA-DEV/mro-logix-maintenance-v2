@@ -1030,9 +1030,9 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
         <div className="flex justify-end space-x-3 pt-4">
           <Button 
             type="button" 
-            variant="neutral" 
+            variant="outline" 
             size="sm"
-            className="h-8 rounded-none cursor-pointer"
+            className="h-8 text-xs sm:text-base border border-black hover:bg-gray-100 bg-white text-black cursor-pointer"
             onClick={onClose} 
             disabled={isSubmitting}
           >
@@ -1040,14 +1040,14 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
           </Button>
           <Button 
             type="submit" 
-            variant="save"
+            variant="outline"
             disabled={isSubmitting || (hasAttachments === "yes" && fileSizeExceeded)}
             size="sm"
-            className="h-8 rounded-none cursor-pointer"
+            className="h-8 text-xs sm:text-base border border-green-500 hover:bg-green-50 bg-green-100 text-black cursor-pointer"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
                 Saving...
               </>
             ) : (

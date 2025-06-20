@@ -471,7 +471,7 @@ export function AppSidebar() {
               <span className="font-medium uppercase">{session.user.companyName}</span>
             </div>
           )}
-          <p>&copy; V.1.3 Beta 20-Jun-25 / 09:33 a. m.</p>
+          <p>&copy; V.1.3 Beta 20-Jun-25 / 04:00 p. m.</p>
         </div>
       </SidebarFooter>
     </Sidebar>

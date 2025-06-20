@@ -2,10 +2,9 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Plane, PlusCircle, FileSpreadsheet } from "lucide-react"; 
+import { ThermometerSnowflake, Plus, Settings } from "lucide-react"; 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import Link from "next/link";
 import {
   Tooltip,
   TooltipContent,
@@ -14,12 +13,17 @@ import {
 } from "@/components/ui/tooltip";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 
-interface FlightRecordsHeaderProps {
+interface TemperatureControlHeaderProps {
   showForm: boolean;
-  onAddFlightClick: () => void;
+  onAddTemperatureClick: () => void;
+  onConfigClick: () => void;
 }
 
-const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onAddFlightClick }) => {
+const TemperatureControlHeader: React.FC<TemperatureControlHeaderProps> = ({ 
+  showForm, 
+  onAddTemperatureClick, 
+  onConfigClick 
+}) => {
   const { permissions, loading } = useUserPermissions();
 
   // Don't show buttons if permissions are still loading
@@ -34,8 +38,8 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
                 <div className="text-center">
                   <h1 className="text-xl font-bold">
                     <div className="flex items-center justify-center gap-1.5">
-                      <Plane size={20} strokeWidth={1.5} className="text-blue-500" />
-                      <Badge className="px-2 py-0.5 text-sm bg-blue-500 text-white rounded-none border border-black shadow-md">Flight Records</Badge>
+                      <ThermometerSnowflake size={20} strokeWidth={1.5} className="text-blue-500" />
+                      <Badge className="px-2 py-0.5 text-sm bg-blue-500 text-white rounded-none border border-black shadow-md">Temperature Control</Badge>
                     </div>
                   </h1>
                 </div>
@@ -52,8 +56,8 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
                 <div>
                   <h1 className="text-2xl font-bold">
                     <div className="flex items-center gap-2">
-                      <Plane size={24} strokeWidth={1.5} className="text-blue-500" />
-                      <Badge className="px-3 py-1 text-base bg-blue-500 text-white rounded-none border border-black shadow-md">Flight Records</Badge>
+                      <ThermometerSnowflake size={24} strokeWidth={1.5} className="text-blue-500" />
+                      <Badge className="px-3 py-1 text-base bg-blue-500 text-white rounded-none border border-black shadow-md">Temperature Control</Badge>
                     </div>
                   </h1>
                 </div>
@@ -75,8 +79,8 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
               <div className="text-center">
                 <h1 className="text-xl font-bold">
                   <div className="flex items-center justify-center gap-1.5">
-                    <Plane size={20} strokeWidth={1.5} className="text-blue-500" />
-                    <Badge className="px-2 py-0.5 text-sm bg-blue-500 text-white rounded-none border border-black shadow-md">Flight Records</Badge>
+                    <ThermometerSnowflake size={20} strokeWidth={1.5} className="text-blue-500" />
+                    <Badge className="px-2 py-0.5 text-sm bg-blue-500 text-white rounded-none border border-black shadow-md">Temperature Control</Badge>
                   </div>
                 </h1>
               </div>
@@ -91,41 +95,39 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
           <div className="w-full max-w-full mx-auto px-3">
             <div className="flex justify-center items-center min-h-10 py-2">
               <div className="flex flex-wrap justify-center gap-2">
-                {permissions?.canAddFlightRecords && (
+                {permissions?.canAddTemperatureRecord && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
-                        onClick={onAddFlightClick} 
+                        onClick={onAddTemperatureClick} 
                         variant="outline"
                         size="sm"
                         className="h-8 text-xs flex items-center gap-1.5 cursor-pointer"
                       >
-                        <PlusCircle size={14} />
-                        Add Flight
+                        <Plus size={14} />
+                        Add Temperature
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Click to record new flight</p>
+                      <p>Click to add new temperature record</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
                 
-                {permissions?.canExportFlightRecords && (
+                {permissions?.canConfigureTemperatureRanges && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
+                        onClick={onConfigClick}
                         size="sm"
-                        className="h-8 text-xs flex items-center gap-1.5 bg-green-600 text-white hover:bg-green-700"
-                        asChild
+                        className="h-8 text-xs flex items-center gap-1.5 bg-orange-200 text-black hover:bg-orange-300 border border-black"
                       >
-                        <Link href="/dashboard/flight-records/export">
-                          <FileSpreadsheet size={14} />
-                          Export Data
-                        </Link>
+                        <Settings size={14} />
+                        Configure
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Export flight records to Excel</p>
+                      <p>Configure temperature and humidity ranges</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -143,48 +145,46 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
               <div>
                 <h1 className="text-2xl font-bold">
                   <div className="flex items-center gap-2">
-                    <Plane size={24} strokeWidth={1.5} className="text-blue-500" />
-                    <Badge className="px-3 py-1 text-base bg-blue-500 text-white rounded-none border border-black shadow-md">Flight Records</Badge>
+                    <ThermometerSnowflake size={24} strokeWidth={1.5} className="text-blue-500" />
+                    <Badge className="px-3 py-1 text-base bg-blue-500 text-white rounded-none border border-black shadow-md">Temperature Control</Badge>
                   </div>
                 </h1>
               </div>
               {!showForm && (
                 <div className="flex gap-3">
-                  {permissions?.canAddFlightRecords && (
+                  {permissions?.canAddTemperatureRecord && (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button 
-                          onClick={onAddFlightClick} 
+                          onClick={onAddTemperatureClick} 
                           variant="outline"
                           size="sm"
                           className="h-8 flex items-center gap-2 cursor-pointer"
                         >
-                          <PlusCircle size={16} />
-                          Add Flight
+                          <Plus size={16} />
+                          Add Temperature
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Click to record new flight</p>
+                        <p>Click to add new temperature record</p>
                       </TooltipContent>
                     </Tooltip>
                   )}
                   
-                  {permissions?.canExportFlightRecords && (
+                  {permissions?.canConfigureTemperatureRanges && (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button 
+                          onClick={onConfigClick}
                           size="sm"
-                          className="h-8 flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
-                          asChild
+                          className="h-8 flex items-center gap-2 bg-orange-200 text-black hover:bg-orange-300 border border-black"
                         >
-                          <Link href="/dashboard/flight-records/export">
-                            <FileSpreadsheet size={16} />
-                            Export Data
-                          </Link>
+                          <Settings size={16} />
+                          Configure Ranges
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Export flight records to Excel</p>
+                        <p>Configure temperature and humidity ranges</p>
                       </TooltipContent>
                     </Tooltip>
                   )}
@@ -198,4 +198,4 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
   );
 };
 
-export default FlightRecordsHeader;
+export default TemperatureControlHeader; 
