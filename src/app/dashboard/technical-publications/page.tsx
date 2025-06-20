@@ -195,22 +195,22 @@ export default function TechnicalPublicationsPage() {
   }, [error, success]);
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="container mx-auto px-4 py-4 space-y-4">
+      {/* Compact Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Technical Publications
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Manage company manuals, revisions, and documentation
           </p>
         </div>
         {isAdmin && (
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto bg-white hover:bg-gray-50 text-black border-black border">
-                <Plus className="w-4 h-4 mr-2" />
+              <Button size="sm" className="h-8 bg-black hover:bg-gray-800 text-white">
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
                 Add Publication
               </Button>
             </DialogTrigger>
@@ -228,8 +228,8 @@ export default function TechnicalPublicationsPage() {
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="revisionDate">
-                      <Calendar className="w-4 h-4 inline mr-1" />
+                    <Label htmlFor="revisionDate" className="text-sm">
+                      <Calendar className="w-3.5 h-3.5 inline mr-1" />
                       Revision Date *
                     </Label>
                     <Input
@@ -238,13 +238,13 @@ export default function TechnicalPublicationsPage() {
                       value={formData.revisionDate}
                       onChange={(e) => setFormData(prev => ({ ...prev, revisionDate: e.target.value }))}
                       required
-                      className="w-full"
+                      className="h-9"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="manualDescription">
-                      <FileText className="w-4 h-4 inline mr-1" />
+                    <Label htmlFor="manualDescription" className="text-sm">
+                      <FileText className="w-3.5 h-3.5 inline mr-1" />
                       Manual Description *
                     </Label>
                     <Input
@@ -254,15 +254,15 @@ export default function TechnicalPublicationsPage() {
                       value={formData.manualDescription}
                       onChange={(e) => setFormData(prev => ({ ...prev, manualDescription: e.target.value }))}
                       required
-                      className="w-full"
+                      className="h-9"
                     />
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="revisionNumber">
-                      <Hash className="w-4 h-4 inline mr-1" />
+                    <Label htmlFor="revisionNumber" className="text-sm">
+                      <Hash className="w-3.5 h-3.5 inline mr-1" />
                       Revision Number *
                     </Label>
                     <Input
@@ -272,13 +272,13 @@ export default function TechnicalPublicationsPage() {
                       value={formData.revisionNumber}
                       onChange={(e) => setFormData(prev => ({ ...prev, revisionNumber: e.target.value }))}
                       required
-                      className="w-full"
+                      className="h-9"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="owner">
-                      <User className="w-4 h-4 inline mr-1" />
+                    <Label htmlFor="owner" className="text-sm">
+                      <User className="w-3.5 h-3.5 inline mr-1" />
                       Owner *
                     </Label>
                     <Input
@@ -288,14 +288,14 @@ export default function TechnicalPublicationsPage() {
                       value={formData.owner}
                       onChange={(e) => setFormData(prev => ({ ...prev, owner: e.target.value }))}
                       required
-                      className="w-full"
+                      className="h-9"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="comment">
-                    <MessageSquare className="w-4 h-4 inline mr-1" />
+                  <Label htmlFor="comment" className="text-sm">
+                    <MessageSquare className="w-3.5 h-3.5 inline mr-1" />
                     Comment
                   </Label>
                   <Textarea
@@ -303,14 +303,14 @@ export default function TechnicalPublicationsPage() {
                     placeholder="Enter any additional comments"
                     value={formData.comment}
                     onChange={(e) => setFormData(prev => ({ ...prev, comment: e.target.value }))}
-                    className="w-full"
+                    className="min-h-[80px]"
                   />
                 </div>
                 
                 {!isEditMode && (
                   <div className="space-y-2">
-                    <Label htmlFor="file">
-                      <Upload className="w-4 h-4 inline mr-1" />
+                    <Label htmlFor="file" className="text-sm">
+                      <Upload className="w-3.5 h-3.5 inline mr-1" />
                       Upload File * (Max 50MB)
                     </Label>
                     <Input
@@ -318,7 +318,7 @@ export default function TechnicalPublicationsPage() {
                       type="file"
                       onChange={handleFileChange}
                       required
-                      className="w-full"
+                      className="h-9 cursor-pointer"
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.png,.jpg,.jpeg"
                     />
                     <p className="text-xs text-gray-500">
@@ -332,7 +332,8 @@ export default function TechnicalPublicationsPage() {
                     type="button" 
                     variant="outline" 
                     onClick={handleFormClose}
-                    className="w-full sm:w-auto h-8"
+                    size="sm"
+                    className="h-8"
                     disabled={submitting}
                   >
                     Cancel
@@ -340,11 +341,12 @@ export default function TechnicalPublicationsPage() {
                   <Button 
                     type="submit" 
                     disabled={submitting}
-                    className="w-full sm:w-auto bg-green-100 hover:bg-green-200 border-green-600 text-black border h-8"
+                    size="sm"
+                    className="h-8 bg-green-600 hover:bg-green-700 text-white"
                   >
                     {submitting ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
                         {isEditMode ? 'Updating...' : 'Saving...'}
                       </>
                     ) : (
@@ -358,85 +360,89 @@ export default function TechnicalPublicationsPage() {
         )}
       </div>
 
-      {/* Alerts */}
+      {/* Compact Alerts */}
       {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+        <Alert variant="destructive" className="py-2">
+          <AlertCircle className="h-3.5 w-3.5" />
+          <AlertDescription className="text-sm">{error}</AlertDescription>
         </Alert>
       )}
       
       {success && (
-        <Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>{success}</AlertDescription>
+        <Alert className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400 py-2">
+          <CheckCircle className="h-3.5 w-3.5" />
+          <AlertDescription className="text-sm">{success}</AlertDescription>
         </Alert>
       )}
 
-      {/* Publications List */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Technical Publications
-          </CardTitle>
-          <CardDescription>
-            {publications.length === 0 
-              ? 'No technical publications found. Add your first publication above.' 
-              : `${publications.length} publication${publications.length !== 1 ? 's' : ''} found`}
-          </CardDescription>
+      {/* Compact Publications List */}
+      <Card className="shadow-sm">
+        <CardHeader className="py-3 px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-gray-600" />
+              <CardTitle className="text-base">Technical Publications</CardTitle>
+            </div>
+            <CardDescription className="text-sm">
+              {publications.length} publication{publications.length !== 1 ? 's' : ''}
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              Loading publications...
+              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              <span className="text-sm">Loading publications...</span>
             </div>
           ) : publications.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No technical publications yet</p>
-              <p className="text-sm">Click "Add Publication" to get started</p>
+              <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p className="text-sm">No technical publications yet</p>
+              <p className="text-xs mt-1">Click "Add Publication" to get started</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="h-10">
-                    <TableHead className="min-w-[200px] h-10">Manual Description</TableHead>
-                    <TableHead className="min-w-[120px] h-10">Revision</TableHead>
-                    <TableHead className="min-w-[150px] h-10">Owner</TableHead>
-                    <TableHead className="min-w-[120px] h-10">Date</TableHead>
-                    <TableHead className="min-w-[100px] h-10">File</TableHead>
+                  <TableRow className="h-9 bg-gray-50 dark:bg-gray-800/50">
+                    <TableHead className="font-medium text-xs">Manual Description</TableHead>
+                    <TableHead className="font-medium text-xs">Revision</TableHead>
+                    <TableHead className="font-medium text-xs">Owner</TableHead>
+                    <TableHead className="font-medium text-xs">Date</TableHead>
+                    <TableHead className="font-medium text-xs text-center">File</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {publications.map((publication) => (
-                    <TableRow key={publication.id} className="h-12">
-                      <TableCell className="font-medium py-2">
+                    <TableRow key={publication.id} className="h-10 hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                      <TableCell className="py-2">
                         <button
                           onClick={() => router.push(`/dashboard/technical-publications/${publication.id}`)}
-                          className="text-left text-blue-600 underline hover:text-blue-800 transition-colors flex items-center gap-2"
+                          className="text-left text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium text-sm flex items-center gap-1.5 group underline"
                         >
-                          {publication.manualDescription}
-                          <ExternalLink className="w-4 h-4 opacity-50" />
+                          <span className="truncate max-w-[300px]">{publication.manualDescription}</span>
+                          <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                       </TableCell>
                       <TableCell className="py-2">
-                        <Badge variant="secondary">
+                        <Badge variant="secondary" className="text-xs px-2 py-0.5">
                           Rev {publication.revisionNumber}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-2">{publication.owner}</TableCell>
-                      <TableCell className="py-2">
+                      <TableCell className="py-2 text-sm text-gray-700 dark:text-gray-300">
+                        {publication.owner}
+                      </TableCell>
+                      <TableCell className="py-2 text-sm text-gray-600 dark:text-gray-400">
                         {formatDateSafely(publication.revisionDate, 'MMM dd, yyyy')}
                       </TableCell>
-                      <TableCell className="py-2">
-                        {publication.attachments && publication.attachments.length > 0 && (
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
-                            <FileText className="w-4 h-4" />
-                            <span>Available</span>
-                          </div>
+                      <TableCell className="py-2 text-center">
+                        {publication.attachments && publication.attachments.length > 0 ? (
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 bg-green-50 text-green-700 border-green-300 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
+                            <FileText className="w-3 h-3 mr-1" />
+                            Available
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
                         )}
                       </TableCell>
                     </TableRow>

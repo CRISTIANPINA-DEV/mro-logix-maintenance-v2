@@ -247,6 +247,20 @@ export const stations: Station[] = [
   { code: 'SNC', name: 'General Ulpiano Paez Airport', country: 'Ecuador' },
   { code: 'ETR', name: 'Santa Rosa Airport', country: 'Ecuador' },
   { code: 'TUA', name: 'Teniente Coronel Luis A. Mantilla International Airport', country: 'Ecuador' },
+
+  // Panama
+  // International Airports
+  { code: 'PTY', name: 'Tocumen International Airport', country: 'Panama' },
+  { code: 'PAC', name: 'Albrook "Marcos A. Gelabert" International Airport', country: 'Panama' },
+  { code: 'DAV', name: 'Enrique Malek International Airport', country: 'Panama' },
+  { code: 'BOC', name: 'Bocas del Toro "Isla Colón" International Airport', country: 'Panama' },
+  { code: 'ONX', name: 'Enrique Adolfo Jiménez Airport', country: 'Panama' },
+  { code: 'BLB', name: 'Panama Pacifico International Airport', country: 'Panama' },
+  { code: 'CHX', name: 'Captain Manuel Niño International Airport', country: 'Panama' },
+  { code: 'CTD', name: 'Chitré Alonso Valderrama Airport', country: 'Panama' },
+  { code: 'PDM', name: 'Capt. J. Montenegro Airport', country: 'Panama' },
+  { code: 'RIH', name: 'Scarlett Martínez International Airport', country: 'Panama' },
+
   
   // Domestic Airports
   { code: 'ATF', name: 'Chachoan Airport', country: 'Ecuador' },

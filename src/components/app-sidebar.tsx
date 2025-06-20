@@ -22,7 +22,10 @@ import {
   GraduationCapIcon,
   MessageSquareDot,
   BuildingIcon,
-  BellIcon
+  BellIcon,
+  BookOpenIcon,
+  ScrollTextIcon,
+  FileEditIcon
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -125,12 +128,12 @@ const menuItems = [
   {
     title: "Forms Creation",
     url: "/dashboard/forms-creation",
-    icon: FileTextIcon,
+    icon: FileEditIcon,
   },
   {
     title: "Log Pages",
     url: "/dashboard/log-pages",
-    icon: FileTextIcon,
+    icon: ScrollTextIcon,
   },
   {
     title: "Company Reports",
@@ -145,7 +148,7 @@ const menuItems = [
   {
     title: "Technical Publications",
     url: "/dashboard/technical-publications",
-    icon: FileTextIcon,
+    icon: BookOpenIcon,
   },
 ];
 
@@ -179,6 +182,10 @@ export function AppSidebar() {
       // If it's Audits Management, check the permission
       if (itemTitle === "Audits Management") {
         return permissions?.canSeeAuditManagement ?? false;
+      }
+      // If it's Notification Center, check if user is admin
+      if (itemTitle === "Notification Center") {
+        return session?.user?.privilege === "admin";
       }
       // For other items, always show them
       return true;
@@ -396,6 +403,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {menuItems
                   .filter(item => ["Work Order Management", "Customer & Vendor", "Data Analytics", "Gantt Chart Schedule", "Company Reports", "Notification Center"].includes(item.title))
+                  .filter(item => getFilteredMenuItems([item.title]).includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -463,7 +471,7 @@ export function AppSidebar() {
               <span className="font-medium uppercase">{session.user.companyName}</span>
             </div>
           )}
-          <p>&copy; V.1.3 Beta 19-Jun-25 / 08:00 a. m.</p>
+          <p>&copy; V.1.3 Beta 20-Jun-25 / 09:33 a. m.</p>
         </div>
       </SidebarFooter>
     </Sidebar>

@@ -36,16 +36,28 @@ export async function PATCH(
       );
     }
 
+    // Prepare update data
+    const updateData: any = {
+      isRead: isRead !== undefined ? isRead : notification.isRead,
+      isArchived: isArchived !== undefined ? isArchived : notification.isArchived
+    };
+
+    // If marking as read and it wasn't read before, set readAt timestamp
+    if (isRead === true && !notification.isRead) {
+      updateData.readAt = new Date();
+    }
+    // If marking as unread, clear readAt timestamp
+    else if (isRead === false && notification.isRead) {
+      updateData.readAt = null;
+    }
+
     // Update the notification
     const updatedNotification = await prisma.notification.update({
       where: {
         id,
         userId: currentUser.id,
       },
-      data: {
-        isRead: isRead !== undefined ? isRead : notification.isRead,
-        isArchived: isArchived !== undefined ? isArchived : notification.isArchived
-      }
+      data: updateData
     });
 
     return NextResponse.json({
@@ -93,11 +105,14 @@ export async function DELETE(
       );
     }
 
-    // Delete the notification
-    await prisma.notification.delete({
+    // Soft delete the notification (mark as deleted but keep the record)
+    await prisma.notification.update({
       where: {
         id,
         userId: currentUser.id,
+      },
+      data: {
+        deletedAt: new Date()
       }
     });
 

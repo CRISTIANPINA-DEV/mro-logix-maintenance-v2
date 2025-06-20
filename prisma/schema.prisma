@@ -974,6 +974,7 @@ model Notification {
   isRead      Boolean   @default(false)
   isArchived  Boolean   @default(false)
   readAt      DateTime?
+  deletedAt   DateTime? // Soft delete timestamp
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -985,6 +986,7 @@ model Notification {
   @@index([senderId])
   @@index([isRead])
   @@index([createdAt])
+  @@index([deletedAt])
   @@index([companyId])
 }
 

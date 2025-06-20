@@ -29,10 +29,11 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const archived = url.searchParams.get('archived');
 
-    // Build the where clause
+    // Build the where clause - exclude soft-deleted notifications
     const where = {
       userId: currentUser.id,
       companyId: currentUser.companyId,
+      deletedAt: null, // Only show non-deleted notifications
       ...(archived !== null ? { isArchived: archived === 'true' } : {})
     };
 
