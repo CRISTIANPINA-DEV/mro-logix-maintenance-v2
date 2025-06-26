@@ -89,10 +89,20 @@ export default function AddWheelForm({ onClose }: AddWheelFormProps) {
 
     setLoading(true);
     try {
+      // Create a UTC date to avoid timezone shifting issues.
+      // The input value is 'YYYY-MM-DD'. We parse it and create a UTC date.
+      const [year, month, day] = formData.arrivalDate.split('-').map(Number);
+      const utcDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+
+      const submissionData = {
+        ...formData,
+        arrivalDate: utcDate.toISOString(),
+      };
+
       const response = await fetch("/api/wheel-rotation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       });
 
       if (response.ok) {

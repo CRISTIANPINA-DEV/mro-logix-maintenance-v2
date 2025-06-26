@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { format, addDays, addWeeks, addMonths, addYears } from "date-fns";
 import { RotateCw } from "lucide-react";
 
 interface WheelRotation {
@@ -70,6 +70,39 @@ export default function WheelRotationList({ wheelRotations, onWheelClick }: Whee
     return null;
   };
 
+  // Calculate the actual next due date based on arrival date and rotation frequency
+  const calculateNextDueDate = (wheel: WheelRotation) => {
+    // If there's a last rotation date, calculate from that
+    // Otherwise, calculate from the arrival date
+    const baseDate = wheel.lastRotationDate 
+      ? new Date(wheel.lastRotationDate) 
+      : new Date(wheel.arrivalDate);
+    
+    let nextDueDate;
+    
+    switch (wheel.rotationFrequency) {
+      case 'weekly':
+        nextDueDate = addWeeks(baseDate, 1);
+        break;
+      case 'monthly':
+        nextDueDate = addMonths(baseDate, 1);
+        break;
+      case 'quarterly':
+        nextDueDate = addMonths(baseDate, 3);
+        break;
+      case 'biannually':
+        nextDueDate = addMonths(baseDate, 6);
+        break;
+      case 'annually':
+        nextDueDate = addYears(baseDate, 1);
+        break;
+      default:
+        nextDueDate = addMonths(baseDate, 1); // Default to monthly
+    }
+    
+    return nextDueDate;
+  };
+
   return (
     <Card>
       <Table>
@@ -120,12 +153,12 @@ export default function WheelRotationList({ wheelRotations, onWheelClick }: Whee
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    {wheel.nextRotationDue && (
+                    {wheel.isActive && (
                       <div className="text-sm">
-                        {format(new Date(wheel.nextRotationDue), "PP")}
+                        {format(calculateNextDueDate(wheel), "PP")}
                       </div>
                     )}
-                    {getDueBadge(wheel.nextRotationDue)}
+                    {wheel.isActive && getDueBadge(calculateNextDueDate(wheel).toISOString())}
                   </div>
                 </TableCell>
                 <TableCell>

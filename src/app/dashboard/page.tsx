@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, PlaneTakeoff, Users, BarChart3Icon, Thermometer, Droplets, Package, AlertTriangle, MapPin, RefreshCw, FileText } from "lucide-react";
+import { ArrowRight, PlaneTakeoff, Users, BarChart3Icon, Thermometer, Droplets, Package, AlertTriangle, MapPin, RefreshCw, FileText, Settings } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -66,6 +66,8 @@ export default function DashboardPage() {
   const [stationsCount, setStationsCount] = useState(0);
   const [totalTrainingsCount, setTotalTrainingsCount] = useState(0);
   const [inventoryCount, setInventoryCount] = useState<number>(0);
+  const [wheelRotationsTodayCount, setWheelRotationsTodayCount] = useState(0);
+  const [wheelRotationsLoading, setWheelRotationsLoading] = useState(false);
 
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
@@ -170,6 +172,24 @@ export default function DashboardPage() {
       // Don't show toast error for expiry status as it's not critical
     } finally {
       setExpiryLoading(false);
+    }
+  };
+
+  const fetchWheelRotationsTodayCount = async () => {
+    try {
+      setWheelRotationsLoading(true);
+      const response = await fetch('/api/wheel-rotation/today-count');
+      const data = await response.json();
+      if (data.success) {
+        setWheelRotationsTodayCount(data.count);
+      } else {
+        console.error('Failed to fetch wheel rotation count:', data.error);
+        // Do not show a toast for this, as it's not critical
+      }
+    } catch (error) {
+      console.error('Error fetching wheel rotation count:', error);
+    } finally {
+      setWheelRotationsLoading(false);
     }
   };
 
@@ -347,6 +367,7 @@ export default function DashboardPage() {
           fetchUsersCount(),
           fetchTotalTrainingsCount(),
           fetchInventoryCount(),
+          fetchWheelRotationsTodayCount(),
         ]);
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -675,7 +696,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Temperature Reading, Stock Status, and Stations */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {/* Latest Temperature Reading */}
           <Link href="/dashboard/temperature-control" className="block">
             <Card className="h-[150px] bg-orange-50/50 dark:bg-orange-950/20 hover:bg-orange-100/50 dark:hover:bg-orange-900/30 transition-colors cursor-pointer border border-orange-200/50 hover:border-orange-300 dark:border-orange-900/50 dark:hover:border-orange-700 rounded-none">
@@ -825,6 +846,31 @@ export default function DashboardPage() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Recorded Trainings
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          {/* Wheel Rotations Due Today */}
+          <Link href="/dashboard/wheel-rotation" className="block">
+            <Card className="h-[150px] bg-cyan-50/50 dark:bg-cyan-950/20 hover:bg-cyan-100/50 dark:hover:bg-cyan-900/30 transition-colors cursor-pointer border border-cyan-200/50 hover:border-cyan-300 dark:border-cyan-900/50 dark:hover:border-cyan-700 rounded-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Settings className="h-4 w-4" />
+                  Wheel Rotations Due
+                  {wheelRotationsLoading && (
+                    <div className="animate-spin h-3 w-3 border-2 border-cyan-600 border-t-transparent rounded-full"></div>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-1">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-cyan-600 mb-1">
+                    {wheelRotationsTodayCount?.toLocaleString() || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Required for today
                   </p>
                 </div>
               </CardContent>
