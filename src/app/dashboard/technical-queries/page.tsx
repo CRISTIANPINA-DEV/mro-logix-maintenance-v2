@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { VotingButtons } from "@/components/voting-buttons";
+import TechnicalQueriesHeader from "./technical-queries-header";
 
 interface TechnicalQuery {
   id: string;
@@ -398,24 +399,7 @@ export default function TechnicalQueriesPage() {
   return (
     <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold truncate">Technical Queries</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Ask questions and share knowledge with the technical community
-          </p>
-        </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button 
-            className="flex items-center gap-2 cursor-pointer flex-1 sm:flex-none text-sm"
-            onClick={() => setShowCreateDialog(true)}
-          >
-            <PlusIcon className="h-4 w-4" />
-            <span className="hidden xs:inline">Add New Query</span>
-            <span className="xs:hidden">Add Query</span>
-          </Button>
-        </div>
-      </div>
+      <TechnicalQueriesHeader onQueryCreated={() => setShowCreateDialog(true)} />
 
       {/* Create Query Modal */}
       <Modal

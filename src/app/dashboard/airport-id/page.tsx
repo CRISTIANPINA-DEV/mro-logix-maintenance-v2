@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import { DownloadIcon, Trash2Icon, MessageSquareIcon, AlertCircle, AlertTriangle, Clock, Search, Plus } from "lucide-react";
+import AirportIDHeader from './airport-id-header';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -312,27 +313,10 @@ export default function AirportIDPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6 max-w-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-xl sm:text-2xl font-bold">Airport ID Management</h1>
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          variant={showForm ? "outline" : "outline"}
-          size="sm"
-          className={cn(
-            "w-full sm:w-auto",
-            showForm && "bg-white text-black border-black hover:bg-gray-50"
-          )}
-        >
-          {showForm ? (
-            "Cancel"
-          ) : (
-            <>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New ID
-            </>
-          )}
-        </Button>
-      </div>
+      <AirportIDHeader 
+        onToggleForm={() => setShowForm(!showForm)} 
+        showForm={showForm} 
+      />
 
       {!loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

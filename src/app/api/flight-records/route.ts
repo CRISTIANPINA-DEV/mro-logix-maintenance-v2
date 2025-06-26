@@ -59,6 +59,7 @@ export async function POST(request: Request) {
     const manualReference = formData.get('manualReference') as string;
     const riiRequired = formData.get('riiRequired') === 'yes';
     const inspectedBy = formData.get('inspectedBy') as string;
+    const etopsFlight = formData.get('etopsFlight') as string;
     const hasPartReplaced = formData.get('hasPartReplaced') === 'yes';
     const hasAttachments = formData.get('hasAttachments') === 'yes';
     const hasComment = formData.get('hasComment') === 'yes';
@@ -123,6 +124,7 @@ export async function POST(request: Request) {
           defectStatus: hasDefect ? defectStatus : null,
           riiRequired: hasDefect ? riiRequired : false,
           inspectedBy: hasDefect && riiRequired ? inspectedBy : null,
+          etopsFlight: etopsFlight || null,
           fixingManual: hasDefect && defectStatus ? fixingManual : null,
           manualReference: hasDefect && defectStatus ? manualReference : null,
           hasPartReplaced: hasDefect ? hasPartReplaced : false,

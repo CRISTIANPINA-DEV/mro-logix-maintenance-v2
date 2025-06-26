@@ -21,8 +21,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { data: session, status } = useSession();
   
-  // Check if current page is Gantt Chart Schedule
-  const isGanttChartPage = pathname === "/dashboard/gantt-chart-schedule";
+
 
   useEffect(() => {
     if (status === "loading") {
@@ -50,8 +49,8 @@ export default function DashboardLayout({
     <ToastProvider>
       <SidebarProvider>
         <div className="min-h-screen flex w-full">
-          {!isGanttChartPage && <AppSidebar />}
-          <div className={`flex-1 flex flex-col w-full ${isGanttChartPage ? 'ml-0' : ''}`} data-sidebar-expanded="true">
+          <AppSidebar />
+          <div className="flex-1 flex flex-col w-full" data-sidebar-expanded="true">
             <DashboardHeader />
             <main className="flex-grow p-4 w-full">
               {children}

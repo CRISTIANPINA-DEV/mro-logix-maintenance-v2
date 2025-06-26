@@ -1,0 +1,1 @@
+# The stations.ts file contains 5,148 airports worldwide over 226 countries.

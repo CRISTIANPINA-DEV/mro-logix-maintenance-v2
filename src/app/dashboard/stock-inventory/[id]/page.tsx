@@ -58,9 +58,11 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
   const [id, setId] = useState<string>("");
   const [record, setRecord] = useState<StockInventory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isIdLoading, setIsIdLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteText, setDeleteText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -71,16 +73,25 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
     const getParams = async () => {
       const resolvedParams = await params;
       setId(resolvedParams.id);
+      setIsIdLoading(false);
     };
     getParams();
   }, [params]);
   
-  const fetchRecord = useCallback(async () => {
-    if (!id) return; // Don't fetch if id is not available yet
+  const fetchRecord = useCallback(async (abortController?: AbortController) => {
+    if (!id || isDeleted) return; // Don't fetch if id is not available yet or record is deleted
     
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/stock-inventory/${id}`);
+      const response = await fetch(`/api/stock-inventory/${id}`, {
+        signal: abortController?.signal
+      });
+      
+      // Check if the request was aborted
+      if (abortController?.signal.aborted) {
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.success) {
@@ -89,20 +100,38 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
         throw new Error(data.message || 'Failed to fetch record');
       }
     } catch (error) {
-      console.error('Error fetching stock inventory record:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch stock inventory record",
-        variant: "destructive"
-      });
+      // Only log error and show toast if request wasn't aborted
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Error fetching stock inventory record:', error);
+        toast({
+          title: "Error",
+          description: error.message === "Stock inventory record not found" 
+            ? "This stock inventory record could not be found. It may have been deleted."
+            : "Failed to fetch stock inventory record",
+          variant: "destructive"
+        });
+      }
     } finally {
-      setIsLoading(false);
+      if (!abortController || !abortController.signal.aborted) {
+        setIsLoading(false);
+      }
     }
-  }, [id, toast]);
+  }, [id, toast, isDeleted]);
 
   useEffect(() => {
-    fetchRecord();
-  }, [fetchRecord]);
+    if (!id) {
+      return;
+    }
+    
+    const abortController = new AbortController();
+    fetchRecord(abortController);
+    
+    return () => {
+      abortController.abort();
+    };
+  }, [fetchRecord, id]);
+
+
 
   const handleDownload = async (fileKey: string, fileName: string) => {
     try {
@@ -390,6 +419,8 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
       const data = await response.json();
       
       if (data.success) {
+        // Mark as deleted to prevent further API calls
+        setIsDeleted(true);
         toast({
           title: "Success",
           description: "Record deleted successfully"
@@ -412,7 +443,7 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
     }
   };
 
-  if (isLoading) {
+  if (isIdLoading || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">

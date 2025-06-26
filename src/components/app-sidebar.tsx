@@ -9,11 +9,7 @@ import {
   ShieldAlertIcon,
   FileSpreadsheetIcon,
   TriangleAlertIcon,
-  HandshakeIcon,
-  ChartNoAxesCombinedIcon,
-  ClipboardIcon,
   PackageOpenIcon,
-  CalendarCheck2Icon,
   ChevronDownIcon,
   ChevronRightIcon,
   ThermometerSnowflake,
@@ -25,7 +21,8 @@ import {
   BellIcon,
   BookOpenIcon,
   ScrollTextIcon,
-  FileEditIcon
+  FuelIcon,
+  RotateCw
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -80,11 +77,15 @@ const menuItems = [
     icon: MessageSquareDot,
   },
   {
-    title: "Work Order Management",
-    url: "/dashboard/work-orders",
-    icon: CalendarCheck2Icon,
+    title: "Oil Consumption",
+    url: "/dashboard/oil-consumption",
+    icon: FuelIcon,
   },
-
+  {
+    title: "Wheel Rotation",
+    url: "/dashboard/wheel-rotation",
+    icon: RotateCw,
+  },
   {
     title: "Airport ID",
     url: "/dashboard/airport-id",
@@ -111,34 +112,14 @@ const menuItems = [
     icon: TriangleAlertIcon,
   },
   {
-    title: "Customer & Vendor",
-    url: "/dashboard/customers-vendors",
-    icon: HandshakeIcon,
-  },
-  {
-    title: "Gantt Chart Schedule",
-    url: "/dashboard/gantt-chart-schedule",
-    icon: ChartNoAxesCombinedIcon,
-  },
-  {
     title: "Data Analytics",
     url: "/dashboard/data-analytics",
     icon: BarChart3Icon,
   },
   {
-    title: "Forms Creation",
-    url: "/dashboard/forms-creation",
-    icon: FileEditIcon,
-  },
-  {
     title: "Log Pages",
     url: "/dashboard/log-pages",
     icon: ScrollTextIcon,
-  },
-  {
-    title: "Company Reports",
-    url: "/dashboard/company-reports",
-    icon: ClipboardIcon,
   },
   {
     title: "Notification Center",
@@ -278,7 +259,8 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => getFilteredMenuItems(["Flight Records", "Stock Inventory", "Incoming Inspections", "Temperature Control", "Technical Queries"]).includes(item.title))
+                  .filter(item => ["Flight Records", "Stock Inventory", "Incoming Inspections", "Temperature Control", "Technical Queries", "Oil Consumption", "Wheel Rotation"].includes(item.title))
+                  .filter(item => getFilteredMenuItems([item.title]).includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -402,7 +384,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => ["Work Order Management", "Customer & Vendor", "Data Analytics", "Gantt Chart Schedule", "Company Reports", "Notification Center"].includes(item.title))
+                  .filter(item => ["Data Analytics", "Notification Center"].includes(item.title))
                   .filter(item => getFilteredMenuItems([item.title]).includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
@@ -444,7 +426,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => ["Forms Creation", "Log Pages", "Technical Publications"].includes(item.title))
+                  .filter(item => ["Log Pages", "Technical Publications"].includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (

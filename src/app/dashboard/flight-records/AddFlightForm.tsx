@@ -17,6 +17,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { UserSearchCombobox } from "@/components/ui/user-search-combobox";
 import { validateStation, validateAirline, validateAirplane, getStationSuggestions, getAirlineSuggestions, getAirplaneSuggestions, getCleanStationCode, getCleanAirlineName, getCleanAirplaneModel, isValueFromAirlineSuggestions, isValueFromStationSuggestions, isValueFromAirplaneSuggestions } from "@/utils/validation";
 import { AutoCompleteInput } from "@/components/ui/auto-complete-input";
+import { stations } from "@/data/stations";
 
 // Maximum file size limit (250MB in bytes)
 const MAX_UPLOAD_SIZE_BYTES = 250 * 1024 * 1024;
@@ -55,6 +56,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
   const [riiRequired, setRiiRequired] = useState<string>("no");
   const [inspectedById, setInspectedById] = useState<string>("");
   const [inspectedByName, setInspectedByName] = useState<string>("");
+  const [etopsFlight, setEtopsFlight] = useState<string>("");
   const [hasPartReplaced, setHasPartReplaced] = useState<string>("no");
   const [hasAttachments, setHasAttachments] = useState<string>("no");
   const [hasComment, setHasComment] = useState<string>("no");
@@ -94,6 +96,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
   const [stationError, setStationError] = useState<string>("");
   const [isStationValid, setIsStationValid] = useState<boolean | undefined>(undefined);
   const [stationSuggestions, setStationSuggestions] = useState<string[]>([]);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   
   const [airlineError, setAirlineError] = useState<string>("");
   const [isAirlineValid, setIsAirlineValid] = useState<boolean | undefined>(undefined);
@@ -372,6 +375,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
       formData.append('defectStatus', defectStatus);
       formData.append('riiRequired', riiRequired);
       formData.append('inspectedBy', inspectedByName);
+      formData.append('etopsFlight', etopsFlight);
       formData.append('hasPartReplaced', hasPartReplaced);
       formData.append('hasAttachments', hasAttachments);
       formData.append('hasComment', hasComment);
@@ -447,12 +451,35 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
     fetchUserData();
   }, []);
 
+  // Debounced station search
+  useEffect(() => {
+    if (!station) {
+      setStationSuggestions([]);
+      return;
+    }
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      const upperInput = station.toUpperCase().trim();
+      const filtered = stations
+        .filter(
+          (s) =>
+            s.code.includes(upperInput) ||
+            s.name.toUpperCase().includes(upperInput)
+        )
+        .map((s) => `${s.code} - ${s.name}`);
+      setStationSuggestions(filtered);
+    }, 300);
+    return () => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    };
+  }, [station]);
+
   return (
     <div className="bg-card p-4 shadow border w-full">
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Add New Flight Record</h2>
       </div>
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
         {/* Flexible grid layout */}
         <div className="flex flex-wrap -mx-2">
           {/* Each field takes up 1/3 of the container on md screens */}
@@ -464,6 +491,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className={`mt-1 w-full rounded-none cursor-pointer ${date ? 'bg-green-50' : ''}`}
+              autoComplete="off"
             />
           </div>
 
@@ -480,18 +508,29 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                   setIsStationValid(true);
                   setStationError("");
                 } else {
-                  // During typing
-                  setStation(value.toUpperCase());
-                  setIsStationValid(undefined);
-                  setStationError("");
+                  // During typing, allow both code and name
+                  // Try to match by name if not a code
+                  const matchByName = stations.find(
+                    (s) => s.name.toUpperCase() === value.toUpperCase().trim()
+                  );
+                  if (matchByName) {
+                    setStation(matchByName.code);
+                    setIsStationValid(true);
+                    setStationError("");
+                  } else {
+                    setStation(value.toUpperCase());
+                    setIsStationValid(undefined);
+                    setStationError("");
+                  }
                 }
               }}
-              suggestions={getStationSuggestions(station)}
-              placeholder="Enter station code (e.g., JFK)"
-              maxLength={3}
+              suggestions={stationSuggestions}
+              placeholder="Enter station code or airport name (e.g., JFK)"
+              maxLength={100}
               isValid={isStationValid}
               errorMessage={stationError}
               className="mt-1"
+              autoComplete="off"
             />
             <p className="text-xs text-muted-foreground mt-1">Enter 3-letter IATA airport code</p>
           </div>
@@ -522,6 +561,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
               isValid={isAirlineValid}
               errorMessage={airlineError}
               className="mt-1"
+              autoComplete="off"
             />
             <p className="text-xs text-muted-foreground mt-1">Enter the full airline name</p>
           </div>
@@ -552,6 +592,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
               isValid={isFleetValid}
               errorMessage={fleetError}
               className="mt-1"
+              autoComplete="off"
             />
             <p className="text-xs text-muted-foreground mt-1">Enter the aircraft model (e.g., A320, B737)</p>
           </div>
@@ -565,6 +606,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
               onChange={(e) => setFlightNumber(e.target.value)}
               placeholder="Enter flight number"
               className={`mt-1 w-full rounded-none cursor-pointer ${flightNumber ? 'bg-green-50' : ''}`}
+              autoComplete="off"
             />
           </div>
 
@@ -574,9 +616,10 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
               type="text"
               id="tail"
               value={tail}
-              onChange={(e) => setTail(e.target.value)}
+              onChange={(e) => setTail(e.target.value.toUpperCase())}
               placeholder="Enter aircraft registration"
               className={`mt-1 w-full rounded-none cursor-pointer ${tail ? 'bg-green-50' : ''}`}
+              autoComplete="off"
             />
           </div>
 
@@ -606,6 +649,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                   placeholder="HH:MM"
                   className={`mt-1 w-full rounded-none cursor-pointer ${blockTimeError ? "border-red-500" : ""} ${blockTime && !blockTimeError ? 'bg-green-50' : ''}`}
                   maxLength={5}
+                  autoComplete="off"
                 />
                 {blockTimeError ? (
                   <p className="text-xs text-red-500 mt-1">{blockTimeError}</p>
@@ -625,6 +669,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                   placeholder="HH:MM"
                   className={`mt-1 w-full rounded-none cursor-pointer ${outTimeError ? "border-red-500" : ""} ${outTime && !outTimeError ? 'bg-green-50' : ''}`}
                   maxLength={5}
+                  autoComplete="off"
                 />
                 {outTimeError ? (
                   <p className="text-xs text-red-500 mt-1">{outTimeError}</p>
@@ -650,6 +695,19 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
           </div>
 
           <div className="w-full md:w-1/3 px-2 mb-4">
+            <Label htmlFor="etopsFlight" className="text-sm sm:text-base">ETOPS FLIGHT</Label>
+            <Select value={etopsFlight} onValueChange={setEtopsFlight}>
+              <SelectTrigger id="etopsFlight" className="mt-1 rounded-none cursor-pointer">
+                <SelectValue placeholder="Indicate" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="YES">YES</SelectItem>
+                <SelectItem value="NO">NO</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-full md:w-1/3 px-2 mb-4">
             <Label htmlFor="hasDefect" className="text-sm sm:text-base">Has Defect?</Label>
             <Select value={hasDefect} onValueChange={setHasDefect}>
               <SelectTrigger id="hasDefect" className="mt-1 rounded-none cursor-pointer">
@@ -670,9 +728,10 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                   type="text"
                   id="logPageNo"
                   value={logPageNo}
-                  onChange={(e) => setLogPageNo(e.target.value)}
+                  onChange={(e) => setLogPageNo(e.target.value.toUpperCase())}
                   placeholder="Enter log page number"
                   className={`mt-1 w-full rounded-none cursor-pointer ${logPageNo ? 'bg-green-50' : ''}`}
+                  autoComplete="off"
                 />
               </div>
 
@@ -741,15 +800,16 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                           id="manualReference"
                           value={manualReference}
                           onChange={(e) => {
-                            setManualReference(e.target.value);
+                            setManualReference(e.target.value.toUpperCase());
                             if (manualReferenceError) {
-                              validateManualReference(e.target.value);
+                              validateManualReference(e.target.value.toUpperCase());
                             }
                           }}
                           onBlur={(e) => validateManualReference(e.target.value)}
                           placeholder={`Enter ${defectStatus === "Fixed" ? "fixing" : "deferral"} manual reference number`}
                           className={`mt-1 w-full rounded-none cursor-pointer ${manualReferenceError ? "border-red-500" : ""} ${manualReference && !manualReferenceError ? 'bg-green-50' : ''}`}
                           required
+                          autoComplete="off"
                         />
                         {manualReferenceError ? (
                           <p className="text-xs text-red-500 mt-1">{manualReferenceError}</p>
@@ -763,7 +823,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                           <Textarea
                             id="discrepancyNote"
                             value={discrepancyNote}
-                            onChange={(e) => setDiscrepancyNote(e.target.value)}
+                            onChange={(e) => setDiscrepancyNote(e.target.value.toUpperCase())}
                             placeholder="Enter discrepancy or note"
                             className={`mt-1 w-full min-h-[100px] rounded-none cursor-pointer ${discrepancyNote ? 'bg-green-50' : ''}`}
                           />
@@ -774,7 +834,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                           <Textarea
                             id="rectificationNote"
                             value={rectificationNote}
-                            onChange={(e) => setRectificationNote(e.target.value)}
+                            onChange={(e) => setRectificationNote(e.target.value.toUpperCase())}
                             placeholder="Enter rectification or note"
                             className={`mt-1 w-full min-h-[100px] rounded-none cursor-pointer ${rectificationNote ? 'bg-green-50' : ''}`}
                           />
@@ -833,9 +893,10 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                               type="text"
                               id={`pnOff-${index}`}
                               value={part.pnOff}
-                              onChange={(e) => updatePartReplacement(index, 'pnOff', e.target.value)}
+                              onChange={(e) => updatePartReplacement(index, 'pnOff', e.target.value.toUpperCase())}
                               placeholder="P/N OFF"
                               className={`mt-1 w-full h-8 text-xs rounded-none cursor-pointer placeholder:text-blue-400 placeholder:bg-blue-50 ${part.pnOff ? 'bg-green-50' : ''}`}
+                              autoComplete="off"
                             />
                           </div>
                           <div>
@@ -844,9 +905,10 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                               type="text"
                               id={`snOff-${index}`}
                               value={part.snOff}
-                              onChange={(e) => updatePartReplacement(index, 'snOff', e.target.value)}
+                              onChange={(e) => updatePartReplacement(index, 'snOff', e.target.value.toUpperCase())}
                               placeholder="S/N OFF"
                               className={`mt-1 w-full h-8 text-xs rounded-none cursor-pointer placeholder:text-orange-400 placeholder:bg-orange-50 ${part.snOff ? 'bg-green-50' : ''}`}
+                              autoComplete="off"
                             />
                           </div>
                           <div>
@@ -855,9 +917,10 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                               type="text"
                               id={`pnOn-${index}`}
                               value={part.pnOn}
-                              onChange={(e) => updatePartReplacement(index, 'pnOn', e.target.value)}
+                              onChange={(e) => updatePartReplacement(index, 'pnOn', e.target.value.toUpperCase())}
                               placeholder="P/N ON"
                               className={`mt-1 w-full h-8 text-xs rounded-none cursor-pointer placeholder:text-blue-400 placeholder:bg-blue-50 ${part.pnOn ? 'bg-green-50' : ''}`}
+                              autoComplete="off"
                             />
                           </div>
                           <div>
@@ -866,9 +929,10 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                               type="text"
                               id={`snOn-${index}`}
                               value={part.snOn}
-                              onChange={(e) => updatePartReplacement(index, 'snOn', e.target.value)}
+                              onChange={(e) => updatePartReplacement(index, 'snOn', e.target.value.toUpperCase())}
                               placeholder="S/N ON"
                               className={`mt-1 w-full h-8 text-xs rounded-none cursor-pointer placeholder:text-orange-400 placeholder:bg-orange-50 ${part.snOn ? 'bg-green-50' : ''}`}
+                              autoComplete="off"
                             />
                           </div>
                         </div>
@@ -1001,7 +1065,7 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
                 <Textarea
                   id="comment"
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  onChange={(e) => setComment(e.target.value.toUpperCase())}
                   placeholder="Enter your comment"
                   className={`mt-1 w-full min-h-[105px] rounded-none cursor-pointer ${comment ? 'bg-green-50' : ''}`}
                 />

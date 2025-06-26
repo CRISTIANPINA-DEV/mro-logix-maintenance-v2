@@ -43,8 +43,7 @@ export default function DashboardHeader() {
     user: session?.user,
   });
 
-  // Check if current page is Gantt Chart Schedule
-  const isGanttChartPage = pathname === "/dashboard/gantt-chart-schedule";
+
 
   const handleSignOut = async () => {
     try {
@@ -80,7 +79,7 @@ export default function DashboardHeader() {
       <div className="w-full max-w-full mx-auto px-3">
         <div className="flex h-12 items-center justify-between w-full">
           <div className="flex items-center gap-2">
-            {!isGanttChartPage && <SidebarTrigger className="flex size-6 mr-1" />}
+            <SidebarTrigger className="flex size-6 mr-1" />
             <div className="flex items-center gap-2">
               <span className="font-medium text-sm text-muted-foreground">
                 @{session?.user?.username || session?.user?.firstName || 'User'}

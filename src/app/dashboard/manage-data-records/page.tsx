@@ -159,7 +159,7 @@ export default function ManageDataRecordsPage() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className="max-w-md mx-auto rounded-none">
           <DialogHeader>
             <DialogTitle>Enter Password</DialogTitle>
             <DialogDescription>

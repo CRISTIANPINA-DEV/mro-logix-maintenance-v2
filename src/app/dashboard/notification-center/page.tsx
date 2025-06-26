@@ -10,8 +10,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from 'date-fns';
-import { Send, Clock, User, Eye, X } from 'lucide-react';
+import { Send, Clock, User, Eye, X, Trash2 } from 'lucide-react';
+import NotificationCenterHeader from './notification-center-header';
 
 interface Notification {
   id: string;
@@ -43,6 +45,9 @@ export default function NotificationCenter() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetchingNotifications, setFetchingNotifications] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [notificationToDelete, setNotificationToDelete] = useState<Notification | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Check if user is admin
   if (status === "loading") {
@@ -171,10 +176,88 @@ export default function NotificationCenter() {
     setSelectedNotification(null);
   };
 
+  const handleDeleteClick = (notification: Notification) => {
+    setNotificationToDelete(notification);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!notificationToDelete) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch('/api/notifications/broadcast', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: notificationToDelete.message,
+          createdAt: notificationToDelete.createdAt,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Notification deleted successfully",
+        });
+        // Refresh the notifications list
+        await fetchSentNotifications();
+        // Close modals
+        setDeleteConfirmOpen(false);
+        setIsModalOpen(false);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete notification",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete notification",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setNotificationToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setNotificationToDelete(null);
+  };
+
   return (
     <div className="space-y-6 p-6">
+      <NotificationCenterHeader />
+      
+      {/* Priority Guide Card */}
+      <Card className="shadow-sm border-0 bg-gradient-to-r from-gray-50 to-slate-50">
+        <CardContent className="py-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="px-3 py-1 text-sm">Low</Badge>
+              <span className="text-sm text-gray-600">General acknowledgment</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="px-3 py-1 text-sm">Medium</Badge>
+              <span className="text-sm text-gray-600">Consideration</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="destructive" className="px-3 py-1 text-sm">High</Badge>
+              <span className="text-sm text-gray-600">Immediate action</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
       {/* Send Notification Card */}
-      <Card className="shadow-sm border-0 bg-gradient-to-r from-blue-50 to-indigo-50">
+      <Card className="shadow-sm border-0 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-none">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-xl font-semibold text-gray-800">
             <Send className="h-5 w-5 text-blue-600" />
@@ -414,10 +497,68 @@ export default function NotificationCenter() {
                   </div>
                 </div>
               </div>
+              
+              {/* Modal Footer with Delete Button */}
+              <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  onClick={() => handleDeleteClick(selectedNotification)}
+                  className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:text-red-800 hover:border-red-300"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Notification
+                </Button>
+                <Button variant="outline" onClick={closeNotificationModal}>
+                  Close
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              Delete Notification
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Are you sure you want to delete this notification? This action will permanently remove the notification for all employees and cannot be undone.
+            </AlertDialogDescription>
+            {notificationToDelete && (
+              <div className="mt-3 p-3 bg-gray-50 border rounded">
+                <div className="text-sm font-medium text-gray-800">Message:</div>
+                <div className="text-sm text-gray-600 mt-1">{notificationToDelete.message}</div>
+              </div>
+            )}
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancel} disabled={deleting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Notification
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 } 

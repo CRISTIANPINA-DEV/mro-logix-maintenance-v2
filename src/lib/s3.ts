@@ -16,6 +16,30 @@ const MANUALS_FOLDER = 'manuals';
 const AIRPORT_ID_FOLDER = 'airport-id';
 const SDR_REPORTS_FOLDER = 'sdr-reports';
 const TECHNICAL_PUBLICATIONS_FOLDER = 'technical-publications';
+const OIL_CONSUMPTION_FOLDER = 'oil-consumption';
+
+// Oil Consumption - Updated with company-based folder structure
+export async function uploadOilConsumptionFile(file: File, oilServiceRecordId: string, companyId?: string): Promise<string> {
+  const fileName = `${oilServiceRecordId}/${Date.now()}-${file.name}`;
+  // Include company ID in the path for complete isolation
+  const key = companyId 
+    ? `${OIL_CONSUMPTION_FOLDER}/${companyId}/${fileName}`
+    : `${OIL_CONSUMPTION_FOLDER}/${fileName}`;
+  return uploadToSupabase(file, key);
+}
+
+// Alias for compatibility with API routes
+export { uploadOilConsumptionFile as uploadOilServiceFile };
+
+export async function deleteOilServiceFile(fileKey: string): Promise<void> {
+  return deleteFromSupabase(fileKey);
+}
+
+export async function getOilServiceFile(fileKey: string): Promise<Blob | null> {
+  return downloadFromSupabase(fileKey);
+}
+
+
 
 // Helper to upload a file
 async function uploadToSupabase(file: File, path: string, options?: { upsert?: boolean }) {

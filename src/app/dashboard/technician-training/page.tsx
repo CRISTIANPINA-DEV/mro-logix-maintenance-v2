@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import TechnicianTrainingHeader from "./technician-training-header";
 
 const organizations = [
   "FlightTech",
@@ -217,13 +218,7 @@ export default function TechnicianTrainingPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Technician Training</h1>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Training
-        </Button>
-      </div>
+      <TechnicianTrainingHeader onAddTraining={() => setShowForm(true)} />
 
       {error && (
         <Alert variant="destructive">

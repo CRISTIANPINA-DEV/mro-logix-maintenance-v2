@@ -138,8 +138,10 @@ export function FlightRecordsList({
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-none h-8 w-8 border-b-2 border-primary"></div>
+      <div className="bg-white shadow-sm rounded-md overflow-hidden">
+        <div className="p-4 border-b border-gray-200 space-y-4 overflow-x-auto max-w-full">
+          <div className="animate-spin rounded-none h-8 w-8 border-b-2 border-primary"></div>
+        </div>
       </div>
     );
   }
@@ -172,31 +174,31 @@ export function FlightRecordsList({
           <div className="overflow-x-auto">
             <div className="min-w-[1200px]">
               <div className="grid grid-cols-[120px_100px_250px_120px_100px_100px_100px_100px_100px_120px] gap-x-4 gap-y-1 text-sm font-semibold items-center">
-                <div>Date</div>
-                <div>Station</div>
-                <div>Airline</div>
-                <div>Flight #</div>
-                <div>Fleet</div>
-                <div>Tail</div>
-                <div>Service</div>
-                <div>Defect</div>
-                <div>Log Page No</div>
-                <div>Username</div>
+                <div className="min-w-[100px]">Date</div>
+                <div className="min-w-[60px]">Station</div>
+                <div className="min-w-[150px]">Airline</div>
+                <div className="min-w-[80px]">Flight #</div>
+                <div className="min-w-[100px]">Fleet</div>
+                <div className="min-w-[90px]">Tail</div>
+                <div className="min-w-[70px]">Service</div>
+                <div className="min-w-[50px]">Defect</div>
+                <div className="min-w-[80px]">Log Page No</div>
+                <div className="min-w-[90px]">Technician</div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-11 gap-x-3 gap-y-1 text-sm font-semibold items-center">
-            <div className="xl:col-span-1">Date</div>
-            <div className="xl:col-span-1">Station</div>
-            <div className="xl:col-span-1">Airline</div>
-            <div className="xl:col-span-1">Flight #</div>
-            <div className="xl:col-span-1">Fleet</div>
-            <div className="xl:col-span-1">Tail</div>
-            <div className="xl:col-span-1">Service</div>
-            <div className="xl:col-span-1">Defect</div>
-            <div className="xl:col-span-1">Log Page No</div>
-            <div className="xl:col-span-1">Username</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-11 gap-2 text-sm font-semibold items-center">
+            <div className="xl:col-span-1 min-w-[100px]">Date</div>
+            <div className="xl:col-span-1 min-w-[60px]">Station</div>
+            <div className="xl:col-span-1 min-w-[150px]">Airline</div>
+            <div className="xl:col-span-1 min-w-[80px]">Flight #</div>
+            <div className="xl:col-span-1 min-w-[100px]">Fleet</div>
+            <div className="xl:col-span-1 min-w-[90px]">Tail</div>
+            <div className="xl:col-span-1 min-w-[70px]">Service</div>
+            <div className="xl:col-span-1 min-w-[50px]">Defect</div>
+            <div className="xl:col-span-1 min-w-[80px]">Log Page No</div>
+            <div className="xl:col-span-1 min-w-[90px]">Technician</div>
           </div>
         )}
       </div>
@@ -215,20 +217,20 @@ export function FlightRecordsList({
             <div className="overflow-x-auto">
               <div className="min-w-[1200px]">
                 <div className="grid grid-cols-[120px_100px_250px_120px_100px_100px_100px_100px_100px_120px] gap-x-4 gap-y-1 text-sm items-center hover:text-accent-foreground">
-                  <div className="whitespace-nowrap"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{formatDate(record.date)}</Link></div>
-                  <div>{record.station}</div>
-                  <div>{record.airline}</div>
-                  <div><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.flightNumber || '-'}</Link></div>
-                  <div><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.fleet}</Link></div>
-                  <div><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.tail || "-"}</Link></div>
-                  <div>{record.service === 'AOG' ? (
+                  <div className="min-w-[100px] whitespace-nowrap"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{formatDate(record.date)}</Link></div>
+                  <div className="min-w-[60px]">{record.station}</div>
+                  <div className="min-w-[150px] break-words">{record.airline}</div>
+                  <div className="min-w-[80px]"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.flightNumber || '-'}</Link></div>
+                  <div className="min-w-[100px]"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.fleet}</Link></div>
+                  <div className="min-w-[90px]"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.tail || "-"}</Link></div>
+                  <div className="min-w-[70px]">{record.service === 'AOG' ? (
                     <span className="inline-flex items-center px-1 py-0.5 rounded-sm text-xs font-medium bg-red-100 text-red-800 leading-tight">
                       {record.service}
                     </span>
                   ) : (
                     record.service
                   )}</div>
-                  <div>{record.hasDefect ? (
+                  <div className="min-w-[50px]">{record.hasDefect ? (
                     <span className="inline-flex items-center px-1 py-0.5 rounded-sm text-xs font-medium bg-orange-100 text-yellow-800 leading-tight">
                       Yes
                     </span>
@@ -237,44 +239,37 @@ export function FlightRecordsList({
                       No
                     </span>
                   )}</div>
-                  <div>{record.logPageNo || "-"}</div>
-                  <div>{record.username || "-"}</div>
+                  <div className="min-w-[80px]">{record.logPageNo || "-"}</div>
+                  <div className="min-w-[90px]">{record.username || "-"}</div>
                 </div>
               </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-11 gap-x-3 gap-y-1 text-sm items-center hover:text-accent-foreground">
-              <div className="xl:col-span-1 whitespace-nowrap"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{formatDate(record.date)}</Link></div>
-              <div className="xl:col-span-1">{record.station}</div>
-              <div className="xl:col-span-1 whitespace-nowrap truncate" title={record.airline}>{record.airline}</div>
-              <div className="xl:col-span-1"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.flightNumber || '-'}</Link></div>
-              <div className="xl:col-span-1"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.fleet}</Link></div>
-              <div className="xl:col-span-1"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.tail || "-"}</Link></div>
-              
-              <div className="xl:col-span-1">
-                {record.service === 'AOG' ? (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded-sm text-xs font-medium bg-red-100 text-red-800 leading-tight">
-                    {record.service}
-                  </span>
-                ) : (
-                  record.service
-                )}
-              </div>
-              
-              <div className="xl:col-span-1">
-                {record.hasDefect ? (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded-sm text-xs font-medium bg-orange-100 text-yellow-800 leading-tight">
-                    Yes
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-1 py-0.5 rounded-sm text-xs font-medium bg-green-100 text-green-800 leading-tight">
-                    No
-                  </span>
-                )}
-              </div>
-              
-              <div className="xl:col-span-1">{record.logPageNo || "-"}</div>
-              <div className="xl:col-span-1">{record.username || "-"}</div>
+              <div className="xl:col-span-1 min-w-[100px]"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{formatDate(record.date)}</Link></div>
+              <div className="xl:col-span-1 min-w-[60px]">{record.station}</div>
+              <div className="xl:col-span-1 min-w-[150px] break-words" title={record.airline}>{record.airline}</div>
+              <div className="xl:col-span-1 min-w-[80px]"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.flightNumber || '-'}</Link></div>
+              <div className="xl:col-span-1 min-w-[100px]"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.fleet}</Link></div>
+              <div className="xl:col-span-1 min-w-[90px]"><Link href={`/dashboard/flight-records/${record.id}`} className="text-gray-900 decoration-blue-600 hover:decoration-blue-800 underline">{record.tail || "-"}</Link></div>
+              <div className="xl:col-span-1 min-w-[70px]">{record.service === 'AOG' ? (
+                <span className="inline-flex items-center px-1 py-0.5 rounded-sm text-xs font-medium bg-red-100 text-red-800 leading-tight">
+                  {record.service}
+                </span>
+              ) : (
+                record.service
+              )}</div>
+              <div className="xl:col-span-1 min-w-[50px]">{record.hasDefect ? (
+                <span className="inline-flex items-center px-1 py-0.5 rounded-sm text-xs font-medium bg-orange-100 text-yellow-800 leading-tight">
+                  Yes
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-1 py-0.5 rounded-sm text-xs font-medium bg-green-100 text-green-800 leading-tight">
+                  No
+                </span>
+              )}</div>
+              <div className="xl:col-span-1 min-w-[80px]">{record.logPageNo || "-"}</div>
+              <div className="xl:col-span-1 min-w-[90px]">{record.username || "-"}</div>
             </div>
           )}
         </div>

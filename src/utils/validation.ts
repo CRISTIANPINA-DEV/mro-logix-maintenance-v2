@@ -1,5 +1,5 @@
 import { stations } from '@/data/stations';
-import { airlines } from '@/data/airlines';
+import { airlines } from "@/data/airlines";
 import { airplanes } from '@/data/airplanes';
 
 export const validateStation = (code: string): boolean => {
@@ -37,9 +37,9 @@ export const getAirlineSuggestions = (input: string): string[] => {
   return airlines
     .filter(airline => 
       airline.name.toLowerCase().includes(normalizedInput) ||
-      airline.iataCode.toLowerCase().includes(normalizedInput)
+      airline.icaoCode.toLowerCase().includes(normalizedInput)
     )
-    .map(airline => `${airline.name} - ${airline.iataCode}`);
+    .map(airline => `${airline.name} - ${airline.icaoCode}`);
 };
 
 export const getAirplaneSuggestions = (input: string): string[] => {

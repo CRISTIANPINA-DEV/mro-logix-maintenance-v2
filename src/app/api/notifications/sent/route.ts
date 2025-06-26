@@ -10,12 +10,12 @@ export async function GET(request: NextRequest) {
     }
     const currentUser = auth.user;
 
-    // Get all notifications sent by the current user (including soft-deleted ones for read receipt counting)
+    // Get all notifications sent by the current user (excluding soft-deleted ones)
     const notifications = await prisma.notification.findMany({
       where: {
         senderId: currentUser.id,
         companyId: currentUser.companyId,
-        // Don't filter by deletedAt here - we need all notifications to count read receipts accurately
+        deletedAt: null, // Only show non-deleted notifications
       },
       include: {
         user: {

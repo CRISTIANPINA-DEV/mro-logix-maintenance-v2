@@ -1,12 +1,11 @@
 "use client";
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { PlusCircle, Clipboard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Bell } from "lucide-react";
 
-const CompanyReportsHeader = () => {
+const NotificationCenterHeader: React.FC = () => {
   return (
     <Card className="w-full mb-6">
       <header>
@@ -15,15 +14,11 @@ const CompanyReportsHeader = () => {
             <div>
               <h1 className="text-2xl font-bold">
                 <div className="flex items-center gap-2">
-                  <Clipboard size={24} strokeWidth={1.5} className="text-[#0ea5e9]" />
-                  <Badge className="px-3 py-1 text-base bg-[#0ea5e9] text-white rounded-[4px] border border-black shadow-md">Company Reports</Badge>
+                  <Bell size={24} strokeWidth={1.5} className="text-blue-500" />
+                  <Badge className="px-3 py-1 text-base bg-blue-100 text-blue-600 rounded-[4px] border border-blue-500 shadow-md">Notification Center</Badge>
                 </div>
               </h1>
             </div>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <PlusCircle size={16} />
-              New Report
-            </Button>
           </div>
         </div>
       </header>
@@ -31,4 +26,4 @@ const CompanyReportsHeader = () => {
   );
 };
 
-export default CompanyReportsHeader;
+export default NotificationCenterHeader; 

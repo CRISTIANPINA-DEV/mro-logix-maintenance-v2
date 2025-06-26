@@ -54,6 +54,10 @@ model Company {
   technicalPublications         TechnicalPublication[]
   technicalPublicationAttachments TechnicalPublicationAttachment[]
   technicalPublicationRevisions TechnicalPublicationRevision[]
+  oilServiceRecords             OilServiceRecord[]
+  oilServiceAttachments         OilServiceAttachment[]
+  wheelRotations                WheelRotation[]
+  wheelRotationHistory          WheelRotationHistory[]
 }
 
 model Attachment {
@@ -106,6 +110,7 @@ model FlightRecord {
   defectStatus      String?
   riiRequired       Boolean           @default(false)
   inspectedBy       String?
+  etopsFlight       String?
   hasAttachments    Boolean           @default(false)
   hasComment        Boolean           @default(false)
   comment           String?
@@ -591,6 +596,48 @@ model TechnicalQueryResponseVote {
 }
 
 // =========================
+// Oil Consumption Models
+// =========================
+
+model OilServiceRecord {
+  companyId      String
+  company        Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  date           DateTime
+  airline        String
+  fleet          String
+  tailNumber     String?
+  flightNumber   String?
+  station        String?  // Station code and name
+  serviceType    String // "Engine" | "Hydraulic SYS" | "APU"
+  enginePosition String?
+  engineModel    String?
+  hydraulicSystem String?
+  oilAmount      Float    // Amount of oil added in Quarts
+  oilType        String?  // Oil type/manufacturer
+  hasAttachments Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  Attachment     OilServiceAttachment[]
+  @@index([companyId])
+}
+
+model OilServiceAttachment {
+  companyId         String
+  company           Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String   @id @default(uuid())
+  fileName          String
+  fileKey           String
+  fileSize          Int
+  fileType          String
+  oilServiceRecordId String
+  createdAt         DateTime @default(now())
+  OilServiceRecord  OilServiceRecord @relation(fields: [oilServiceRecordId], references: [id], onDelete: Cascade)
+  @@index([companyId])
+}
+
+// =========================
 // SMS Reports Models
 // =========================
 
@@ -1064,4 +1111,54 @@ model TechnicalPublicationRevision {
   @@index([modifiedAt])
   @@index([changeType])
   @@index([companyId])
+}
+
+// =========================
+// Wheel Rotation Models
+// =========================
+
+model WheelRotation {
+  companyId           String
+  company             Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                  String   @id @default(uuid())
+  arrivalDate         DateTime
+  airline             String
+  station             String   // Added station field
+  wheelPartNumber     String   // P/N
+  wheelSerialNumber   String   // S/N
+  currentPosition     Float    @default(0) // Current position in degrees
+  rotationFrequency   String   // "weekly", "monthly", "quarterly", "biannually", "annually"
+  lastRotationDate    DateTime?
+  nextRotationDue     DateTime?
+  isActive            Boolean  @default(true)
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  // Relations
+  rotationHistory     WheelRotationHistory[]
+  
+  @@index([companyId])
+  @@index([wheelSerialNumber])
+  @@index([nextRotationDue])
+}
+
+model WheelRotationHistory {
+  companyId         String
+  company           Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String   @id @default(uuid())
+  wheelRotationId   String
+  rotationDate      DateTime
+  previousPosition  Float
+  newPosition       Float
+  performedBy       String?  // Name of technician
+  notes             String?
+  createdAt         DateTime @default(now())
+  
+  // Relations
+  wheelRotation     WheelRotation @relation(fields: [wheelRotationId], references: [id], onDelete: Cascade)
+  
+  @@index([companyId])
+  @@index([wheelRotationId])
+  @@index([rotationDate])
 }

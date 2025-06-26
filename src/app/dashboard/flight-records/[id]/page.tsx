@@ -49,6 +49,7 @@ interface FlightRecord {
   defectStatus: string | null;
   riiRequired: boolean;
   inspectedBy: string | null;
+  etopsFlight: string | null;
   hasAttachments: boolean;
   hasComment: boolean;
   comment: string | null;
@@ -167,6 +168,7 @@ export default function FlightRecordDetailPage({ params }: { params: Promise<{ i
       ["Tail", record.tail || "N/A"],
       ["Station", record.station],
       ["Service", record.service],
+      ["ETOPS FLIGHT", record.etopsFlight || "N/A"],
       ["Technician", record.technician || "N/A"],
       ["Username", record.username || "N/A"],
       ["Record Created", formatDate(record.createdAt)]
@@ -778,6 +780,10 @@ export default function FlightRecordDetailPage({ params }: { params: Promise<{ i
                   <dd className="mt-1 text-sm text-gray-900 font-medium">{record.service}</dd>
                 </div>
                 <div className="border-l-2 border-blue-500 pl-4">
+                  <dt className="text-sm font-medium text-gray-500 uppercase tracking-wide">ETOPS FLIGHT</dt>
+                  <dd className="mt-1 text-sm text-gray-900 font-medium">{record.etopsFlight || "N/A"}</dd>
+                </div>
+                <div className="border-l-2 border-blue-500 pl-4">
                   <dt className="text-sm font-medium text-gray-500 uppercase tracking-wide">Technician</dt>
                   <dd className="mt-1 text-sm text-gray-900 font-medium">{record.technician || "N/A"}</dd>
                 </div>
@@ -928,13 +934,13 @@ export default function FlightRecordDetailPage({ params }: { params: Promise<{ i
                 <div className="border-t-2 border-gray-200 pt-6 space-y-4">
                   <div>
                     <dt className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Discrepancy</dt>
-                    <dd className="text-sm text-gray-900 whitespace-pre-wrap border-2 border-gray-200 p-4 bg-gray-50">
+                    <dd className="text-sm text-gray-900 whitespace-pre-wrap border-2 border-gray-200 p-4 bg-gray-50 overflow-auto break-words max-w-full">
                       {record.discrepancyNote || "N/A"}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Rectification</dt>
-                    <dd className="text-sm text-gray-900 whitespace-pre-wrap border-2 border-gray-200 p-4 bg-gray-50">
+                    <dd className="text-sm text-gray-900 whitespace-pre-wrap border-2 border-gray-200 p-4 bg-gray-50 overflow-auto break-words max-w-full">
                       {record.rectificationNote || "N/A"}
                     </dd>
                   </div>
@@ -954,7 +960,7 @@ export default function FlightRecordDetailPage({ params }: { params: Promise<{ i
               </div>
               <div className="p-4">
                 <div className="border-2 border-gray-200 p-4 bg-gray-50">
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap overflow-auto break-words max-w-full">
                     {record.comment || "No comment provided"}
                   </p>
                 </div>

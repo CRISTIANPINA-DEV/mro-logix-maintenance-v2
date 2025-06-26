@@ -205,28 +205,29 @@ export async function PUT(
 
   // Parse FormData
   const formData = await request.formData();
-  // Extract fields
-  const airline = formData.get("airline") as string;
-  const fleet = formData.get("fleet") as string;
-  const flightNumber = formData.get("flightNumber") as string;
-  const tail = formData.get("tail") as string;
-  const station = formData.get("station") as string;
-  const service = formData.get("service") as string;
-  const date = formData.get("date") as string;
-  const hasTime = formData.get("hasTime") === "true";
-  const blockTime = formData.get("blockTime") as string;
-  const outTime = formData.get("outTime") as string;
-  const hasDefect = formData.get("hasDefect") === "true";
-  const logPageNo = formData.get("logPageNo") as string;
-  const discrepancyNote = formData.get("discrepancyNote") as string;
-  const rectificationNote = formData.get("rectificationNote") as string;
-  const systemAffected = formData.get("systemAffected") as string;
-  const defectStatus = formData.get("defectStatus") as string;
-  const riiRequired = formData.get("riiRequired") === "true";
-  const inspectedBy = formData.get("inspectedBy") as string;
-  const fixingManual = formData.get("fixingManual") as string;
-  const manualReference = formData.get("manualReference") as string;
-  const hasPartReplaced = formData.get("hasPartReplaced") === "true";
+  // Extract form data
+  const date = formData.get('date') as string;
+  const airline = formData.get('airline') as string;
+  const fleet = formData.get('fleet') as string;
+  const flightNumber = formData.get('flightNumber') as string;
+  const tail = formData.get('tail') as string;
+  const station = formData.get('station') as string;
+  const service = formData.get('service') as string;
+  const hasTime = formData.get('hasTime') === 'true' || formData.get('hasTime') === 'yes';
+  const blockTime = formData.get('blockTime') as string;
+  const outTime = formData.get('outTime') as string;
+  const hasDefect = formData.get('hasDefect') === 'true' || formData.get('hasDefect') === 'yes';
+  const logPageNo = formData.get('logPageNo') as string;
+  const discrepancyNote = formData.get('discrepancyNote') as string;
+  const rectificationNote = formData.get('rectificationNote') as string;
+  const systemAffected = formData.get('systemAffected') as string;
+  const defectStatus = formData.get('defectStatus') as string;
+  const riiRequired = formData.get('riiRequired') === 'true' || formData.get('riiRequired') === 'yes';
+  const inspectedBy = formData.get('inspectedBy') as string;
+  const etopsFlight = formData.get('etopsFlight') as string;
+  const fixingManual = formData.get('fixingManual') as string;
+  const manualReference = formData.get('manualReference') as string;
+  const hasPartReplaced = formData.get('hasPartReplaced') === 'true' || formData.get('hasPartReplaced') === 'yes';
   const hasAttachments = formData.get("hasAttachments") === "true";
   const hasComment = formData.get("hasComment") === "true";
   const comment = formData.get("comment") as string;
@@ -347,6 +348,7 @@ export async function PUT(
           defectStatus,
           riiRequired,
           inspectedBy,
+          etopsFlight,
           fixingManual,
           manualReference,
           hasPartReplaced,
