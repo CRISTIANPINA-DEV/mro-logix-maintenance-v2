@@ -603,7 +603,10 @@ export function AddFlightForm({ onClose }: AddFlightFormProps) {
               type="text"
               id="flightNumber"
               value={flightNumber}
-              onChange={(e) => setFlightNumber(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^0-9]/g, '');
+                setFlightNumber(value);
+              }}
               placeholder="Enter flight number"
               className={`mt-1 w-full rounded-none cursor-pointer ${flightNumber ? 'bg-green-50' : ''}`}
               autoComplete="off"

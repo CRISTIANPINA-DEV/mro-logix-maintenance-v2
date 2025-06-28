@@ -1,5 +1,0 @@
-1. Enviar un correo cuando se hace una nueva publicacion tecnica. Y agregar un boton de que fue leido y ententido.
-2. Configurar el servicio de aceite, que cuando se ponga un avion solo salgan los sistemas hidraulicos del avion en cuestion.
-3. Agregar un master administrador que no pueda ser eliminado por alguien mas.
-4. Mirar la opcion de que alministrador pueda customizar la herramienta.
-5. Asegurar que los admin puedan ver las actividades de otros usuarios en user-activity

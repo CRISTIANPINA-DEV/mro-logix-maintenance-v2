@@ -8,6 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RotateCw, History, Loader2 } from "lucide-react";
+import { RotateCw, History, Loader2, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -46,6 +56,8 @@ export default function WheelDetailsModal({ wheel, isOpen, onClose }: WheelDetai
   const [newPosition, setNewPosition] = useState<string>("");
   const [rotationNotes, setRotationNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [wheelData, setWheelData] = useState<WheelRotation>(wheel);
 
   // Fetch latest wheel data
@@ -105,6 +117,28 @@ export default function WheelDetailsModal({ wheel, isOpen, onClose }: WheelDetai
       console.error("Error:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/wheel-rotation/${wheel.id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast.success("Wheel deleted successfully");
+        setShowDeleteConfirm(false);
+        onClose(); // Close the modal
+      } else {
+        throw new Error("Failed to delete wheel");
+      }
+    } catch (error) {
+      toast.error("Error deleting wheel");
+      console.error("Error:", error);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -192,169 +226,220 @@ export default function WheelDetailsModal({ wheel, isOpen, onClose }: WheelDetai
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Wheel Details - {wheelData.wheelSerialNumber}</DialogTitle>
-          <DialogDescription>
-            {wheelData.airline} | P/N: {wheelData.wheelPartNumber} | Station: {wheelData.station}
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="current">Current Status</TabsTrigger>
-            <TabsTrigger value="history">Rotation History</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="current" className="space-y-4">
-            {/* Wheel Visualization */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4 text-center">Current Position</h3>
-              <WheelVisualization position={wheelData.currentPosition} />
-            </Card>
-
-            {/* Wheel Information */}
-            <Card className="p-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-muted-foreground">Arrival Date</Label>
-                  <p className="font-medium">
-                    {format(new Date(wheelData.arrivalDate), "PPP")}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Rotation Frequency</Label>
-                  <p className="font-medium capitalize">{wheelData.rotationFrequency}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Last Rotation</Label>
-                  <p className="font-medium">
-                    {wheelData.lastRotationDate
-                      ? format(new Date(wheelData.lastRotationDate), "PPP")
-                      : "Not rotated yet"}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Next Rotation Due</Label>
-                  <p className="font-medium">
-                    {wheelData.nextRotationDue
-                      ? format(new Date(wheelData.nextRotationDue), "PPP")
-                      : "-"}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Station</Label>
-                  <p className="font-medium">{wheelData.station}</p>
-                </div>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Wheel Details - {wheelData.wheelSerialNumber}</DialogTitle>
+                <DialogDescription>
+                  {wheelData.airline} | P/N: {wheelData.wheelPartNumber} | Station: {wheelData.station}
+                </DialogDescription>
               </div>
-              {wheelData.notes && (
-                <div className="mt-4">
-                  <Label className="text-muted-foreground">Notes</Label>
-                  <p className="font-medium">{wheelData.notes}</p>
-                </div>
-              )}
-            </Card>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </div>
+          </DialogHeader>
 
-            {/* Rotate Form */}
-            {!showRotateForm ? (
-              <div className="flex justify-center">
-                <Button
-                  onClick={() => setShowRotateForm(true)}
-                  className="flex items-center gap-2"
-                >
-                  <RotateCw className="h-4 w-4" />
-                  Rotate Wheel
-                </Button>
-              </div>
-            ) : (
-              <Card className="p-4">
-                <h3 className="text-lg font-semibold mb-4">Rotate Wheel</h3>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="newPosition">New Position (degrees)</Label>
-                    <Input
-                      id="newPosition"
-                      type="number"
-                      min="0"
-                      max="359"
-                      value={newPosition}
-                      onChange={(e) => setNewPosition(e.target.value)}
-                      placeholder="Enter position in degrees (0-359)"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="rotationNotes">Notes (optional)</Label>
-                    <Textarea
-                      id="rotationNotes"
-                      value={rotationNotes}
-                      onChange={(e) => setRotationNotes(e.target.value)}
-                      placeholder="Add any notes about this rotation"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setShowRotateForm(false);
-                        setNewPosition("");
-                        setRotationNotes("");
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleRotate} disabled={loading}>
-                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Confirm Rotation
-                    </Button>
-                  </div>
-                </div>
+          <Tabs defaultValue="current" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="current">Current Status</TabsTrigger>
+              <TabsTrigger value="history">Rotation History</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="current" className="space-y-4">
+              {/* Wheel Visualization */}
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4 text-center">Current Position</h3>
+                <WheelVisualization position={wheelData.currentPosition} />
               </Card>
-            )}
-          </TabsContent>
 
-          <TabsContent value="history" className="space-y-4">
-            <Card>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <History className="h-5 w-5" />
-                  Rotation History
-                </h3>
-                {wheelData.rotationHistory && wheelData.rotationHistory.length > 0 ? (
-                  <div className="space-y-3">
-                    {wheelData.rotationHistory.map((history, index) => (
-                      <div
-                        key={history.id}
-                        className="border-l-2 border-orange-200 pl-4 pb-3 last:pb-0"
+              {/* Wheel Information */}
+              <Card className="p-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Arrival Date</Label>
+                    <p className="font-medium">
+                      {format(new Date(wheelData.arrivalDate), "PPP")}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Rotation Frequency</Label>
+                    <p className="font-medium capitalize">{wheelData.rotationFrequency}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Last Rotation</Label>
+                    <p className="font-medium">
+                      {wheelData.lastRotationDate
+                        ? format(new Date(wheelData.lastRotationDate), "PPP")
+                        : "Not rotated yet"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Next Rotation Due</Label>
+                    <p className="font-medium">
+                      {wheelData.nextRotationDue
+                        ? format(new Date(wheelData.nextRotationDue), "PPP")
+                        : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Station</Label>
+                    <p className="font-medium">{wheelData.station}</p>
+                  </div>
+                </div>
+                {wheelData.notes && (
+                  <div className="mt-4">
+                    <Label className="text-muted-foreground">Notes</Label>
+                    <p className="font-medium">{wheelData.notes}</p>
+                  </div>
+                )}
+              </Card>
+
+              {/* Rotate Form */}
+              {!showRotateForm ? (
+                <div className="flex justify-center">
+                  <Button
+                    onClick={() => setShowRotateForm(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <RotateCw className="h-4 w-4" />
+                    Rotate Wheel
+                  </Button>
+                </div>
+              ) : (
+                <Card className="p-4">
+                  <h3 className="text-lg font-semibold mb-4">Rotate Wheel</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="newPosition">New Position (degrees)</Label>
+                      <Input
+                        id="newPosition"
+                        type="number"
+                        min="0"
+                        max="359"
+                        value={newPosition}
+                        onChange={(e) => setNewPosition(e.target.value)}
+                        placeholder="Enter position in degrees (0-359)"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="rotationNotes">Notes (optional)</Label>
+                      <Textarea
+                        id="rotationNotes"
+                        value={rotationNotes}
+                        onChange={(e) => setRotationNotes(e.target.value)}
+                        placeholder="Add any notes about this rotation"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowRotateForm(false);
+                          setNewPosition("");
+                          setRotationNotes("");
+                        }}
                       >
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <span>{format(new Date(history.rotationDate), "PPP")}</span>
-                          {history.performedBy && (
-                            <span>• By {history.performedBy}</span>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleRotate} disabled={loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Confirm Rotation
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="history" className="space-y-4">
+              <Card>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <History className="h-5 w-5" />
+                    Rotation History
+                  </h3>
+                  {wheelData.rotationHistory && wheelData.rotationHistory.length > 0 ? (
+                    <div className="space-y-3">
+                      {wheelData.rotationHistory.map((history, index) => (
+                        <div
+                          key={history.id}
+                          className="border-l-2 border-orange-200 pl-4 pb-3 last:pb-0"
+                        >
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{format(new Date(history.rotationDate), "PPP")}</span>
+                            {history.performedBy && (
+                              <span>• By {history.performedBy}</span>
+                            )}
+                          </div>
+                          <div className="font-medium">
+                            Rotated from {history.previousPosition}° to {history.newPosition}°
+                          </div>
+                          {history.notes && (
+                            <div className="text-sm text-muted-foreground mt-1">
+                              {history.notes}
+                            </div>
                           )}
                         </div>
-                        <div className="font-medium">
-                          Rotated from {history.previousPosition}° to {history.newPosition}°
-                        </div>
-                        {history.notes && (
-                          <div className="text-sm text-muted-foreground mt-1">
-                            {history.notes}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    No rotation history available
-                  </p>
-                )}
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground py-8">
+                      No rotation history available
+                    </p>
+                  )}
+                </div>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Wheel Record</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div>
+                <p>
+                  Are you sure you want to delete this wheel rotation record for <strong>{wheelData.wheelSerialNumber}</strong>?
+                </p>
+                <p className="mt-4">This action will permanently delete:</p>
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>All wheel information and settings</li>
+                  <li>Complete rotation history</li>
+                  <li>All associated notes and data</li>
+                </ul>
+                <p className="mt-4">
+                  <strong>This action cannot be undone.</strong>
+                </p>
               </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteLoading}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {deleteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete Permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 } 

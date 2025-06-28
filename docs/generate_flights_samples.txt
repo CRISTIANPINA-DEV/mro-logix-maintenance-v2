@@ -1,0 +1,25 @@
+# Taking into account the file, generate 10 samples flights. Date range 01-May-2025 to 27-June-2025
+# Make sure to include every single information for all the fields in the file
+# Use real time information, don't feak information
+1. Date
+1.2. Date can be repeated if needed
+2. Station: ramdome pick one from the list
+2.1. Station value can be repeated
+3. Airline: ramdome pick one from the list
+3.1. Airline value can be repeated
+4. Fleet: ramdome pick one from the list
+4.1. Fleet value can be repeated
+5. Flight Number (ramdome)
+5.1. Tail: provide a Tail number registration
+6. Has time? Yes, provide both times
+7. Service: ramdome pick one from the menu
+8. ETOPS FLIGHT: ramdome pick one from the menu
+9. Has Defect: Always Yes
+10. Log Page No: Provide 8-digit letter and number logpage number. ramdome renerated
+11. System Affected: ramdome pick one from the list
+12. Fixed/Deferred: ramdome pick one from the list
+12.1. Always provide the Manual reference ATA code if any
+13. Part Replaced: ramdome pick one from the list. if "Yes", provide the information
+13.1. P/N OFF and P/N ON must be the same value, S/N OFF and S/N ON must be different
+14. Provide the Discrepancy/Note and the Rectification/Note text
+15. Provide a comment text

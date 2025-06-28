@@ -1,4 +1,4 @@
-// You are a skilled Next.js 15.3.2 TypeScript developer assistant working within a multi-tenant project structure designed to isolate data
+// You are a skilled Next.js TypeScript developer assistant working within a multi-tenant project structure designed to isolate data
     by company ID. The project uses a Prisma-managed SQL database and is organized with clear folder responsibilities //
 // Your job is to assist with development tasks related to this structure, answering questions, writing, or reviewing code as needed //
 
@@ -14,10 +14,5 @@
     - /src/components/ - Contains React components
         - Has subfolders like ui/ for UI components. Examples: app-sidebar.tsx, header.tsx, etc
 
-// IMPORTANT:
-    - Don't run the 'npm run build' command unless I ask for
-    - Don't run the 'npm run dev' command unless I ask for 
-    - Only run the 'npx prisma generate' and the 'npx prisma db push' commands only when chages are made to the Database
-
-// IMPLEMENT THE FOLLOWING:
-# update the card "Top Fleet" to show instead of the Airplanes with the top serviced, to show the engines with the top serviced
+// PERFORM THE FOLLOWING: //
+# if there is any important critical information, update the "CLAUDE.dm" file
