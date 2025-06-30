@@ -23,13 +23,15 @@ npm run lint
 npx prisma generate    # Generate Prisma client
 npx prisma db push     # Push schema changes
 npx prisma studio      # Database GUI
+
+# Note: Project uses postinstall script to auto-generate Prisma client
 ```
 
 ## Architecture
 
 ### Database Architecture
 - **Multi-tenant PostgreSQL** with company-based data isolation
-- **Prisma ORM** with comprehensive schema (40+ models)
+- **Prisma ORM** with comprehensive schema (43+ models)
 - Every data model includes `companyId` for tenant isolation
 - **Audit trails** and user activity logging throughout
 - **File attachments** stored in AWS S3 with metadata in database
@@ -76,7 +78,17 @@ npx prisma studio      # Database GUI
 - **Technical Queries** - Q&A system with voting mechanisms
 - **Notification Center** - System-wide communications
 - **User Activity** - Comprehensive audit trails
-- **Data Analytics** - Reporting and dashboard metrics
+- **Data Analytics** - Defect trend analysis and predictive analytics
+- **Fleet Analytics** - Fleet-specific defect and system analysis
+- **Weather Integration** - Real-time weather data and monitoring
+
+### Additional Features
+- **Anonymous Reporting** - Anonymous safety and compliance reports
+- **Log Pages** - Digital maintenance logs and record keeping
+- **Manage Data Records** - Bulk data operations and record management
+- **Account Settings** - User profile and preference management
+- **Organization Management** - Company settings and configuration
+- **Useful Links** - Quick access to important resources
 
 ## Development Patterns
 
@@ -173,3 +185,35 @@ Required environment variables:
 - AWS S3 credentials for file storage
 - Email service credentials (Nodemailer/Resend)
 - Optional: OpenAI API key for AI features, Pusher for real-time updates
+- Weather API credentials for weather data integration
+
+## Key Dependencies
+
+### Core Framework
+- **Next.js 15.3.2** with App Router and React 19
+- **TypeScript 5** for type safety
+- **Tailwind CSS 4** for styling
+- **Prisma 6.8+** for database ORM
+
+### UI Components
+- **Radix UI** primitives for accessible components
+- **shadcn/ui** component library
+- **Lucide React** for icons
+- **Framer Motion** for animations
+
+### Data & API
+- **Zod** for schema validation
+- **React Hook Form** with resolvers
+- **Date-fns** for date manipulation
+- **Recharts** for data visualization
+- **jsPDF** for PDF generation
+
+### Real-time & Communication
+- **Pusher** for real-time updates
+- **Nodemailer/Resend** for email services
+- **Sonner** for toast notifications
+
+### Development Tools
+- **ESLint 9** with Next.js config
+- **TypeScript** with strict mode
+- **Prisma Studio** for database management

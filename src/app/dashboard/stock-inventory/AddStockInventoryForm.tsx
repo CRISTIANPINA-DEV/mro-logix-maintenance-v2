@@ -15,6 +15,9 @@ import { useState, useRef, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
+import { AutoCompleteInput } from "@/components/ui/auto-complete-input";
+import { stations } from "@/data/stations";
+import { validateStation, getCleanStationCode, validateAirline, getAirlineSuggestions, getCleanAirlineName, isValueFromAirlineSuggestions } from "@/utils/validation";
 import {
   Dialog,
   DialogContent,
@@ -33,9 +36,7 @@ interface AddStockInventoryFormProps {
 export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
   const [incomingDate, setIncomingDate] = useState<string>("");
   const [station, setStation] = useState<string>("");
-  const [customStation, setCustomStation] = useState<string>("");
   const [owner, setOwner] = useState<string>("");
-  const [customOwner, setCustomOwner] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [partNo, setPartNo] = useState<string>("");
   const [serialNo, setSerialNo] = useState<string>("");
@@ -64,8 +65,17 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
   const [technician, setTechnician] = useState<string>("");
   const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
 
-  const stationOptions = ['STA-1', 'STA-2', 'STA-3', 'STA-4', 'STA-5', 'STA-6', 'STA-7', 'STA-8', 'STA-9', 'STA-10', 'Other'];
-  const ownerOptions = ['Airline-1', 'Airline-2', 'Airline-3', 'Airline-4', 'Airline-5', 'Airline-6', 'Airline-7', 'Airline-8', 'Airline-9', 'Airline-10', 'Other'];
+  // Station search functionality
+  const [stationError, setStationError] = useState<string>("");
+  const [isStationValid, setIsStationValid] = useState<boolean | undefined>(undefined);
+  const [stationSuggestions, setStationSuggestions] = useState<string[]>([]);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Owner (airline) search functionality
+  const [ownerError, setOwnerError] = useState<string>("");
+  const [isOwnerValid, setIsOwnerValid] = useState<boolean | undefined>(undefined);
+  const [ownerSuggestions, setOwnerSuggestions] = useState<string[]>([]);
+  const [isCustomOwner, setIsCustomOwner] = useState<boolean>(false);
   const typeOptions = ['Brake Assy', 'Wheel', 'Tool', 'Part', 'Eng-Oil', 'Hyd-Oil', 'Grease', 'Bolt', 'Torque', 'Other'];
   const locationOptions = ['SHELF-1A', 'SHELF-1B', 'SHELF-1C', 'SHELF-1D', 'SHELF-1E', 'SHELF-1F', 'SHELF-1G', 'SHELF-1H', 'SHELF-1I', 'SHELF-1J', 'Other'];
   const inspectionFailureOptions = ['Doc Missing', 'Damaged', 'Expired', 'Other'];
@@ -97,6 +107,29 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
 
     fetchUserData();
   }, [toast]);
+
+  // Debounced station search
+  useEffect(() => {
+    if (!station) {
+      setStationSuggestions([]);
+      return;
+    }
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      const upperInput = station.toUpperCase().trim();
+      const filtered = stations
+        .filter(
+          (s) =>
+            s.code.includes(upperInput) ||
+            s.name.toUpperCase().includes(upperInput)
+        )
+        .map((s) => `${s.code} - ${s.name}`);
+      setStationSuggestions(filtered);
+    }, 300);
+    return () => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    };
+  }, [station]);
   // Format file size to human-readable format
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -168,22 +201,43 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
       return;
     }
     
-    if (station === "Other" && !customStation) {
+    // Validate station format
+    if (!validateStation(station)) {
+      setStationError("Please select a valid station from the list");
+      setIsStationValid(false);
       toast({
-        title: "Missing station",
-        description: "Please specify the station name.",
+        title: "Error",
+        description: "Please select a valid station from the list",
         variant: "destructive"
       });
       return;
     }
     
-    if (owner === "Other" && !customOwner) {
-      toast({
-        title: "Missing owner",
-        description: "Please specify the owner name.",
-        variant: "destructive"
-      });
-      return;
+    // Validate owner format
+    if (!isCustomOwner) {
+      // Validate airline search mode
+      if (!validateAirline(owner)) {
+        setOwnerError("Please select a valid airline from the list");
+        setIsOwnerValid(false);
+        toast({
+          title: "Error",
+          description: "Please select a valid airline from the list",
+          variant: "destructive"
+        });
+        return;
+      }
+    } else {
+      // Validate custom owner mode - just check it's not empty
+      if (!owner.trim()) {
+        setOwnerError("Please enter an owner name");
+        setIsOwnerValid(false);
+        toast({
+          title: "Error",
+          description: "Please enter an owner name",
+          variant: "destructive"
+        });
+        return;
+      }
     }
     
     if (type === "Other" && !customType) {
@@ -276,13 +330,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
       
       formData.append('incomingDate', incomingDate);
       formData.append('station', station);
-      if (station === "Other") {
-        formData.append('customStation', customStation);
-      }
       formData.append('owner', owner);
-      if (owner === "Other") {
-        formData.append('customOwner', customOwner);
-      }
       formData.append('description', description);
       formData.append('partNo', partNo);
       formData.append('serialNo', serialNo);
@@ -365,7 +413,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Add New Stock Item</h2>
       </div>
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
         {/* Flexible grid layout */}
         <div className="flex flex-wrap -mx-2">
           {/* Each field takes up 1/3 of the container on md screens */}
@@ -377,64 +425,120 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
               value={incomingDate}
               onChange={(e) => setIncomingDate(e.target.value)}
               className={`mt-1 w-full ${incomingDate ? 'bg-green-50' : ''}`}
+              autoComplete="off"
             />
           </div>
 
           <div className="w-full md:w-1/3 px-2 mb-4">
-            <Label htmlFor="station" className="text-sm sm:text-base">Station</Label>
-            <Select value={station} onValueChange={setStation}>
-              <SelectTrigger id="station" className="mt-1">
-                <SelectValue placeholder="Select station" />
-              </SelectTrigger>
-              <SelectContent>
-                {stationOptions.map(option => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="station" className="text-sm sm:text-base">Station (IATA Code)</Label>
+            <AutoCompleteInput
+              id="station"
+              value={station}
+              onValueChange={(value) => {
+                // If selecting from suggestions (contains " - ")
+                if (value.includes(" - ")) {
+                  const code = getCleanStationCode(value);
+                  setStation(code);
+                  setIsStationValid(true);
+                  setStationError("");
+                } else {
+                  // During typing, allow both code and name
+                  // Try to match by name if not a code
+                  const matchByName = stations.find(
+                    (s) => s.name.toUpperCase() === value.toUpperCase().trim()
+                  );
+                  if (matchByName) {
+                    setStation(matchByName.code);
+                    setIsStationValid(true);
+                    setStationError("");
+                  } else {
+                    setStation(value.toUpperCase());
+                    setIsStationValid(undefined);
+                    setStationError("");
+                  }
+                }
+              }}
+              suggestions={stationSuggestions}
+              placeholder="Enter station code or airport name (e.g., JFK)"
+              maxLength={100}
+              isValid={isStationValid}
+              errorMessage={stationError}
+              className="mt-1"
+              autoComplete="off"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Enter 3-letter IATA airport code</p>
           </div>
 
-          {station === "Other" && (
-            <div className="w-full md:w-1/3 px-2 mb-4">
-              <Label htmlFor="customStation" className="text-sm sm:text-base">Specify Station</Label>
-              <Input
-                type="text"
-                id="customStation"
-                value={customStation}
-                onChange={(e) => setCustomStation(e.target.value)}
-                placeholder="Enter station name"
-                className={`mt-1 w-full ${customStation ? 'bg-green-50' : ''}`}
-              />
-            </div>
-          )}
 
           <div className="w-full md:w-1/3 px-2 mb-4">
-            <Label htmlFor="owner" className="text-sm sm:text-base">Owner</Label>
-            <Select value={owner} onValueChange={setOwner}>
-              <SelectTrigger id="owner" className="mt-1">
-                <SelectValue placeholder="Select owner" />
-              </SelectTrigger>
-              <SelectContent>
-                {ownerOptions.map(option => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center justify-between mb-1">
+              <Label htmlFor="owner" className="text-sm sm:text-base">Owner</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsCustomOwner(!isCustomOwner);
+                  setOwner("");
+                  setOwnerError("");
+                  setIsOwnerValid(undefined);
+                }}
+                className="h-6 px-2 text-xs"
+              >
+                {isCustomOwner ? "Select from Airlines" : "Custom Owner"}
+              </Button>
+            </div>
+            
+            {isCustomOwner ? (
+              <>
+                <Input
+                  type="text"
+                  id="owner"
+                  value={owner}
+                  onChange={(e) => {
+                    setOwner(e.target.value);
+                    setOwnerError("");
+                    setIsOwnerValid(undefined);
+                  }}
+                  placeholder="Enter custom owner name"
+                  className={`mt-1 w-full ${owner ? 'bg-green-50' : ''}`}
+                  autoComplete="off"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Enter any owner name</p>
+              </>
+            ) : (
+              <>
+                <AutoCompleteInput
+                  id="owner"
+                  value={owner}
+                  onValueChange={(value) => {
+                    // If selecting from suggestions (contains " - ")
+                    if (value.includes(" - ")) {
+                      const name = getCleanAirlineName(value);
+                      setOwner(name);
+                      setIsOwnerValid(true);
+                      setOwnerError("");
+                    } else {
+                      // During typing
+                      setOwner(value);
+                      // Validate if the typed value exactly matches an airline name
+                      const isValid = isValueFromAirlineSuggestions(value);
+                      setIsOwnerValid(isValid);
+                      setOwnerError(isValid ? "" : "Please select a valid airline from the list");
+                    }
+                  }}
+                  suggestions={getAirlineSuggestions(owner)}
+                  placeholder="Enter airline name"
+                  isValid={isOwnerValid}
+                  errorMessage={ownerError}
+                  className="mt-1"
+                  autoComplete="off"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Enter the full airline name</p>
+              </>
+            )}
           </div>
 
-          {owner === "Other" && (
-            <div className="w-full md:w-1/3 px-2 mb-4">
-              <Label htmlFor="customOwner" className="text-sm sm:text-base">Specify Owner</Label>
-              <Input
-                type="text"
-                id="customOwner"
-                value={customOwner}
-                onChange={(e) => setCustomOwner(e.target.value)}
-                placeholder="Enter owner name"
-                className={`mt-1 w-full ${customOwner ? 'bg-green-50' : ''}`}
-              />
-            </div>
-          )}
 
           <div className="w-full px-2 mb-4">
             <Label htmlFor="description" className="text-sm sm:text-base">Description</Label>
@@ -445,6 +549,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter item description"
               className={`mt-1 w-full ${description ? 'bg-green-50' : ''}`}
+              autoComplete="off"
             />
           </div>
 
@@ -457,6 +562,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
               onChange={(e) => setPartNo(e.target.value)}
               placeholder="Enter part number"
               className={`mt-1 w-full ${partNo ? 'bg-green-50' : ''}`}
+              autoComplete="off"
             />
           </div>
 
@@ -469,6 +575,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
               onChange={(e) => setSerialNo(e.target.value)}
               placeholder="Enter serial number"
               className={`mt-1 w-full ${serialNo ? 'bg-green-50' : ''}`}
+              autoComplete="off"
             />
           </div>
 
@@ -481,12 +588,13 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
               onChange={(e) => setQuantity(e.target.value)}
               placeholder="Enter quantity"
               className={`mt-1 w-full ${quantity ? 'bg-green-50' : ''}`}
+              autoComplete="off"
             />
           </div>
 
           <div className="w-full md:w-1/3 px-2 mb-4">
             <Label htmlFor="hasExpireDate" className="text-sm sm:text-base">Has Expire Date?</Label>
-            <Select value={hasExpireDate} onValueChange={setHasExpireDate}>
+            <Select value={hasExpireDate} onValueChange={setHasExpireDate} autoComplete="off">
               <SelectTrigger id="hasExpireDate" className="mt-1">
                 <SelectValue placeholder="Select option" />
               </SelectTrigger>
@@ -506,13 +614,14 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
                 value={expireDate}
                 onChange={(e) => setExpireDate(e.target.value)}
                 className={`mt-1 w-full ${expireDate ? 'bg-green-50' : ''}`}
+                autoComplete="off"
               />
             </div>
           )}
 
           <div className="w-full md:w-1/3 px-2 mb-4">
             <Label htmlFor="type" className="text-sm sm:text-base">Type</Label>
-            <Select value={type} onValueChange={setType}>
+            <Select value={type} onValueChange={setType} autoComplete="off">
               <SelectTrigger id="type" className="mt-1">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -534,13 +643,14 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
                 onChange={(e) => setCustomType(e.target.value)}
                 placeholder="Enter type"
                 className={`mt-1 w-full ${customType ? 'bg-green-50' : ''}`}
+                autoComplete="off"
               />
             </div>
           )}
 
           <div className="w-full md:w-1/3 px-2 mb-4">
             <Label htmlFor="location" className="text-sm sm:text-base">Location</Label>
-            <Select value={location} onValueChange={setLocation}>
+            <Select value={location} onValueChange={setLocation} autoComplete="off">
               <SelectTrigger id="location" className="mt-1">
                 <SelectValue placeholder="Select location" />
               </SelectTrigger>
@@ -562,13 +672,14 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
                 onChange={(e) => setCustomLocation(e.target.value)}
                 placeholder="Enter location"
                 className={`mt-1 w-full ${customLocation ? 'bg-green-50' : ''}`}
+                autoComplete="off"
               />
             </div>
           )}
 
           <div className="w-full md:w-1/3 px-2 mb-4">
             <Label htmlFor="hasInspection" className="text-sm sm:text-base">Inspection Required?</Label>
-            <Select value={hasInspection} onValueChange={setHasInspection}>
+            <Select value={hasInspection} onValueChange={setHasInspection} autoComplete="off">
               <SelectTrigger id="hasInspection" className="mt-1">
                 <SelectValue placeholder="Select option" />
               </SelectTrigger>
@@ -583,7 +694,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
             <>
               <div className="w-full md:w-1/3 px-2 mb-4">
                 <Label htmlFor="inspectionResult" className="text-sm sm:text-base">Results</Label>
-                <Select value={inspectionResult} onValueChange={setInspectionResult}>
+                <Select value={inspectionResult} onValueChange={setInspectionResult} autoComplete="off">
                   <SelectTrigger id="inspectionResult" className="mt-1">
                     <SelectValue placeholder="Select result" />
                   </SelectTrigger>
@@ -598,7 +709,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
                 <>
                   <div className="w-full md:w-1/3 px-2 mb-4">
                     <Label htmlFor="inspectionFailure" className="text-sm sm:text-base">Pick One</Label>
-                    <Select value={inspectionFailure} onValueChange={setInspectionFailure}>
+                    <Select value={inspectionFailure} onValueChange={setInspectionFailure} autoComplete="off">
                       <SelectTrigger id="inspectionFailure" className="mt-1">
                         <SelectValue placeholder="Select reason" />
                       </SelectTrigger>
@@ -620,6 +731,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
                         onChange={(e) => setCustomFailure(e.target.value)}
                         placeholder="Enter failure reason"
                         className={`mt-1 w-full ${customFailure ? 'bg-green-50' : ''}`}
+                        autoComplete="off"
                       />
                     </div>
                   )}
@@ -630,7 +742,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
 
           <div className="w-full md:w-1/3 px-2 mb-4">
             <Label htmlFor="hasComment" className="text-sm sm:text-base">Comments</Label>
-            <Select value={hasComment} onValueChange={setHasComment}>
+            <Select value={hasComment} onValueChange={setHasComment} autoComplete="off">
               <SelectTrigger id="hasComment" className="mt-1">
                 <SelectValue placeholder="Select option" />
               </SelectTrigger>
@@ -650,13 +762,14 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Enter your comment"
                 className={`mt-1 w-full ${comment ? 'bg-green-50' : ''}`}
+                autoComplete="off"
               />
             </div>
           )}
 
           <div className="w-full md:w-1/3 px-2 mb-4">
             <Label htmlFor="hasAttachments" className="text-sm sm:text-base">Attachments</Label>
-            <Select value={hasAttachments} onValueChange={setHasAttachments}>
+            <Select value={hasAttachments} onValueChange={setHasAttachments} autoComplete="off">
               <SelectTrigger id="hasAttachments" className="mt-1">
                 <SelectValue placeholder="Select option" />
               </SelectTrigger>
@@ -676,7 +789,9 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
                   id="fileAttachments"
                   ref={fileInputRef}
                   onChange={handleFileChange}
-                  className="hidden"                  multiple
+                  className="hidden"
+                  multiple
+                  autoComplete="off"
                 />
                 <div className="flex flex-col items-center justify-center space-y-2">
                   <p className="text-sm text-gray-500">Any file type accepted including images and audio (Max 250MB total)</p>

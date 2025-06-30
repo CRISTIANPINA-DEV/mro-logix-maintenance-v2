@@ -98,6 +98,24 @@ export function InspectionChecklistForm({ isVisible, onClose }: InspectionCheckl
       return;
     }
 
+    if (!date) {
+      toast({
+        title: "Error",
+        description: "Please select an inspection date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!inspector.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter the inspector name",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -134,12 +152,22 @@ export function InspectionChecklistForm({ isVisible, onClose }: InspectionCheckl
         handlingObservations: (form.querySelector('textarea[name="handling-observations"]') as HTMLTextAreaElement)?.value || null,
       };
 
+      // Debug: Log the form values before sending
+      console.log('Form values being submitted:', formValues);
+      console.log('Selected item:', selectedItem);
+
       formData.append('data', JSON.stringify(formValues));
 
       const response = await fetch('/api/incoming-inspections', {
         method: 'POST',
         body: formData,
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Response error:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
 
       const data = await response.json();
 
@@ -156,7 +184,7 @@ export function InspectionChecklistForm({ isVisible, onClose }: InspectionCheckl
       console.error('Error submitting inspection checklist:', error);
       toast({
         title: "Error",
-        description: "Failed to submit inspection checklist",
+        description: error instanceof Error ? error.message : "Failed to submit inspection checklist",
         variant: "destructive",
       });
     } finally {

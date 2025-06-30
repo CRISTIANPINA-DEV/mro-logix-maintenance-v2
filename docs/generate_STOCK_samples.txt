@@ -1,0 +1,2 @@
+# Analyze the AddStockInventoryForm.tsx and show me 10 samples to test the AddStockInventoryForm
+# Based on the fields, show me real data for aviation stock parts

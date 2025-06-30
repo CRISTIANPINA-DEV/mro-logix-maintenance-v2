@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -29,6 +29,8 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
   const [hasComment, setHasComment] = useState<string>("");
   const [comment, setComment] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(true);
+  const [username, setUsername] = useState<string>("");
   const { toast } = useToast();
 
   const locationOptions = ['Whouse-1', 'Whouse-2', 'Whouse-3', 'Whouse-4', 'Other'];
@@ -76,6 +78,7 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
       formData.append('temperature', temperature);
       formData.append('humidity', humidity);
       formData.append('employeeName', employeeName);
+      formData.append('username', username);
       formData.append('hasComment', hasComment);
       if (location === "Other") {
         formData.append('customLocation', customLocation);
@@ -112,6 +115,32 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
       setIsSubmitting(false);
     }
   };
+
+  // Fetch current user data when component mounts
+  useEffect(() => {
+    const fetchUserData = async (retryCount = 0) => {
+      try {
+        setIsLoadingUser(true);
+        const response = await fetch('/api/user');
+        const data = await response.json();
+        if (data.success) {
+          setEmployeeName(data.user.firstName + ' ' + data.user.lastName);
+          setUsername(data.user.username);
+        } else {
+          throw new Error('Failed to fetch user data');
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        if (retryCount < 3) {
+          setTimeout(() => fetchUserData(retryCount + 1), 1000 * Math.pow(2, retryCount));
+        }
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   return (
     <div className="bg-card p-3 sm:p-4 rounded-lg shadow border w-full">
@@ -242,14 +271,16 @@ export function AddTemperatureControlForm({ onClose }: AddTemperatureControlForm
           {/* Employee Name field */}
           <div className="w-full sm:w-1/2 lg:w-1/3 px-1 sm:px-2 mb-3 sm:mb-4">
             <Label htmlFor="employeeName" className="text-sm">Employee Name</Label>
-            <Input
-              type="text"
-              id="employeeName"
-              value={employeeName}
-              onChange={(e) => setEmployeeName(e.target.value)}
-              placeholder="Enter name of employee taking readings"
-              className={`mt-1 w-full text-sm ${employeeName ? 'bg-green-50' : ''}`}
-            />
+            <div className="flex items-center mt-1">
+              {isLoadingUser ? (
+                <div className="h-9 w-full bg-gray-100 rounded animate-pulse"></div>
+              ) : (
+                <div className="h-9 px-3 flex items-center w-full border rounded bg-muted/50 text-muted-foreground text-sm">
+                  {employeeName || "Not available"}
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Automatically retrieved from your account</p>
           </div>
 
           {/* Any Comment field */}

@@ -93,6 +93,13 @@ interface LatestTemperatureData {
   employeeName: string;
 }
 
+interface WarehouseTemperatureData {
+  location: string;
+  temperature: number;
+  humidity: number;
+  time: string;
+}
+
 interface ExpiryStatusData {
   expiredCount: number;
   expiringSoonCount: number;
@@ -122,6 +129,7 @@ export default function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [latestTemperature, setLatestTemperature] = useState<LatestTemperatureData | null>(null);
   const [temperatureLoading, setTemperatureLoading] = useState(false);
+  const [warehouseTemperatures, setWarehouseTemperatures] = useState<WarehouseTemperatureData[]>([]);
   const [expiryStatus, setExpiryStatus] = useState<ExpiryStatusData | null>(null);
   const [expiryLoading, setExpiryLoading] = useState(false);
   const [times, setTimes] = useState({
@@ -171,7 +179,9 @@ export default function DashboardPage() {
   const fetchLatestTemperature = async () => {
     try {
       setTemperatureLoading(true);
-      const response = await fetch('/api/temperature-control/latest', {
+      
+      // Fetch warehouse overview to determine latest reading across all warehouses
+      const warehouseResponse = await fetch('/api/temperature-control?limit=50', {
         method: 'GET',
         headers: {
           'Cache-Control': 'no-cache',
@@ -179,17 +189,82 @@ export default function DashboardPage() {
         },
       });
       
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setLatestTemperature(result.data);
+      if (warehouseResponse.ok) {
+        const warehouseResult = await warehouseResponse.json();
+        console.log('Full warehouse API response:', warehouseResult);
+        
+        if (warehouseResult.success && warehouseResult.data && warehouseResult.data.records) {
+          console.log('Warehouse records fetched:', warehouseResult.data.records.length, 'records');
+          
+          // Group by location and get the latest reading for each warehouse
+          const locationMap = new Map<string, WarehouseTemperatureData>();
+          
+          warehouseResult.data.records.forEach((record: any) => {
+            const location = record.location === 'Other' ? record.customLocation : record.location;
+            if (location) {
+              console.log('Processing record for location:', location, 'temperature:', record.temperature, 'time:', record.createdAt);
+              
+              if (!locationMap.has(location) || new Date(record.createdAt) > new Date(locationMap.get(location)!.time)) {
+                locationMap.set(location, {
+                  location,
+                  temperature: record.temperature,
+                  humidity: record.humidity,
+                  time: record.createdAt
+                });
+              }
+            }
+          });
+          
+          console.log('Location map created with', locationMap.size, 'unique locations:', Array.from(locationMap.keys()));
+          
+          // Convert to array and sort by latest time
+          let warehouses = Array.from(locationMap.values())
+            .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+          
+          console.log('All warehouses sorted by time:', warehouses.map(w => `${w.location}: ${w.temperature}°C at ${w.time}`));
+          
+          if (warehouses.length > 0) {
+            // The first warehouse in the sorted list is the latest reading overall
+            const latestOverallReading = warehouses[0];
+            console.log('Latest overall reading is from:', latestOverallReading.location, 'at', latestOverallReading.time);
+            
+            // Set this as the main display temperature (override the latest API result)
+            setLatestTemperature({
+              id: 'main-display',
+              temperature: latestOverallReading.temperature,
+              humidity: latestOverallReading.humidity,
+              location: latestOverallReading.location,
+              customLocation: null,
+              displayLocation: latestOverallReading.location,
+              date: latestOverallReading.time,
+              time: new Date(latestOverallReading.time).toLocaleTimeString(),
+              createdAt: latestOverallReading.time,
+              employeeName: 'System'
+            });
+            
+            // Filter out the main location and take up to 3 others
+            const otherWarehouses = warehouses
+              .filter(w => w.location !== latestOverallReading.location)
+              .slice(0, 3);
+            
+            console.log('Other warehouses for display:', otherWarehouses.map(w => `${w.location}: ${w.temperature}°C`));
+            setWarehouseTemperatures(otherWarehouses);
+          } else {
+            console.log('No warehouses found');
+            setLatestTemperature(null);
+            setWarehouseTemperatures([]);
+          }
         } else {
-          console.log('No temperature records found');
+          console.log('No warehouse records found in API response');
+          setWarehouseTemperatures([]);
         }
+      } else {
+        console.log('Failed to fetch warehouse data, status:', warehouseResponse.status);
+        setWarehouseTemperatures([]);
       }
     } catch (error) {
-      console.error('Error fetching latest temperature:', error);
-      // Don't show toast error for temperature as it's not critical
+      console.error('Error fetching temperature data:', error);
+      setWarehouseTemperatures([]);
     } finally {
       setTemperatureLoading(false);
     }
@@ -728,20 +803,20 @@ export default function DashboardPage() {
                 size="sm" 
                 onClick={() => {
                   fetchSystemMetrics();
-                  fetchLatestTemperature();
+                  fetchLatestTemperature(); // This now includes warehouse data
                   fetchExpiryStatus();
                   fetchFlightMetrics();
                 }}
-                disabled={metricsLoading}
+                disabled={metricsLoading || temperatureLoading}
                 className="h-6 text-xs"
               >
-                {metricsLoading ? "Refreshing..." : "Refresh Now"}
+                {(metricsLoading || temperatureLoading) ? "Refreshing..." : "Refresh Now"}
               </Button>
             </div>
           </div>
 
           {/* Business Operations Cards */}
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Flights Recorded - Enhanced */}
             <Link href="/dashboard/flight-records" className="block">
               <Card className="h-[220px] bg-green-50/50 dark:bg-green-950/20 hover:bg-green-100/50 dark:hover:bg-green-900/30 transition-all duration-200 cursor-pointer border border-green-200/50 hover:border-green-300 dark:border-green-900/50 dark:hover:border-green-700 rounded-none hover:shadow-md group">
@@ -755,10 +830,6 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {/* Growth indicator */}
-                      <div className="text-xs text-green-600 font-medium">
-                        +{flightMetrics?.monthlyFlights || monthlyFlightCount}
-                      </div>
                       <ArrowRight className="h-3 w-3 text-green-600 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </CardTitle>
@@ -843,21 +914,6 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      {/* Month-over-month change indicator */}
-                      {flightMetrics?.monthOverMonthChange !== undefined && (
-                        <div className={`flex items-center gap-1 text-xs font-medium ${
-                          flightMetrics.monthlyTrend === 'up' 
-                            ? 'text-green-600' 
-                            : flightMetrics.monthlyTrend === 'down' 
-                            ? 'text-red-600' 
-                            : 'text-gray-600'
-                        }`}>
-                          {flightMetrics.monthlyTrend === 'up' && '↗'}
-                          {flightMetrics.monthlyTrend === 'down' && '↘'}
-                          {flightMetrics.monthlyTrend === 'stable' && '→'}
-                          <span>{Math.abs(flightMetrics.monthOverMonthChange)}%</span>
-                        </div>
-                      )}
                       <ArrowRight className="h-3 w-3 text-blue-600 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </CardTitle>
@@ -935,9 +991,6 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      <div className="text-xs text-red-600 font-medium">
-                        {inventoryCount || 0} items
-                      </div>
                       <ArrowRight className="h-3 w-3 text-red-600 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </CardTitle>
@@ -1013,9 +1066,6 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      <div className="text-xs text-cyan-600 font-medium">
-                        Today
-                      </div>
                       <ArrowRight className="h-3 w-3 text-cyan-600 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </CardTitle>
@@ -1048,6 +1098,134 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </Link>
+          </div>
+
+          {/* Environmental Monitoring Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Thermometer className="h-5 w-5" />
+              <h3 className="text-lg font-semibold">Environmental Monitoring</h3>
+            </div>
+            
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {/* Temperature Control - New card */}
+              <Link href="/dashboard/temperature-control" className="block">
+                <Card className="h-[220px] bg-orange-50/50 dark:bg-orange-950/20 hover:bg-orange-100/50 dark:hover:bg-orange-900/30 transition-all duration-200 cursor-pointer border border-orange-200/50 hover:border-orange-300 dark:border-orange-900/50 dark:hover:border-orange-700 rounded-none hover:shadow-md group">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <Thermometer className="h-4 w-4" />
+                        Temperature Control
+                        {temperatureLoading && (
+                          <div className="animate-spin h-3 w-3 border-2 border-orange-600 border-t-transparent rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <ArrowRight className="h-3 w-3 text-orange-600 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 pb-3 space-y-3">
+                    {temperatureLoading ? (
+                      <div className="flex justify-center items-center py-3">
+                        <div className="animate-spin h-4 w-4 border-2 border-orange-600 border-t-transparent rounded-full"></div>
+                        <span className="ml-2 text-xs text-muted-foreground">Loading...</span>
+                      </div>
+                    ) : latestTemperature ? (
+                      <>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-orange-600 mb-0.5">
+                            {latestTemperature.temperature}°C
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Latest reading from {latestTemperature.displayLocation}
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {/* Current Temperature and Humidity display */}
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="flex items-center justify-center gap-1 p-1.5 bg-orange-100/50 dark:bg-orange-900/20 rounded">
+                              <Thermometer className="h-3 w-3 text-orange-600" />
+                              <span className="font-bold text-orange-600">
+                                {latestTemperature.temperature}°C
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-center gap-1 p-1.5 bg-blue-100/50 dark:bg-blue-900/20 rounded">
+                              <Droplets className="h-3 w-3 text-blue-600" />
+                              <span className="font-bold text-blue-600">
+                                {latestTemperature.humidity}%
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Other Warehouses Overview */}
+                          <div className="pt-1 border-t border-orange-200/50">
+                            <div className="text-xs text-muted-foreground mb-1">
+                              Other Warehouses: 
+                              {temperatureLoading && <span className="ml-1">(Loading...)</span>}
+                            </div>
+                            <div className="grid grid-cols-3 gap-1">
+                              {temperatureLoading ? (
+                                // Show loading state
+                                Array.from({ length: 3 }).map((_, index) => (
+                                  <div key={`loading-${index}`} className="text-center p-1 bg-gray-100/50 dark:bg-gray-800/20 rounded text-xs">
+                                    <div className="animate-pulse">
+                                      <div className="h-2 bg-gray-300 rounded mb-1"></div>
+                                      <div className="h-3 bg-gray-300 rounded"></div>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <>
+                                  {/* Show warehouse data if available */}
+                                  {warehouseTemperatures.map((warehouse, index) => (
+                                    <div key={index} className="text-center p-1 bg-gray-100/50 dark:bg-gray-800/20 rounded text-xs">
+                                      <div className="font-bold text-gray-700 dark:text-gray-300 text-[10px] truncate" title={warehouse.location}>
+                                        {warehouse.location}
+                                      </div>
+                                      <div className="text-orange-600 font-semibold">
+                                        {warehouse.temperature}°C
+                                      </div>
+                                    </div>
+                                  ))}
+                                  
+                                  {/* Fill empty slots if less than 3 warehouses */}
+                                  {warehouseTemperatures.length < 3 && Array.from({ length: 3 - warehouseTemperatures.length }).map((_, index) => (
+                                    <div key={`empty-${index}`} className="text-center p-1 bg-gray-50/50 dark:bg-gray-900/20 rounded text-xs border border-dashed border-gray-300">
+                                      <div className="text-gray-400 text-[10px]">
+                                        No data
+                                      </div>
+                                    </div>
+                                  ))}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-orange-600 mb-0.5">
+                            —
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            No temperature records yet
+                          </p>
+                        </div>
+                        
+                        <div className="text-center p-2 bg-orange-100/50 dark:bg-orange-900/20 rounded">
+                          <div className="text-xs text-muted-foreground">
+                            Click to add temperature readings
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
           </div>
         </div>
 

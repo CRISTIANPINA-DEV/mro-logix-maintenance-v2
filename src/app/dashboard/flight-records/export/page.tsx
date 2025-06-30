@@ -366,265 +366,305 @@ export default function ExportFlightRecordsPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-4 sm:py-6 px-4 space-y-4 sm:space-y-6">
       {loading ? (
         <div className="flex items-center justify-center min-h-[200px]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : (
         <>
-          <Card className="w-full mb-6">
-            <header>
-              <div className="w-full max-w-full mx-auto px-4">
-                <div className="flex h-16 items-center justify-between w-full">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-8 bg-background hover:bg-accent border border-input mr-2" 
-                        asChild
-                      >
-                        <Link href="/dashboard/flight-records">
-                          <ArrowLeft size={16} />
-                          <span className="ml-1 text-xs">Back</span>
-                        </Link>
-                      </Button>
-                      <h1 className="text-2xl font-bold">
-                        <div className="flex items-center gap-2">
-                          <FileSpreadsheet size={24} strokeWidth={1.5} className="text-green-600" />
-                          <Badge className="px-3 py-1 text-base bg-green-600 text-white rounded-[4px] border border-black shadow-md">Export Flight Records</Badge>
-                        </div>
-                      </h1>
+          {/* Professional Header */}
+          <Card className="w-full mb-4 sm:mb-6 shadow-lg">
+            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-lg">
+              <div className="px-4 sm:px-6 py-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="h-8 sm:h-9 bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-sm" 
+                    asChild
+                  >
+                    <Link href="/dashboard/flight-records">
+                      <ArrowLeft size={14} className="sm:size-4" />
+                      <span className="ml-1 text-xs sm:text-sm">Back</span>
+                    </Link>
+                  </Button>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <FileSpreadsheet size={20} className="sm:size-6" strokeWidth={1.5} />
+                    <div>
+                      <h1 className="text-lg sm:text-2xl font-bold">Export Flight Records</h1>
+                      <p className="text-green-100 text-xs sm:text-sm">Download your flight records in Excel format</p>
                     </div>
                   </div>
                 </div>
               </div>
-            </header>
+            </div>
           </Card>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
-              <Input
-                type="date"
-                id="startDate"
-                value={filters.startDate}
-                onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                className={`w-full rounded-none cursor-pointer ${filters.startDate ? 'bg-green-50' : ''}`}
-              />
+          {/* Filter Section */}
+          <Card className="p-4 sm:p-6 shadow-md">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                <Filter className="h-5 w-5 text-green-600" />
+                Filter Options
+              </h2>
+              <p className="text-sm text-muted-foreground">Customize your export by applying filters below</p>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
-              <Input
-                type="date"
-                id="endDate"
-                value={filters.endDate}
-                onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                className={`w-full rounded-none cursor-pointer ${filters.endDate ? 'bg-green-50' : ''}`}
-              />
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              <div className="space-y-2">
+                <Label htmlFor="startDate" className="font-medium">Start Date</Label>
+                <Input
+                  type="date"
+                  id="startDate"
+                  value={filters.startDate}
+                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                  className={`w-full cursor-pointer transition-colors duration-200 ${filters.startDate ? 'bg-green-50 border-green-300' : ''}`}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="endDate" className="font-medium">End Date</Label>
+                <Input
+                  type="date"
+                  id="endDate"
+                  value={filters.endDate}
+                  onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                  className={`w-full cursor-pointer transition-colors duration-200 ${filters.endDate ? 'bg-green-50 border-green-300' : ''}`}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="font-medium">Airline</Label>
+                <Select 
+                  value={filters.airline} 
+                  onValueChange={(value) => handleFilterChange('airline', value)}
+                >
+                  <SelectTrigger className={`transition-colors duration-200 ${filters.airline !== 'all_airlines' ? 'bg-green-50 border-green-300' : ''}`}>
+                    <SelectValue placeholder="Select airline" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all_airlines">All Airlines</SelectItem>
+                    {uniqueAirlines.map(airline => (
+                      <SelectItem key={airline} value={airline}>{airline}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="font-medium">Fleet</Label>
+                <Select 
+                  value={filters.fleet} 
+                  onValueChange={(value) => handleFilterChange('fleet', value)}
+                >
+                  <SelectTrigger className={`transition-colors duration-200 ${filters.fleet !== 'all_fleets' ? 'bg-green-50 border-green-300' : ''}`}>
+                    <SelectValue placeholder="Select fleet" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all_fleets">All Fleets</SelectItem>
+                    {uniqueFleets.map(fleet => (
+                      <SelectItem key={fleet} value={fleet}>{fleet}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="font-medium">Station</Label>
+                <Select 
+                  value={filters.station} 
+                  onValueChange={(value) => handleFilterChange('station', value)}
+                >
+                  <SelectTrigger className={`transition-colors duration-200 ${filters.station !== 'all_stations' ? 'bg-green-50 border-green-300' : ''}`}>
+                    <SelectValue placeholder="Select station" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all_stations">All Stations</SelectItem>
+                    {uniqueStations.map(station => (
+                      <SelectItem key={station} value={station}>{station}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label>Airline</Label>
-              <Select 
-                value={filters.airline} 
-                onValueChange={(value) => handleFilterChange('airline', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select airline" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all_airlines">All Airlines</SelectItem>
-                  {uniqueAirlines.map(airline => (
-                    <SelectItem key={airline} value={airline}>{airline}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Fleet</Label>
-              <Select 
-                value={filters.fleet} 
-                onValueChange={(value) => handleFilterChange('fleet', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select fleet" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all_fleets">All Fleets</SelectItem>
-                  {uniqueFleets.map(fleet => (
-                    <SelectItem key={fleet} value={fleet}>{fleet}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Station</Label>
-              <Select 
-                value={filters.station} 
-                onValueChange={(value) => handleFilterChange('station', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select station" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all_stations">All Stations</SelectItem>
-                  {uniqueStations.map(station => (
-                    <SelectItem key={station} value={station}>{station}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
           
-          <div className="flex gap-2 mt-4">
-            <Button 
-              onClick={applyFilters} 
-              size="sm"
-              variant="neutral"
-              className="h-8 text-xs"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Apply Filters
-            </Button>
-            
-            <Button 
-              variant="neutral" 
-              size="sm"
-              className="h-8 text-xs"
-              onClick={resetFilters}
-            >
-              Reset
-            </Button>
-          </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-6 pt-4 border-t">
+              <Button 
+                onClick={applyFilters} 
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                Apply Filters
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={resetFilters}
+              >
+                Reset Filters
+              </Button>
+            </div>
+          </Card>
           
           {filtersApplied && (
             <>
-              <Separator className="my-6" />
-              
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold mb-4">
-                  {filteredRecords.length} Records Found
-                </h2>
-                
-                <Button 
-                  onClick={() => setShowColumnDialog(true)} 
-                  size="sm"
-                  variant="export"
-                  className="h-8 text-xs"
-                  disabled={filteredRecords.length === 0 || exporting}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  {exporting ? "Exporting..." : "Export to Excel"}
-                </Button>
-              </div>
-              
-              {filteredRecords.length > 0 ? (
-                <div className="border rounded-lg bg-card overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Airline</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fleet</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Station</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Has Defect</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredRecords.slice(0, 20).map((record) => (
-                        <tr key={record.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">{formatDate(record.date)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">{record.airline}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">{record.fleet}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">{record.station}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            {record.service === 'AOG' ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                {record.service}
-                              </span>
-                            ) : record.service}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            {record.hasDefect ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-yellow-800">
-                                Yes
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                No
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {filteredRecords.length > 20 && (
-                    <div className="p-4 text-center text-sm text-gray-500">
-                      Showing 20 of {filteredRecords.length} records. Export to Excel to see all records.
-                    </div>
+              {/* Results Section */}
+              <Card className="p-4 sm:p-6 shadow-md">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                      <Badge variant="secondary" className="px-3 py-1">
+                        {filteredRecords.length}
+                      </Badge>
+                      Records Found
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {filteredRecords.length === 0 
+                        ? "No records match your filter criteria" 
+                        : `Ready to export ${filteredRecords.length} flight record${filteredRecords.length !== 1 ? 's' : ''}`
+                      }
+                    </p>
+                  </div>
+                  
+                  {filteredRecords.length > 0 && (
+                    <Button 
+                      onClick={() => setShowColumnDialog(true)} 
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+                      disabled={exporting}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      {exporting ? "Exporting..." : "Export to Excel"}
+                    </Button>
                   )}
                 </div>
-              ) : (
-                <div className="border rounded-lg p-8 bg-card text-center">
-                  <p className="text-muted-foreground">No records match your filter criteria.</p>
-                </div>
-              )}
+              
+                {/* Preview Table */}
+                {filteredRecords.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-base font-medium mb-3 flex items-center gap-2">
+                      Preview
+                      <Badge variant="outline" className="text-xs">
+                        Showing {Math.min(filteredRecords.length, 10)} of {filteredRecords.length}
+                      </Badge>
+                    </h3>
+                    <div className="border rounded-lg bg-card overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                            <tr>
+                              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Airline</th>
+                              <th scope="col" className="hidden sm:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fleet</th>
+                              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Station</th>
+                              <th scope="col" className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Defect</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {filteredRecords.slice(0, 10).map((record, index) => (
+                              <tr key={record.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">{formatDate(record.date)}</td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm">
+                                  <div className="truncate max-w-[120px] sm:max-w-none" title={record.airline}>
+                                    {record.airline}
+                                  </div>
+                                </td>
+                                <td className="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm">{record.fleet}</td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm">{record.station}</td>
+                                <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
+                                  {record.service === 'AOG' ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                      {record.service}
+                                    </span>
+                                  ) : record.service}
+                                </td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm">
+                                  {record.hasDefect ? (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-yellow-800">
+                                      Yes
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      No
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {filteredRecords.length > 10 && (
+                        <div className="px-4 py-3 bg-blue-50 text-center border-t">
+                          <p className="text-sm text-blue-700">
+                            <strong>{filteredRecords.length - 10}</strong> more records available in export
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </Card>
             </>
           )}
 
           {/* Column Selection Dialog */}
           <Dialog open={showColumnDialog} onOpenChange={setShowColumnDialog}>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto mx-4">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+                <DialogTitle className="flex items-center gap-2 text-lg">
                   <FileSpreadsheet className="h-5 w-5 text-green-600" />
-                  Select Columns for Export
+                  Customize Export Columns
                 </DialogTitle>
-                <DialogDescription>
-                  Choose which columns you want to include in your Excel export file.
+                <DialogDescription className="text-sm">
+                  Select the data columns you want to include in your Excel export. All selected columns will be exported with properly formatted data.
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="space-y-4">
-                <div className="flex gap-2">
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
-                    variant="neutral" 
+                    variant="outline" 
                     size="sm" 
-                    className="h-8 text-xs"
+                    className="w-full sm:w-auto"
                     onClick={selectAllColumns}
                   >
-                    <CheckSquare className="mr-1 h-3 w-3" />
+                    <CheckSquare className="mr-2 h-4 w-4" />
                     Select All
                   </Button>
                   <Button 
-                    variant="neutral" 
+                    variant="outline" 
                     size="sm" 
-                    className="h-8 text-xs"
+                    className="w-full sm:w-auto"
                     onClick={deselectAllColumns}
                   >
-                    <Square className="mr-1 h-3 w-3" />
+                    <Square className="mr-2 h-4 w-4" />
                     Deselect All
                   </Button>
+                  <div className="flex-1 sm:ml-4">
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedColumns.filter(col => col.checked).length} of {selectedColumns.length} columns selected
+                    </Badge>
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {selectedColumns.map((column) => (
-                    <div key={column.key} className="flex items-center space-x-2">
+                    <div key={column.key} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 transition-colors">
                       <Checkbox
                         id={column.key}
                         checked={column.checked}
                         onCheckedChange={() => handleColumnToggle(column.key)}
+                        className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
                       />
                       <Label 
                         htmlFor={column.key} 
-                        className="text-sm font-medium cursor-pointer"
+                        className="text-sm font-medium cursor-pointer flex-1"
                       >
                         {column.label}
                       </Label>
@@ -633,11 +673,11 @@ export default function ExportFlightRecordsPage() {
                 </div>
               </div>
               
-              <DialogFooter>
+              <DialogFooter className="flex flex-col sm:flex-row gap-2">
                 <Button 
-                  variant="neutral" 
+                  variant="outline" 
                   size="sm"
-                  className="h-8 text-xs"
+                  className="w-full sm:w-auto order-2 sm:order-1"
                   onClick={() => setShowColumnDialog(false)}
                 >
                   Cancel
@@ -645,12 +685,11 @@ export default function ExportFlightRecordsPage() {
                 <Button 
                   onClick={exportToExcel}
                   size="sm"
-                  variant="export"
-                  className="h-8 text-xs"
+                  className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto order-1 sm:order-2"
                   disabled={selectedColumns.filter(col => col.checked).length === 0}
                 >
                   <Download className="mr-2 h-4 w-4" />
-                  Export to Excel
+                  Export {selectedColumns.filter(col => col.checked).length} Columns to Excel
                 </Button>
               </DialogFooter>
             </DialogContent>

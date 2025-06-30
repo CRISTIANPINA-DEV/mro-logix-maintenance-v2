@@ -578,10 +578,10 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
 
         {/* Document Title */}
         <div className="bg-white rounded-lg shadow-sm border">
-          <div className="border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="border-b bg-gray-50">
             <div className="px-8 py-6">
               <div className="flex items-center space-x-3 mb-2">
-                <Package className="h-8 w-8 text-blue-600" />
+                <Package className="h-8 w-8 text-gray-600" />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Stock Inventory Report</h1>
                 </div>
@@ -597,9 +597,9 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
           <div className="p-8 space-y-8">
             {/* Part Identification Section */}
             <section>
-              <div className="border-l-4 border-blue-500 pl-4 mb-6">
+              <div className="border-l-4 border-gray-300 pl-4 mb-6">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                  <Hash className="h-5 w-5 mr-2 text-blue-600" />
+                  <Hash className="h-5 w-5 mr-2 text-gray-600" />
                   Part Identification
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">Primary identification details for the inventory item</p>
@@ -607,17 +607,15 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="border rounded-lg p-4 bg-white">
                     <div className="flex items-center mb-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                       <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Part Number</span>
                     </div>
                     <div className="text-lg font-mono font-bold text-gray-900">{record.partNo}</div>
                   </div>
                   
-                  <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="border rounded-lg p-4 bg-white">
                     <div className="flex items-center mb-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                       <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Serial Number</span>
                     </div>
                     <div className="text-lg font-mono font-bold text-gray-900">{record.serialNo}</div>
@@ -625,17 +623,15 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="border rounded-lg p-4 bg-white">
                     <div className="flex items-center mb-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                       <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Quantity</span>
                     </div>
                     <div className="text-lg font-bold text-gray-900">{record.quantity}</div>
                   </div>
                   
-                  <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="border rounded-lg p-4 bg-white">
                     <div className="flex items-center mb-2">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
                       <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Type</span>
                     </div>
                     <div className="text-lg font-bold text-gray-900">{record.type}</div>
@@ -646,9 +642,9 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
 
             {/* Description Section */}
             <section>
-              <div className="border-l-4 border-green-500 pl-4 mb-6">
+              <div className="border-l-4 border-gray-300 pl-4 mb-6">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-green-600" />
+                  <FileText className="h-5 w-5 mr-2 text-gray-600" />
                   Description
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">Detailed description of the inventory item</p>
@@ -663,34 +659,31 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
 
             {/* Location & Ownership Section */}
             <section>
-              <div className="border-l-4 border-orange-500 pl-4 mb-6">
+              <div className="border-l-4 border-gray-300 pl-4 mb-6">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                  <MapPin className="h-5 w-5 mr-2 text-orange-600" />
+                  <MapPin className="h-5 w-5 mr-2 text-gray-600" />
                   Location & Ownership
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">Location details and responsible parties</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="border rounded-lg p-4 bg-orange-50">
+                <div className="border rounded-lg p-4 bg-white">
                   <div className="flex items-center mb-2">
-                    <MapPin className="h-4 w-4 text-orange-600 mr-2" />
                     <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Station</span>
                   </div>
                   <div className="text-base font-bold text-gray-900">{record.station}</div>
                 </div>
                 
-                <div className="border rounded-lg p-4 bg-orange-50">
+                <div className="border rounded-lg p-4 bg-white">
                   <div className="flex items-center mb-2">
-                    <User className="h-4 w-4 text-orange-600 mr-2" />
                     <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Owner</span>
                   </div>
                   <div className="text-base font-bold text-gray-900">{record.owner}</div>
                 </div>
                 
-                <div className="border rounded-lg p-4 bg-orange-50">
+                <div className="border rounded-lg p-4 bg-white">
                   <div className="flex items-center mb-2">
-                    <MapPin className="h-4 w-4 text-orange-600 mr-2" />
                     <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Location</span>
                   </div>
                   <div className="text-base font-bold text-gray-900">{record.location}</div>
@@ -699,9 +692,8 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
               
               {record.technician && (
                 <div className="mt-4">
-                  <div className="border rounded-lg p-4 bg-orange-50">
+                  <div className="border rounded-lg p-4 bg-white">
                     <div className="flex items-center mb-2">
-                      <User className="h-4 w-4 text-orange-600 mr-2" />
                       <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Assigned Technician</span>
                     </div>
                     <div className="text-base font-bold text-gray-900">{record.technician}</div>
@@ -712,18 +704,17 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
 
             {/* Dates & Timeline Section */}
             <section>
-              <div className="border-l-4 border-indigo-500 pl-4 mb-6">
+              <div className="border-l-4 border-gray-300 pl-4 mb-6">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-indigo-600" />
+                  <Clock className="h-5 w-5 mr-2 text-gray-600" />
                   Dates & Timeline
                 </h2>
                 <p className="text-sm text-gray-600 mt-1">Important dates and timeline information</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="border rounded-lg p-6 bg-indigo-50">
+                <div className="border rounded-lg p-6 bg-white">
                   <div className="flex items-center mb-3">
-                    <Calendar className="h-5 w-5 text-indigo-600 mr-2" />
                     <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Incoming Date</span>
                   </div>
                   <div className="text-xl font-bold text-gray-900">
@@ -735,13 +726,8 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
                 </div>
                 
                 {record.hasExpireDate && record.expireDate && (
-                  <div className={`border rounded-lg p-6 ${getStatusColor(record.expireDate).includes('red') ? 'bg-red-50 border-red-200' : 
-                    getStatusColor(record.expireDate).includes('yellow') ? 'bg-yellow-50 border-yellow-200' : 
-                    getStatusColor(record.expireDate).includes('orange') ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'}`}>
+                  <div className="border rounded-lg p-6 bg-white">
                     <div className="flex items-center mb-3">
-                      <Clock className={`h-5 w-5 mr-2 ${getStatusColor(record.expireDate).includes('red') ? 'text-red-600' : 
-                        getStatusColor(record.expireDate).includes('yellow') ? 'text-yellow-600' : 
-                        getStatusColor(record.expireDate).includes('orange') ? 'text-orange-600' : 'text-green-600'}`} />
                       <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Expiry Date</span>
                     </div>
                     <div className="text-xl font-bold text-gray-900">
@@ -758,12 +744,12 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
             {/* Inspection Status Section */}
             {record.hasInspection && (
               <section>
-                <div className="border-l-4 border-red-500 pl-4 mb-6">
+                <div className="border-l-4 border-gray-300 pl-4 mb-6">
                   <h2 className="text-xl font-bold text-gray-900 flex items-center">
                     {record.inspectionResult === "Failed" ? (
-                      <XCircle className="h-5 w-5 mr-2 text-red-600" />
+                      <XCircle className="h-5 w-5 mr-2 text-gray-600" />
                     ) : (
-                      <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
+                      <CheckCircle className="h-5 w-5 mr-2 text-gray-600" />
                     )}
                     Inspection Status
                   </h2>
@@ -801,15 +787,15 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
             {/* Comments Section */}
             {record.hasComment && record.comment && (
               <section>
-                <div className="border-l-4 border-cyan-500 pl-4 mb-6">
+                <div className="border-l-4 border-gray-300 pl-4 mb-6">
                   <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                    <MessageSquare className="h-5 w-5 mr-2 text-cyan-600" />
+                    <MessageSquare className="h-5 w-5 mr-2 text-gray-600" />
                     Additional Comments
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">Additional notes and observations</p>
                 </div>
                 
-                <div className="border rounded-lg p-6 bg-cyan-50 border-cyan-200">
+                <div className="border rounded-lg p-6 bg-white">
                   <div className="text-base leading-relaxed text-gray-900 whitespace-pre-wrap">
                     {record.comment}
                   </div>
@@ -820,9 +806,9 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
             {/* Attachments Section */}
             {record.hasAttachments && record.Attachment.length > 0 && (
               <section>
-                <div className="border-l-4 border-pink-500 pl-4 mb-6">
+                <div className="border-l-4 border-gray-300 pl-4 mb-6">
                   <h2 className="text-xl font-bold text-gray-900 flex items-center">
-                    <Paperclip className="h-5 w-5 mr-2 text-pink-600" />
+                    <Paperclip className="h-5 w-5 mr-2 text-gray-600" />
                     Attachments
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">Supporting documents and files</p>
@@ -832,8 +818,8 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
                   {record.Attachment.map((attachment, index) => (
                     <div key={attachment.id} className="border rounded-lg p-4 bg-white shadow-sm flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center">
-                          <Paperclip className="h-4 w-4 text-pink-600" />
+                        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Paperclip className="h-4 w-4 text-gray-600" />
                         </div>
                         <div>
                           <div className="font-medium text-gray-900">{attachment.fileName}</div>

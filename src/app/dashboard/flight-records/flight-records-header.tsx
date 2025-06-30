@@ -28,12 +28,12 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
       <Card className="w-full mb-6">
         <header>
           <div className="w-full max-w-full mx-auto px-4">
-            <div className="flex h-16 items-center justify-between w-full">
-              <div>
-                <h1 className="text-2xl font-bold">
+            <div className="flex flex-col sm:flex-row min-h-16 py-3 sm:py-0 sm:h-16 items-start sm:items-center justify-between w-full gap-3 sm:gap-0">
+              <div className="w-full sm:w-auto">
+                <h1 className="text-xl sm:text-2xl font-bold">
                   <div className="flex items-center gap-2">
-                    <Plane size={24} strokeWidth={1.5} className="text-green-500" />
-                    <Badge className="px-3 py-1 text-base bg-green-100 text-green-600 rounded-[4px] border border-green-500 shadow-md">Flight Records</Badge>
+                    <Plane size={20} strokeWidth={1.5} className="text-green-500 sm:size-6" />
+                    <Badge className="px-2 py-1 text-sm sm:px-3 sm:py-1 sm:text-base bg-green-100 text-green-600 rounded-[4px] border border-green-500 shadow-md">Flight Records</Badge>
                   </div>
                 </h1>
               </div>
@@ -49,18 +49,18 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
       <Card className="w-full mb-6">
         <header>
           <div className="w-full max-w-full mx-auto px-4">
-            <div className="flex h-16 items-center justify-between w-full">
-              <div>
-                <h1 className="text-2xl font-bold">
+            <div className="flex flex-col sm:flex-row min-h-16 py-3 sm:py-0 sm:h-16 items-start sm:items-center justify-between w-full gap-3 sm:gap-0">
+              <div className="w-full sm:w-auto">
+                <h1 className="text-xl sm:text-2xl font-bold">
                   <div className="flex items-center gap-2">
-                    <Plane size={24} strokeWidth={1.5} className="text-green-500" />
-                    <Badge className="px-3 py-1 text-base bg-green-100 text-green-600 rounded-[4px] border border-green-500 shadow-md">Flight Records</Badge>
+                    <Plane size={20} strokeWidth={1.5} className="text-green-500 sm:size-6" />
+                    <Badge className="px-2 py-1 text-sm sm:px-3 sm:py-1 sm:text-base bg-green-100 text-green-600 rounded-[4px] border border-green-500 shadow-md">Flight Records</Badge>
                   </div>
                 </h1>
               </div>
               
               {!showForm && (
-                <div className="flex gap-3">
+                <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
                   {permissions?.canAddFlightRecords && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -68,10 +68,11 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
                           onClick={onAddFlightClick} 
                           variant="outline"
                           size="sm"
-                          className="flex items-center gap-2 cursor-pointer"
+                          className="flex items-center gap-1 sm:gap-2 cursor-pointer text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-none"
                         >
-                          <PlusCircle size={16} />
-                          Add Flight
+                          <PlusCircle size={14} className="sm:size-4" />
+                          <span className="hidden xs:inline">Add Flight</span>
+                          <span className="xs:hidden">Add</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -85,12 +86,13 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
                       <TooltipTrigger asChild>
                         <Button 
                           size="sm"
-                          className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700"
+                          className="flex items-center gap-1 sm:gap-2 bg-green-600 text-white hover:bg-green-700 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-none"
                           asChild
                         >
                           <Link href="/dashboard/flight-records/export">
-                            <FileSpreadsheet size={16} />
-                            Export Data
+                            <FileSpreadsheet size={14} className="sm:size-4" />
+                            <span className="hidden xs:inline">Export Data</span>
+                            <span className="xs:hidden">Export</span>
                           </Link>
                         </Button>
                       </TooltipTrigger>

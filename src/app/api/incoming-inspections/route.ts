@@ -8,9 +8,14 @@ import { canUserViewIncomingInspections, canUserAddIncomingInspections } from '@
 
 export async function POST(request: Request) {
   try {
+    console.log('Incoming inspection POST request received');
+    
     // Authenticate user to get user ID and company info
     const session = await getServerSession();
+    console.log('Session:', session?.user ? 'authenticated' : 'not authenticated');
+    
     if (!session?.user) {
+      console.log('Authentication failed - no session or user');
       return NextResponse.json(
         { success: false, message: 'Authentication required' },
         { status: 401 }
@@ -35,7 +40,12 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
-    const data = JSON.parse(formData.get('data') as string);
+    const dataString = formData.get('data') as string;
+    
+    console.log('FormData received - files count:', files.length);
+    console.log('Data string:', dataString);
+    
+    const data = JSON.parse(dataString);
 
     // Fix: Parse date as local date to prevent timezone shifting
     const inspectionDate = parseLocalDate(data.inspectionDate);
@@ -132,6 +142,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, data: inspection });
   } catch (error) {
     console.error('Error creating incoming inspection:', error);
+    
+    // Log the full error details for debugging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    
     return NextResponse.json(
       { 
         success: false, 

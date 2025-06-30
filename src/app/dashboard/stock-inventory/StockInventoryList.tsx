@@ -359,7 +359,7 @@ export function StockInventoryList({ searchTerm }: StockInventoryListProps) {
             ) : (
               /* Desktop - All Columns */
               <div className="grid grid-cols-12 gap-x-3 text-sm font-semibold items-center whitespace-nowrap">
-                <div className="col-span-1 truncate">Date</div>
+                <div className="col-span-1 truncate">Arrival Date</div>
                 <div className="col-span-1 truncate">Station</div>
                 <div className="col-span-1 truncate">Owner</div>
                 <div className="col-span-1 truncate">Part No</div>

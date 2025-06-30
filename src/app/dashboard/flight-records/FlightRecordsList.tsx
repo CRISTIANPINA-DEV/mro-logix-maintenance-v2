@@ -269,7 +269,7 @@ export function FlightRecordsList({
                 </span>
               )}</div>
               <div className="xl:col-span-1 min-w-[80px] truncate">{record.logPageNo || "-"}</div>
-              <div className="xl:col-span-1 min-w-[90px] truncate">{record.username || "-"}</div>
+              <div className="xl:col-span-1 min-w-[90px]">{record.username || "-"}</div>
             </div>
           )}
         </div>
