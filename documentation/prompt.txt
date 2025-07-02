@@ -9,8 +9,7 @@
 # You must search any other referenced file found during your analisis
 
 ### PERFORM THE FOLLOWING: ###
-
-
+# In the flight records page, reduce the hieght size of the src\app\dashboard\flight-records\flight-records-header.tsx and its associated buttons
 
 
 

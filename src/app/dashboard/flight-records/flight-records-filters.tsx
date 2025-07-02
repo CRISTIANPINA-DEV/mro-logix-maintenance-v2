@@ -51,22 +51,21 @@ export function FlightRecordsFilters({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FilterIcon className="h-4 w-4" />
-              <div className="sm:hidden flex items-center gap-2">
-                <CardTitle className={`text-base ${isCollapsed ? 'text-sm' : 'text-base'}`}>Filters</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className={`text-base ${isCollapsed ? 'text-sm sm:text-base' : 'text-base'}`}>Filters & Search</CardTitle>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsCollapsed(!isCollapsed)}
-                  className={`p-1 ${isCollapsed ? 'h-5 w-5' : 'h-6 w-6'} rounded-none`}
+                  className={`p-1 ${isCollapsed ? 'h-5 w-5 sm:h-6 sm:w-6' : 'h-6 w-6'} rounded-none hover:bg-gray-100`}
                 >
                   {isCollapsed ? (
-                    <ChevronDown className="h-3 w-3" />
+                    <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
                   ) : (
                     <ChevronUp className="h-4 w-4" />
                   )}
                 </Button>
               </div>
-              <CardTitle className="text-base hidden sm:block">Filters & Search</CardTitle>
             </div>
             <div className="flex gap-2">
               <Tooltip>
@@ -109,7 +108,7 @@ export function FlightRecordsFilters({
             </div>
           </div>
         </CardHeader>
-        <CardContent className={`py-3 ${isCollapsed ? 'hidden sm:block' : 'block'}`}>
+        <CardContent className={`py-3 ${isCollapsed ? 'hidden' : 'block'}`}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="space-y-1">
               <label className="text-xs font-medium">Search</label>

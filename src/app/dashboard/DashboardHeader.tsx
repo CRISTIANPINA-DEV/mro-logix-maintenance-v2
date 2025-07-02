@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, User, Settings, DatabaseIcon, ActivityIcon, CircleUserRound, Bell, HelpCircle, Book, Wrench, MessageSquare, Globe, LayoutDashboard, Plane, Shield, HomeIcon } from "lucide-react";
+import { LogOut, Menu, X, User, Settings, DatabaseIcon, ActivityIcon, CircleUserRound, Bell, HelpCircle, Book, Wrench, MessageSquare, Globe, LayoutDashboard, Plane, Shield, HomeIcon, Search } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { signOut, useSession } from "next-auth/react";
@@ -29,11 +29,41 @@ import {
 import { NotificationPanel } from "@/components/notifications/NotificationPanel";
 import { useNotifications } from "@/contexts/NotificationContext";
 
+// Menu items for search functionality - only include pages that actually exist
+const searchableMenuItems = [
+  { title: "Dashboard", url: "/dashboard", icon: "HomeIcon" },
+  { title: "Flight Records", url: "/dashboard/flight-records", icon: "PlaneIcon" },
+  { title: "Stock Inventory", url: "/dashboard/stock-inventory", icon: "PackageOpenIcon" },
+  { title: "Incoming Inspections", url: "/dashboard/incoming-inspections", icon: "ClipboardCheckIcon" },
+  { title: "Temperature Control", url: "/dashboard/temperature-control", icon: "ThermometerSnowflake" },
+  { title: "Technical Queries", url: "/dashboard/technical-queries", icon: "MessageSquareDot" },
+  { title: "Airport ID", url: "/dashboard/airport-id", icon: "IdCardIcon" },
+  { title: "Audits Management", url: "/dashboard/audits-management", icon: "ShieldAlertIcon" },
+  { title: "SMS Reports", url: "/dashboard/sms-reports", icon: "FileSpreadsheetIcon" },
+  { title: "Service Difficulty Reports", url: "/dashboard/sdr-reports", icon: "TriangleAlertIcon" },
+  { title: "Data Analytics", url: "/dashboard/data-analytics", icon: "BarChart3Icon" },
+  { title: "Log Pages", url: "/dashboard/log-pages", icon: "FileTextIcon" },
+  { title: "Manage Data Records", url: "/dashboard/manage-data-records", icon: "DatabaseIcon" },
+  { title: "User Activity", url: "/dashboard/user-activity", icon: "ActivityIcon" },
+  { title: "Technician Training", url: "/dashboard/technician-training", icon: "GraduationCapIcon" },
+  { title: "Technical Publications", url: "/dashboard/technical-publications", icon: "FileTextIcon" },
+  { title: "Notification Center", url: "/dashboard/notification-center", icon: "Bell" },
+  { title: "Organization", url: "/dashboard/organization", icon: "User" },
+  { title: "Oil Consumption", url: "/dashboard/oil-consumption", icon: "Settings" },
+  { title: "Wheel Rotation", url: "/dashboard/wheel-rotation", icon: "Settings" },
+  { title: "Weather", url: "/dashboard/weather", icon: "Cloud" },
+  { title: "Useful Links", url: "/dashboard/useful-links", icon: "Globe" },
+  { title: "Fleet Analytics", url: "/dashboard/fleet-analytics", icon: "Plane" },
+];
+
 export default function DashboardHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = useSession();
   const { unreadCount } = useNotifications();
   
@@ -42,6 +72,42 @@ export default function DashboardHeader() {
     privilege: session?.user?.privilege,
     user: session?.user,
   });
+
+  // Filter search results based on query
+  const filteredResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return searchableMenuItems.filter(item =>
+      item.title.toLowerCase().includes(searchQuery.toLowerCase())
+    ).slice(0, 6); // Limit to 6 results
+  }, [searchQuery]);
+
+  // Handle search input changes
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setShowSearchResults(value.trim().length > 0);
+  };
+
+  // Handle search result click
+  const handleSearchResultClick = (url: string) => {
+    router.push(url);
+    setSearchQuery("");
+    setShowSearchResults(false);
+  };
+
+  // Handle search input focus
+  const handleSearchFocus = () => {
+    if (searchQuery.trim()) {
+      setShowSearchResults(true);
+    }
+  };
+
+  // Handle search input blur (with delay to allow click on results)
+  const handleSearchBlur = () => {
+    setTimeout(() => {
+      setShowSearchResults(false);
+    }, 150);
+  };
 
 
 
@@ -99,6 +165,39 @@ export default function DashboardHeader() {
                 <HomeIcon className="h-3 w-3" />
                 Dashboard
               </Link>
+            </div>
+          </div>
+
+          {/* Search Bar - Desktop */}
+          <div className="hidden md:flex flex-1 max-w-md mx-4 relative">
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search modules..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                className="w-full h-8 pl-10 pr-4 text-xs bg-background border border-input rounded-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent placeholder-muted-foreground"
+              />
+              {/* Search Results Dropdown */}
+              {showSearchResults && filteredResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-none shadow-lg z-50 max-h-64 overflow-y-auto">
+                  {filteredResults.map((item) => (
+                    <button
+                      key={item.url}
+                      onClick={() => handleSearchResultClick(item.url)}
+                      className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground transition-colors flex items-center gap-2 text-xs"
+                    >
+                      <Search className="h-3 w-3 text-muted-foreground" />
+                      <span className="truncate">{item.title}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

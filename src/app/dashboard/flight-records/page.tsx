@@ -89,7 +89,7 @@ export default function FlightRecordsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-4">
+    <div className="container mx-auto px-6 pt-3 pb-6 space-y-4">
       <FlightRecordsHeader 
         showForm={showForm || showTemporalForm} 
         onAddFlightClick={() => setShowForm(true)} 

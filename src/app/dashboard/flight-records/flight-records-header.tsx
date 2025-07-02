@@ -29,12 +29,11 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
       <Card className="w-full mb-6">
         <header>
           <div className="w-full max-w-full mx-auto px-4">
-            <div className="flex flex-col sm:flex-row min-h-16 py-3 sm:py-0 sm:h-16 items-start sm:items-center justify-between w-full gap-3 sm:gap-0">
+            <div className="flex flex-col sm:flex-row min-h-12 py-2 sm:py-0 sm:h-12 items-start sm:items-center justify-between w-full gap-2 sm:gap-0">
               <div className="w-full sm:w-auto">
                 <h1 className="text-xl sm:text-2xl font-bold">
                   <div className="flex items-center gap-2">
-                    <Plane size={20} strokeWidth={1.5} className="text-green-500 sm:size-6" />
-                    <Badge className="px-2 py-1 text-sm sm:px-3 sm:py-1 sm:text-base bg-green-100 text-green-600 rounded-[4px] border border-green-500 shadow-md">Flight Records</Badge>
+                    <Badge className="px-2 py-1 text-sm sm:px-3 sm:py-1 sm:text-base bg-white text-black font-bold rounded-[4px] border border-black shadow-md">FLIGHT RECORDS</Badge>
                   </div>
                 </h1>
               </div>
@@ -50,18 +49,17 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
       <Card className="w-full mb-6">
         <header>
           <div className="w-full max-w-full mx-auto px-4">
-            <div className="flex flex-col sm:flex-row min-h-16 py-3 sm:py-0 sm:h-16 items-start sm:items-center justify-between w-full gap-3 sm:gap-0">
+            <div className="flex flex-col sm:flex-row min-h-12 py-2 sm:py-0 sm:h-12 items-start sm:items-center justify-between w-full gap-2 sm:gap-0">
               <div className="w-full sm:w-auto">
                 <h1 className="text-xl sm:text-2xl font-bold">
                   <div className="flex items-center gap-2">
-                    <Plane size={20} strokeWidth={1.5} className="text-green-500 sm:size-6" />
-                    <Badge className="px-2 py-1 text-sm sm:px-3 sm:py-1 sm:text-base bg-green-100 text-green-600 rounded-[4px] border border-green-500 shadow-md">Flight Records</Badge>
+                    <Badge className="px-2 py-1 text-sm sm:px-3 sm:py-1 sm:text-base bg-white text-black font-bold rounded-[4px] border border-black shadow-md">FLIGHT RECORDS</Badge>
                   </div>
                 </h1>
               </div>
               
               {!showForm && (
-                <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
+                <div className="flex gap-1 sm:gap-2 w-full sm:w-auto">
                   {permissions?.canAddFlightRecords && (
                     <>
                       <Tooltip>
@@ -70,9 +68,9 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
                             onClick={onAddFlightClick} 
                             variant="outline"
                             size="sm"
-                            className="flex items-center gap-1 sm:gap-2 cursor-pointer text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-none"
+                            className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 flex-1 sm:flex-none h-8"
                           >
-                            <PlusCircle size={14} className="sm:size-4" />
+                            <PlusCircle size={12} />
                             <span className="hidden xs:inline">Add Flight</span>
                             <span className="xs:hidden">Add</span>
                           </Button>
@@ -88,9 +86,9 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
                             onClick={onAddTemporalFlightClick} 
                             variant="outline"
                             size="sm"
-                            className="flex items-center gap-1 sm:gap-2 cursor-pointer text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-none border-blue-500 text-blue-600 hover:bg-blue-50"
+                            className="flex items-center gap-1 cursor-pointer text-xs px-2 py-1 flex-1 sm:flex-none border-blue-500 text-blue-600 hover:bg-blue-50 h-8"
                           >
-                            <Clock size={14} className="sm:size-4" />
+                            <Clock size={12} />
                             <span className="hidden xs:inline">Quick Add</span>
                             <span className="xs:hidden">Quick</span>
                           </Button>
@@ -108,11 +106,11 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
                         <Button 
                           size="sm"
                           variant="outline"
-                          className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-none border-orange-500 text-orange-600 hover:bg-orange-50"
+                          className="flex items-center gap-1 text-xs px-2 py-1 flex-1 sm:flex-none border-orange-500 text-orange-600 hover:bg-orange-50 h-8"
                           asChild
                         >
                           <Link href="/dashboard/flight-records/pending-flights">
-                            <Eye size={14} className="sm:size-4" />
+                            <Eye size={12} />
                             <span className="hidden xs:inline">View Pending</span>
                             <span className="xs:hidden">Pending</span>
                           </Link>
@@ -129,11 +127,11 @@ const FlightRecordsHeader: React.FC<FlightRecordsHeaderProps> = ({ showForm, onA
                       <TooltipTrigger asChild>
                         <Button 
                           size="sm"
-                          className="flex items-center gap-1 sm:gap-2 bg-green-600 text-white hover:bg-green-700 text-xs sm:text-sm px-2 sm:px-3 flex-1 sm:flex-none"
+                          className="flex items-center gap-1 bg-green-600 text-white hover:bg-green-700 text-xs px-2 py-1 flex-1 sm:flex-none h-8"
                           asChild
                         >
                           <Link href="/dashboard/flight-records/export">
-                            <FileSpreadsheet size={14} className="sm:size-4" />
+                            <FileSpreadsheet size={12} />
                             <span className="hidden xs:inline">Export Data</span>
                             <span className="xs:hidden">Export</span>
                           </Link>
