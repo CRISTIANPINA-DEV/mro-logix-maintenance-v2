@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, PlaneTakeoff, Users, BarChart3Icon, Thermometer, Droplets, Package, AlertTriangle, MapPin, RefreshCw, FileText, Settings } from "lucide-react";
+import { ArrowRight, PlaneTakeoff, Users, BarChart3Icon, Thermometer, Droplets, Package, AlertTriangle, MapPin, RefreshCw, FileText, Settings, Clock } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -106,6 +106,30 @@ interface ExpiryStatusData {
   totalWithExpiry: number;
 }
 
+interface WheelRotationFrequencyData {
+  today: number;
+  thisWeek: number;
+  thisMonth: number;
+  thisQuarter: number;
+  thisYear: number;
+  overdue: number;
+  totalActive: number;
+  frequencyBreakdown: Record<string, number>;
+}
+
+interface PendingFlightsMetrics {
+  totalPending: number;
+  todaysPending: number;
+  thisWeekPending: number;
+  overduePending: number;
+  averageAge: number;
+  uniqueStations: number;
+  topStations: Array<{
+    station: string;
+    count: number;
+  }>;
+}
+
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { permissions, loading: permissionsLoading } = useUserPermissions();
@@ -120,8 +144,11 @@ export default function DashboardPage() {
   const [inventoryCount, setInventoryCount] = useState<number>(0);
   const [wheelRotationsTodayCount, setWheelRotationsTodayCount] = useState(0);
   const [wheelRotationsLoading, setWheelRotationsLoading] = useState(false);
+  const [wheelRotationFrequencyData, setWheelRotationFrequencyData] = useState<WheelRotationFrequencyData | null>(null);
   const [flightMetrics, setFlightMetrics] = useState<FlightDashboardMetrics | null>(null);
   const [flightMetricsLoading, setFlightMetricsLoading] = useState(false);
+  const [pendingFlightsMetrics, setPendingFlightsMetrics] = useState<PendingFlightsMetrics | null>(null);
+  const [pendingFlightsLoading, setPendingFlightsLoading] = useState(false);
 
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
@@ -315,6 +342,28 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchWheelRotationFrequencyCounts = async () => {
+    try {
+      setWheelRotationsLoading(true);
+      const response = await fetch('/api/wheel-rotation/frequency-counts');
+      const data = await response.json();
+      if (data.success) {
+        setWheelRotationFrequencyData(data.data);
+        setWheelRotationsTodayCount(data.data.today); // Keep backward compatibility
+      } else {
+        console.error('Failed to fetch wheel rotation frequency counts:', data.error);
+        // Fallback to old API
+        await fetchWheelRotationsTodayCount();
+      }
+    } catch (error) {
+      console.error('Error fetching wheel rotation frequency counts:', error);
+      // Fallback to old API
+      await fetchWheelRotationsTodayCount();
+    } finally {
+      setWheelRotationsLoading(false);
+    }
+  };
+
   const fetchFlightMetrics = async () => {
     try {
       setFlightMetricsLoading(true);
@@ -344,6 +393,33 @@ export default function DashboardPage() {
       // Don't show toast error as this is not critical
     } finally {
       setFlightMetricsLoading(false);
+    }
+  };
+
+  const fetchPendingFlightsMetrics = async () => {
+    try {
+      setPendingFlightsLoading(true);
+      const response = await fetch('/api/flight-records/pending-metrics', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+        },
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setPendingFlightsMetrics(result.data);
+        } else {
+          console.error('Failed to fetch pending flights metrics:', result.message);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching pending flights metrics:', error);
+      // Don't show toast error as this is not critical
+    } finally {
+      setPendingFlightsLoading(false);
     }
   };
 
@@ -516,10 +592,11 @@ export default function DashboardPage() {
           fetchLatestTemperature(),
           fetchExpiryStatus(),
           fetchFlightMetrics(), // Replace individual flight calls with comprehensive metrics
+          fetchPendingFlightsMetrics(),
           fetchUsersCount(),
           fetchTotalTrainingsCount(),
           fetchInventoryCount(),
-          fetchWheelRotationsTodayCount(),
+          fetchWheelRotationFrequencyCounts(),
         ]);
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -806,6 +883,7 @@ export default function DashboardPage() {
                   fetchLatestTemperature(); // This now includes warehouse data
                   fetchExpiryStatus();
                   fetchFlightMetrics();
+                  fetchPendingFlightsMetrics();
                 }}
                 disabled={metricsLoading || temperatureLoading}
                 className="h-6 text-xs"
@@ -815,7 +893,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Business Operations Cards */}
+          {/* Business Operations Cards - Row 1 */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Flights Recorded - Enhanced */}
             <Link href="/dashboard/flight-records" className="block">
@@ -978,6 +1056,114 @@ export default function DashboardPage() {
               </Card>
             </Link>
 
+            {/* Pending Flights - New card */}
+            <Link href="/dashboard/flight-records/pending-flights" className="block">
+              <Card className="h-[220px] bg-orange-50/50 dark:bg-orange-950/20 hover:bg-orange-100/50 dark:hover:bg-orange-900/30 transition-all duration-200 cursor-pointer border border-orange-200/50 hover:border-orange-300 dark:border-orange-900/50 dark:hover:border-orange-700 rounded-none hover:shadow-md group">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Pending Flights
+                      {pendingFlightsLoading && (
+                        <div className="animate-spin h-3 w-3 border-2 border-orange-600 border-t-transparent rounded-full"></div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <ArrowRight className="h-3 w-3 text-orange-600 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 pb-3 space-y-3">
+                  {pendingFlightsLoading ? (
+                    <div className="flex justify-center items-center py-3">
+                      <div className="animate-spin h-4 w-4 border-2 border-orange-600 border-t-transparent rounded-full"></div>
+                      <span className="ml-2 text-xs text-muted-foreground">Loading...</span>
+                    </div>
+                  ) : pendingFlightsMetrics ? (
+                    <>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-600 mb-0.5">
+                          {pendingFlightsMetrics.todaysPending?.toLocaleString() || 0}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Pending flights for today
+                          {pendingFlightsMetrics.overduePending > 0 && (
+                            <span className="ml-1 text-red-600 font-medium">
+                              (+{pendingFlightsMetrics.overduePending} overdue)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {/* Status indicators */}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex items-center justify-center gap-1 p-1.5 bg-orange-100/50 dark:bg-orange-900/20 rounded">
+                            <Clock className="h-3 w-3 text-orange-600" />
+                            <span className="font-bold text-orange-600">
+                              {pendingFlightsMetrics.totalPending}
+                            </span>
+                            <span className="text-muted-foreground">total</span>
+                          </div>
+                          <div className="flex items-center justify-center gap-1 p-1.5 bg-blue-100/50 dark:bg-blue-900/20 rounded">
+                            <PlaneTakeoff className="h-3 w-3 text-blue-600" />
+                            <span className="font-bold text-blue-600">
+                              {pendingFlightsMetrics.thisWeekPending}
+                            </span>
+                            <span className="text-muted-foreground">this week</span>
+                          </div>
+                        </div>
+                        
+                        {/* Age and activity metrics */}
+                        <div className="pt-1 border-t border-orange-200/50">
+                          <div className="flex justify-between items-center text-xs mb-1">
+                            <span className="text-muted-foreground">Average age:</span>
+                            <span className="font-medium text-orange-600">
+                              {pendingFlightsMetrics.averageAge} days
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">Active stations:</span>
+                            <span className="font-medium text-orange-600">
+                              {pendingFlightsMetrics.uniqueStations}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Top stations preview */}
+                        {pendingFlightsMetrics.topStations.length > 0 && (
+                          <div className="flex flex-wrap gap-1 text-[10px]">
+                            {pendingFlightsMetrics.topStations.slice(0, 3).map((station, index) => (
+                              <span key={index} className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-muted-foreground">
+                                {station.station}: {station.count}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-600 mb-0.5">
+                          0
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          No pending flights
+                        </p>
+                      </div>
+                      
+                      <div className="text-center p-2 bg-orange-100/50 dark:bg-orange-900/20 rounded">
+                        <div className="text-xs text-muted-foreground">
+                          Click to manage pending flights
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
+
             {/* Stock Inventory - Moved from lower section */}
             <Link href="/dashboard/stock-inventory" className="block">
               <Card className="h-[220px] bg-red-50/50 dark:bg-red-950/20 hover:bg-red-100/50 dark:hover:bg-red-900/30 transition-all duration-200 cursor-pointer border border-red-200/50 hover:border-red-300 dark:border-red-900/50 dark:hover:border-red-700 rounded-none hover:shadow-md group">
@@ -1052,8 +1238,11 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </Link>
+          </div>
 
-            {/* Wheel Rotations Due - Moved from lower section */}
+          {/* Business Operations Cards - Row 2 */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Wheel Rotations Due - Enhanced with frequency breakdown */}
             <Link href="/dashboard/wheel-rotation" className="block">
               <Card className="h-[220px] bg-cyan-50/50 dark:bg-cyan-950/20 hover:bg-cyan-100/50 dark:hover:bg-cyan-900/30 transition-all duration-200 cursor-pointer border border-cyan-200/50 hover:border-cyan-300 dark:border-cyan-900/50 dark:hover:border-cyan-700 rounded-none hover:shadow-md group">
                 <CardHeader className="pb-2">
@@ -1071,162 +1260,217 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0 pb-3 space-y-3">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-cyan-600 mb-0.5">
-                      {wheelRotationsTodayCount?.toLocaleString() || 0}
+                  {wheelRotationsLoading ? (
+                    <div className="flex justify-center items-center py-3">
+                      <div className="animate-spin h-4 w-4 border-2 border-cyan-600 border-t-transparent rounded-full"></div>
+                      <span className="ml-2 text-xs text-muted-foreground">Loading...</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Required for today
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {/* Status indicator */}
-                    <div className="text-center p-2 bg-cyan-100/50 dark:bg-cyan-900/20 rounded">
+                  ) : wheelRotationFrequencyData ? (
+                    <>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-cyan-600 mb-0.5">
+                          {wheelRotationFrequencyData.today?.toLocaleString() || 0}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Due today
+                          {wheelRotationFrequencyData.overdue > 0 && (
+                            <span className="ml-1 text-red-600 font-medium">
+                              (+{wheelRotationFrequencyData.overdue} overdue)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      
+                      {/* Frequency breakdown boxes */}
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-3 gap-1 text-xs">
+                          <div className="text-center p-1.5 bg-cyan-100/50 dark:bg-cyan-900/20 rounded">
+                            <div className="font-bold text-cyan-700 dark:text-cyan-300 text-xs">
+                              {wheelRotationFrequencyData.thisWeek || 0}
+                            </div>
+                            <div className="text-muted-foreground text-[10px]">
+                              This week
+                            </div>
+                          </div>
+                          <div className="text-center p-1.5 bg-blue-100/50 dark:bg-blue-900/20 rounded">
+                            <div className="font-bold text-blue-700 dark:text-blue-300 text-xs">
+                              {wheelRotationFrequencyData.thisMonth || 0}
+                            </div>
+                            <div className="text-muted-foreground text-[10px]">
+                              This month
+                            </div>
+                          </div>
+                          <div className="text-center p-1.5 bg-purple-100/50 dark:bg-purple-900/20 rounded">
+                            <div className="font-bold text-purple-700 dark:text-purple-300 text-xs">
+                              {wheelRotationFrequencyData.thisQuarter || 0}
+                            </div>
+                            <div className="text-muted-foreground text-[10px]">
+                              This quarter
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Bottom summary with frequency breakdown */}
+                        <div className="pt-1 border-t border-cyan-200/50">
+                          <div className="flex justify-between items-center text-xs mb-1">
+                            <span className="text-muted-foreground">Total active wheels:</span>
+                            <span className="font-medium text-cyan-600">
+                              {wheelRotationFrequencyData.totalActive}
+                            </span>
+                          </div>
+                          {Object.keys(wheelRotationFrequencyData.frequencyBreakdown).length > 0 && (
+                            <div className="flex flex-wrap gap-1 text-[10px]">
+                              {Object.entries(wheelRotationFrequencyData.frequencyBreakdown).map(([freq, count]) => (
+                                <span key={freq} className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-muted-foreground">
+                                  {freq}: {count}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-cyan-600 mb-0.5">
+                          {wheelRotationsTodayCount?.toLocaleString() || 0}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Due today
+                        </p>
+                      </div>
+                      
+                      <div className="text-center p-2 bg-cyan-100/50 dark:bg-cyan-900/20 rounded">
+                        <div className="text-xs text-muted-foreground">
+                          Click to manage wheel rotations
+                        </div>
+                      </div>
                     </div>
-                    
-                    {/* Bottom summary bar */}
-                    <div className="flex justify-between items-center text-xs pt-1 border-t border-cyan-200/50">
-                      <span className="text-muted-foreground">
-                        Due today
-                      </span>
-                      <span className="text-muted-foreground">
-                        Maintenance
-                      </span>
+                  )}
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Temperature Control */}
+            <Link href="/dashboard/temperature-control" className="block">
+              <Card className="h-[220px] bg-orange-50/50 dark:bg-orange-950/20 hover:bg-orange-100/50 dark:hover:bg-orange-900/30 transition-all duration-200 cursor-pointer border border-orange-200/50 hover:border-orange-300 dark:border-orange-900/50 dark:hover:border-orange-700 rounded-none hover:shadow-md group">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <Thermometer className="h-4 w-4" />
+                      Temperature Control
+                      {temperatureLoading && (
+                        <div className="animate-spin h-3 w-3 border-2 border-orange-600 border-t-transparent rounded-full"></div>
+                      )}
                     </div>
-                  </div>
+                    <div className="flex items-center gap-1">
+                      <ArrowRight className="h-3 w-3 text-orange-600 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0 pb-3 space-y-3">
+                  {temperatureLoading ? (
+                    <div className="flex justify-center items-center py-3">
+                      <div className="animate-spin h-4 w-4 border-2 border-orange-600 border-t-transparent rounded-full"></div>
+                      <span className="ml-2 text-xs text-muted-foreground">Loading...</span>
+                    </div>
+                  ) : latestTemperature ? (
+                    <>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-600 mb-0.5">
+                          {latestTemperature.temperature}°C
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Latest reading from {latestTemperature.displayLocation}
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {/* Current Temperature and Humidity display */}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex items-center justify-center gap-1 p-1.5 bg-orange-100/50 dark:bg-orange-900/20 rounded">
+                            <Thermometer className="h-3 w-3 text-orange-600" />
+                            <span className="font-bold text-orange-600">
+                              {latestTemperature.temperature}°C
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-center gap-1 p-1.5 bg-blue-100/50 dark:bg-blue-900/20 rounded">
+                            <Droplets className="h-3 w-3 text-blue-600" />
+                            <span className="font-bold text-blue-600">
+                              {latestTemperature.humidity}%
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Other Warehouses Overview */}
+                        <div className="pt-1 border-t border-orange-200/50">
+                          <div className="text-xs text-muted-foreground mb-1">
+                            Other Warehouses: 
+                            {temperatureLoading && <span className="ml-1">(Loading...)</span>}
+                          </div>
+                          <div className="grid grid-cols-3 gap-1">
+                            {temperatureLoading ? (
+                              // Show loading state
+                              Array.from({ length: 3 }).map((_, index) => (
+                                <div key={`loading-${index}`} className="text-center p-1 bg-gray-100/50 dark:bg-gray-800/20 rounded text-xs">
+                                  <div className="animate-pulse">
+                                    <div className="h-2 bg-gray-300 rounded mb-1"></div>
+                                    <div className="h-3 bg-gray-300 rounded"></div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <>
+                                {/* Show warehouse data if available */}
+                                {warehouseTemperatures.map((warehouse, index) => (
+                                  <div key={index} className="text-center p-1 bg-gray-100/50 dark:bg-gray-800/20 rounded text-xs">
+                                    <div className="font-bold text-gray-700 dark:text-gray-300 text-[10px] truncate" title={warehouse.location}>
+                                      {warehouse.location}
+                                    </div>
+                                    <div className="text-orange-600 font-semibold">
+                                      {warehouse.temperature}°C
+                                    </div>
+                                  </div>
+                                ))}
+                                
+                                {/* Fill empty slots if less than 3 warehouses */}
+                                {warehouseTemperatures.length < 3 && Array.from({ length: 3 - warehouseTemperatures.length }).map((_, index) => (
+                                  <div key={`empty-${index}`} className="text-center p-1 bg-gray-50/50 dark:bg-gray-900/20 rounded text-xs border border-dashed border-gray-300">
+                                    <div className="text-gray-400 text-[10px]">
+                                      No data
+                                    </div>
+                                  </div>
+                                ))}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-600 mb-0.5">
+                          —
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          No temperature records yet
+                        </p>
+                      </div>
+                      
+                      <div className="text-center p-2 bg-orange-100/50 dark:bg-orange-900/20 rounded">
+                        <div className="text-xs text-muted-foreground">
+                          Click to add temperature readings
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </Link>
           </div>
 
-          {/* Environmental Monitoring Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Thermometer className="h-5 w-5" />
-              <h3 className="text-lg font-semibold">Environmental Monitoring</h3>
-            </div>
-            
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {/* Temperature Control - New card */}
-              <Link href="/dashboard/temperature-control" className="block">
-                <Card className="h-[220px] bg-orange-50/50 dark:bg-orange-950/20 hover:bg-orange-100/50 dark:hover:bg-orange-900/30 transition-all duration-200 cursor-pointer border border-orange-200/50 hover:border-orange-300 dark:border-orange-900/50 dark:hover:border-orange-700 rounded-none hover:shadow-md group">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <Thermometer className="h-4 w-4" />
-                        Temperature Control
-                        {temperatureLoading && (
-                          <div className="animate-spin h-3 w-3 border-2 border-orange-600 border-t-transparent rounded-full"></div>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <ArrowRight className="h-3 w-3 text-orange-600 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 pb-3 space-y-3">
-                    {temperatureLoading ? (
-                      <div className="flex justify-center items-center py-3">
-                        <div className="animate-spin h-4 w-4 border-2 border-orange-600 border-t-transparent rounded-full"></div>
-                        <span className="ml-2 text-xs text-muted-foreground">Loading...</span>
-                      </div>
-                    ) : latestTemperature ? (
-                      <>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-orange-600 mb-0.5">
-                            {latestTemperature.temperature}°C
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Latest reading from {latestTemperature.displayLocation}
-                          </p>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          {/* Current Temperature and Humidity display */}
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="flex items-center justify-center gap-1 p-1.5 bg-orange-100/50 dark:bg-orange-900/20 rounded">
-                              <Thermometer className="h-3 w-3 text-orange-600" />
-                              <span className="font-bold text-orange-600">
-                                {latestTemperature.temperature}°C
-                              </span>
-                            </div>
-                            <div className="flex items-center justify-center gap-1 p-1.5 bg-blue-100/50 dark:bg-blue-900/20 rounded">
-                              <Droplets className="h-3 w-3 text-blue-600" />
-                              <span className="font-bold text-blue-600">
-                                {latestTemperature.humidity}%
-                              </span>
-                            </div>
-                          </div>
-                          
-                          {/* Other Warehouses Overview */}
-                          <div className="pt-1 border-t border-orange-200/50">
-                            <div className="text-xs text-muted-foreground mb-1">
-                              Other Warehouses: 
-                              {temperatureLoading && <span className="ml-1">(Loading...)</span>}
-                            </div>
-                            <div className="grid grid-cols-3 gap-1">
-                              {temperatureLoading ? (
-                                // Show loading state
-                                Array.from({ length: 3 }).map((_, index) => (
-                                  <div key={`loading-${index}`} className="text-center p-1 bg-gray-100/50 dark:bg-gray-800/20 rounded text-xs">
-                                    <div className="animate-pulse">
-                                      <div className="h-2 bg-gray-300 rounded mb-1"></div>
-                                      <div className="h-3 bg-gray-300 rounded"></div>
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <>
-                                  {/* Show warehouse data if available */}
-                                  {warehouseTemperatures.map((warehouse, index) => (
-                                    <div key={index} className="text-center p-1 bg-gray-100/50 dark:bg-gray-800/20 rounded text-xs">
-                                      <div className="font-bold text-gray-700 dark:text-gray-300 text-[10px] truncate" title={warehouse.location}>
-                                        {warehouse.location}
-                                      </div>
-                                      <div className="text-orange-600 font-semibold">
-                                        {warehouse.temperature}°C
-                                      </div>
-                                    </div>
-                                  ))}
-                                  
-                                  {/* Fill empty slots if less than 3 warehouses */}
-                                  {warehouseTemperatures.length < 3 && Array.from({ length: 3 - warehouseTemperatures.length }).map((_, index) => (
-                                    <div key={`empty-${index}`} className="text-center p-1 bg-gray-50/50 dark:bg-gray-900/20 rounded text-xs border border-dashed border-gray-300">
-                                      <div className="text-gray-400 text-[10px]">
-                                        No data
-                                      </div>
-                                    </div>
-                                  ))}
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-orange-600 mb-0.5">
-                            —
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            No temperature records yet
-                          </p>
-                        </div>
-                        
-                        <div className="text-center p-2 bg-orange-100/50 dark:bg-orange-900/20 rounded">
-                          <div className="text-xs text-muted-foreground">
-                            Click to add temperature readings
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-          </div>
         </div>
 
       </div>

@@ -27,6 +27,10 @@ npx prisma studio      # Database GUI
 # Note: Project uses postinstall script to auto-generate Prisma client
 ```
 
+## Testing
+
+This project does not currently have a test suite configured. When implementing testing, check for existing test scripts in package.json or consult the team for the preferred testing approach.
+
 ## Architecture
 
 ### Database Architecture
@@ -89,6 +93,7 @@ npx prisma studio      # Database GUI
 - **Account Settings** - User profile and preference management
 - **Organization Management** - Company settings and configuration
 - **Useful Links** - Quick access to important resources
+- **Weather Integration** - Real-time weather data via WeatherAPI
 
 ## Development Patterns
 
@@ -112,20 +117,43 @@ await logUserActivity({
 ### Authentication Patterns
 ```typescript
 // Server-side auth check
-const { user } = await requireAuth(request)
-if ('error' in user) {
-  return NextResponse.json(user.error, { status: user.status })
+const session = await getServerSession()
+if (!session?.user) {
+  return NextResponse.json(
+    { success: false, message: 'Authentication required' },
+    { status: 401 }
+  )
+}
+
+const currentUser = {
+  id: session.user.id,
+  companyId: session.user.companyId,
+  privilege: session.user.privilege
 }
 
 // Permission check
-const hasPermission = await checkUserPermission(
-  user.id, 
-  'canCreateFlightRecords'
-)
+const permissions = await getUserPermissions(currentUser.id)
+if (!permissions?.canCreateFlightRecords) {
+  return NextResponse.json(
+    { success: false, message: 'Insufficient permissions' },
+    { status: 403 }
+  )
+}
 ```
 
 ### File Upload Pattern
 ```typescript
+// File size validation (250MB limit)
+const MAX_UPLOAD_SIZE_BYTES = 250 * 1024 * 1024
+const totalSize = files.reduce((sum, file) => sum + file.size, 0)
+
+if (totalSize > MAX_UPLOAD_SIZE_BYTES) {
+  return NextResponse.json(
+    { success: false, message: 'Total upload size exceeds 250MB limit' },
+    { status: 400 }
+  )
+}
+
 // S3 upload with company folder structure
 const fileKey = `${companyId}/flight-records/${recordId}/${fileName}`
 await uploadToS3(file, fileKey)
@@ -134,6 +162,54 @@ await uploadToS3(file, fileKey)
 await prisma.attachment.create({
   data: { companyId, fileName, fileKey, fileSize, fileType }
 })
+```
+
+### API Response Patterns
+```typescript
+// Success responses
+return NextResponse.json({
+  success: true,
+  message: 'Operation completed successfully',
+  data: result
+})
+
+// Error responses  
+return NextResponse.json(
+  { success: false, message: 'User-friendly error message' },
+  { status: 400 } // Appropriate HTTP status
+)
+
+// List responses with pagination
+return NextResponse.json({
+  records: data,
+  pagination: {
+    currentPage: page,
+    totalPages: Math.ceil(total / limit),
+    totalCount: total,
+    hasNext: page * limit < total,
+    hasPrev: page > 1
+  }
+})
+```
+
+### Sequential Numbering Pattern
+```typescript
+// Generate company-scoped sequential numbers
+const currentYear = new Date().getFullYear()
+const lastRecord = await prisma.audit.findFirst({
+  where: {
+    companyId: currentUser.companyId,
+    auditNumber: { startsWith: `AUD-${currentYear}-` }
+  },
+  orderBy: { auditNumber: 'desc' }
+})
+
+// Extract and increment sequence number
+const lastNumber = lastRecord 
+  ? parseInt(lastRecord.auditNumber.slice(-4)) 
+  : 0
+
+const auditNumber = `AUD-${currentYear}-${String(lastNumber + 1).padStart(4, '0')}`
 ```
 
 ## Important Conventions
@@ -180,12 +256,12 @@ await prisma.attachment.create({
 ## Environment Setup
 
 Required environment variables:
-- `DATABASE_URL` and `DIRECT_URL` for PostgreSQL
-- `NEXTAUTH_SECRET` and `NEXTAUTH_URL` for authentication
-- AWS S3 credentials for file storage
-- Email service credentials (Nodemailer/Resend)
-- Optional: OpenAI API key for AI features, Pusher for real-time updates
-- Weather API credentials for weather data integration
+- `DATABASE_URL` and `DIRECT_URL` for PostgreSQL connection
+- `NEXTAUTH_SECRET` and `NEXTAUTH_URL` for NextAuth.js authentication
+- AWS S3 credentials: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_S3_BUCKET_NAME`
+- Email service credentials (Nodemailer/Resend): `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`
+- Weather API: `WEATHER_API_KEY` for WeatherAPI integration
+- Optional: `OPENAI_API_KEY` for AI features, `PUSHER_*` credentials for real-time updates
 
 ## Key Dependencies
 

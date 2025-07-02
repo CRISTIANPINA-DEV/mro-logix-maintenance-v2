@@ -9,6 +9,8 @@ export type UserPermissions = {
   canEditFlightRecords: boolean;
   canExportPdfFlightRecords: boolean;
   canDeleteFlightRecords: boolean;
+  canAddTemporalFlightRecords: boolean;
+  canDeletePendingFlights: boolean;
   canViewStockInventory: boolean;
   canGenerateStockReport: boolean;
   canAddStockItem: boolean;
@@ -38,6 +40,8 @@ export async function getUserPermissions(userId: string): Promise<UserPermission
         canEditFlightRecords: false,
         canExportPdfFlightRecords: false,
         canDeleteFlightRecords: false,
+        canAddTemporalFlightRecords: false,
+        canDeletePendingFlights: false,
         canViewStockInventory: false,
         canGenerateStockReport: false,
         canAddStockItem: false,
@@ -60,6 +64,8 @@ export async function getUserPermissions(userId: string): Promise<UserPermission
       canEditFlightRecords: permissions.canEditFlightRecords,
       canExportPdfFlightRecords: permissions.canExportPdfFlightRecords,
       canDeleteFlightRecords: permissions.canDeleteFlightRecords,
+      canAddTemporalFlightRecords: permissions.canAddTemporalFlightRecords ?? false,
+      canDeletePendingFlights: permissions.canDeletePendingFlights ?? false,
       canViewStockInventory: permissions.canViewStockInventory,
       canGenerateStockReport: permissions.canGenerateStockReport,
       canAddStockItem: permissions.canAddStockItem,
@@ -174,4 +180,46 @@ export async function canUserDeleteTemperatureRecord(userId: string): Promise<bo
 export async function canUserSeeAuditManagement(userId: string): Promise<boolean> {
   const permissions = await getUserPermissions(userId);
   return permissions?.canSeeAuditManagement ?? false;
+}
+
+export async function canUserAddTemporalFlightRecords(userId: string): Promise<boolean> {
+  try {
+    // First check if the user is an admin
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { privilege: true }
+    });
+
+    if (user?.privilege === 'admin') {
+      return true;
+    }
+
+    // If not admin, check specific permission
+    const permissions = await getUserPermissions(userId);
+    return permissions?.canAddTemporalFlightRecords ?? false;
+  } catch (error) {
+    console.error("Error checking temporal flight add permission:", error);
+    return false;
+  }
+}
+
+export async function canUserDeletePendingFlights(userId: string): Promise<boolean> {
+  try {
+    // First check if the user is an admin
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { privilege: true }
+    });
+
+    if (user?.privilege === 'admin') {
+      return true;
+    }
+
+    // If not admin, check specific permission
+    const permissions = await getUserPermissions(userId);
+    return permissions?.canDeletePendingFlights ?? false;
+  } catch (error) {
+    console.error("Error checking pending flight delete permission:", error);
+    return false;
+  }
 } 

@@ -35,6 +35,13 @@ export const airlines: Airline[] = [
   { name: 'Aero Mongolia', icaoCode: 'MNG' },
   { name: 'Aero Nomad', icaoCode: 'ANK' },
   { name: 'Aero Sotravia', icaoCode: 'ASR' },
-  { name: 'Aero Tak', icaoCode: 'KAT' }
+  { name: 'Aero Tak', icaoCode: 'KAT' },
   // { name: 'AIRLINENAME', icaoCode: 'ICAO_CODE' },
+  { name: '	Aero Ways', icaoCode: 'TKK' },
+  { name: 'Aero-Beta Flight Training', icaoCode: 'ABA' },
+  { name: 'Aero-Dienst', icaoCode: 'ADN' },
+  { name: 'Aero-Tech Services', icaoCode: 'TEK' },
+  { name: 'Aeroclub Barcelona-Sabadell', icaoCode: 'BSO' },
+  { name: 'Aerodynamics Academy', icaoCode: 'DNC' },
+  { name: 'Aeroflot', icaoCode: 'AFL' }
 ];

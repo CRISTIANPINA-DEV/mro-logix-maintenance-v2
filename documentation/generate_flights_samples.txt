@@ -1,4 +1,4 @@
-# Taking into account the file, generate 10 samples flights. Date range 01-May-2025 to 27-June-2025
+# Taking into account the file, generate 100 samples flights. Date range 01-January-2025 to 27-June-2025. use format date mm/dd/yyy
 # Make sure to include every single information for all the fields in the file
 # Use real time information, don't feak information
 1. Date

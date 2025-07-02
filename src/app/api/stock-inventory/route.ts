@@ -34,12 +34,13 @@ export async function POST(request: Request) {
     const description = formData.get('description') as string;
     const partNo = formData.get('partNo') as string;
     const serialNo = formData.get('serialNo') as string;
-    const quantity = formData.get('quantity') as string;
+    const quantityStr = formData.get('quantity') as string;
+    const quantity = parseInt(quantityStr) || 0;
     const type = formData.get('type') as string;
     const location = formData.get('location') as string;
     
     // Validate required fields
-    if (!incomingDate || !station || !owner || !description || !partNo || !serialNo || !quantity || !type || !location) {
+    if (!incomingDate || !station || !owner || !description || !partNo || !serialNo || quantity <= 0 || !type || !location) {
       return NextResponse.json(
         { success: false, message: 'Missing required fields' },
         { status: 400 }

@@ -5,30 +5,32 @@ import {
   BarChart3Icon, 
   FileTextIcon, 
   HomeIcon, 
+  Settings2Icon, 
   UsersIcon, 
+  Clock3Icon,
   ShieldAlertIcon,
   FileSpreadsheetIcon,
   TriangleAlertIcon,
+  HandshakeIcon,
+  ChartNoAxesCombinedIcon,
+  DatabaseBackupIcon,
+  ClipboardIcon,
   PackageOpenIcon,
+  FileCogIcon,
+  CalendarCheck2Icon,
   ChevronDownIcon,
   ChevronRightIcon,
   ThermometerSnowflake,
   IdCardIcon,
   ClipboardCheckIcon,
+  DatabaseIcon,
+  ActivityIcon,
   GraduationCapIcon,
-  MessageSquareDot,
-  BuildingIcon,
-  BellIcon,
-  BookOpenIcon,
-  ScrollTextIcon,
-  FuelIcon,
-  RotateCw
+  MessageSquareDot
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useUserPermissions } from "@/hooks/useUserPermissions";
 
 import {
   Sidebar,
@@ -72,29 +74,34 @@ const menuItems = [
     icon: ThermometerSnowflake,
   },
   {
+    title: "Aircraft Parts Cycle",
+    url: "/dashboard/aircraft-parts-cycle",
+    icon: FileCogIcon,
+  },
+  {
     title: "Technical Queries",
     url: "/dashboard/technical-queries",
     icon: MessageSquareDot,
   },
   {
-    title: "Oil Consumption",
-    url: "/dashboard/oil-consumption",
-    icon: FuelIcon,
+    title: "Work Order Management",
+    url: "/dashboard/work-orders",
+    icon: CalendarCheck2Icon,
   },
   {
-    title: "Wheel Rotation",
-    url: "/dashboard/wheel-rotation",
-    icon: RotateCw,
+    title: "Employee Roster",
+    url: "/dashboard/roster",
+    icon: UsersIcon,
+  },
+  {
+    title: "Employee Shifts",
+    url: "/dashboard/employee-shifts",
+    icon: Clock3Icon,
   },
   {
     title: "Airport ID",
     url: "/dashboard/airport-id",
     icon: IdCardIcon,
-  },
-  {
-    title: "Technician Training",
-    url: "/dashboard/technician-training",
-    icon: GraduationCapIcon,
   },
   {
     title: "Audits Management",
@@ -112,85 +119,73 @@ const menuItems = [
     icon: TriangleAlertIcon,
   },
   {
+    title: "Customer & Vendor",
+    url: "/dashboard/customers-vendors",
+    icon: HandshakeIcon,
+  },
+  {
+    title: "Gantt Chart Schedule",
+    url: "/dashboard/gantt-chart-schedule",
+    icon: ChartNoAxesCombinedIcon,
+  },
+  {
     title: "Data Analytics",
     url: "/dashboard/data-analytics",
     icon: BarChart3Icon,
   },
   {
-    title: "Log Pages",
-    url: "/dashboard/log-pages",
-    icon: ScrollTextIcon,
+    title: "Forms Creation",
+    url: "/dashboard/forms-creation",
+    icon: FileTextIcon,
   },
   {
-    title: "Notification Center",
-    url: "/dashboard/notification-center",
-    icon: BellIcon,
+    title: "Log Pages",
+    url: "/dashboard/log-pages",
+    icon: FileTextIcon,
+  },
+  {
+    title: "Company Reports",
+    url: "/dashboard/company-reports",
+    icon: ClipboardIcon,
+  },
+  {
+    title: "AI Chat",
+    url: "/dashboard/ai-chat",
+    icon: Settings2Icon,
+  },
+  {
+    title: "Manage Data Records",
+    url: "/dashboard/manage-data-records",
+    icon: DatabaseIcon,
+  },
+  {
+    title: "User Activity",
+    url: "/dashboard/user-activity",
+    icon: ActivityIcon,
+  },
+  {
+    title: "Technician Training",
+    url: "/dashboard/technician-training",
+    icon: GraduationCapIcon,
   },
   {
     title: "Technical Publications",
-    url: "/dashboard/technical-publications",
-    icon: BookOpenIcon,
+    url: "/dashboard/document-management",
+    icon: FileTextIcon,
   },
 ];
+
+
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { setOpenMobile, isMobile } = useSidebar();
-  const { data: session } = useSession();
-  const { permissions } = useUserPermissions();
   const [safetyExpanded, setSafetyExpanded] = useState(false);
   const [employeeExpanded, setEmployeeExpanded] = useState(false);
   const [businessExpanded, setBusinessExpanded] = useState(false);
   const [documentationExpanded, setDocumentationExpanded] = useState(false);
   const [systemExpanded, setSystemExpanded] = useState(false);
   const [operationsExpanded, setOperationsExpanded] = useState(false);
-
-  // Filter menu items based on permissions
-  const getFilteredMenuItems = (items: string[]) => {
-    return items.filter(itemTitle => {
-      // If it's Flight Records, check the permission
-      if (itemTitle === "Flight Records") {
-        return permissions?.canViewFlightRecords ?? true;
-      }
-      // If it's Stock Inventory, check the permission
-      if (itemTitle === "Stock Inventory") {
-        return permissions?.canViewStockInventory ?? true;
-      }
-      // If it's Incoming Inspections, check the permission
-      if (itemTitle === "Incoming Inspections") {
-        return permissions?.canViewIncomingInspections ?? false;
-      }
-      // If it's Audits Management, check the permission
-      if (itemTitle === "Audits Management") {
-        return permissions?.canSeeAuditManagement ?? false;
-      }
-      // If it's Notification Center, check if user is admin
-      if (itemTitle === "Notification Center") {
-        return session?.user?.privilege === "admin";
-      }
-      // For other items, always show them
-      return true;
-    });
-  };
-
-  // Update data-sidebar-expanded attribute based on sidebar width
-  useEffect(() => {
-    const observer = new ResizeObserver((entries) => {
-      const sidebar = entries[0];
-      const mainContent = document.querySelector('[data-sidebar-expanded]');
-      if (mainContent && sidebar) {
-        const isExpanded = sidebar.contentRect.width > 64; // Collapsed sidebar is usually 64px or less
-        mainContent.setAttribute('data-sidebar-expanded', isExpanded.toString());
-      }
-    });
-
-    const sidebarElement = document.querySelector('.sidebar');
-    if (sidebarElement) {
-      observer.observe(sidebarElement);
-    }
-
-    return () => observer.disconnect();
-  }, []);
 
   // Function to handle navigation link clicks and close mobile sidebar
   const handleLinkClick = () => {
@@ -200,7 +195,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-border sidebar">
+    <Sidebar className="border-r border-border">
       <SidebarHeader className="px-4 py-3">
         <Link href="/dashboard" className="flex items-center gap-2" onClick={handleLinkClick}>
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
@@ -240,7 +235,7 @@ export function AppSidebar() {
         {/* Operations Group - Now Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-blue-50 dark:bg-blue-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-blue-50 dark:bg-blue-950/30"
             onClick={() => setOperationsExpanded(!operationsExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -259,8 +254,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => ["Flight Records", "Stock Inventory", "Incoming Inspections", "Temperature Control", "Technical Queries", "Oil Consumption", "Wheel Rotation"].includes(item.title))
-                  .filter(item => getFilteredMenuItems([item.title]).includes(item.title))
+                  .filter(item => ["Flight Records", "Stock Inventory", "Incoming Inspections", "Temperature Control", "Aircraft Parts Cycle", "Technical Queries"].includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -282,7 +276,7 @@ export function AppSidebar() {
         {/* Safety Group - Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-red-50 dark:bg-red-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-red-50 dark:bg-red-950/30"
             onClick={() => setSafetyExpanded(!safetyExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -302,7 +296,6 @@ export function AppSidebar() {
               <SidebarMenu>
                 {menuItems
                   .filter(item => ["Audits Management", "SMS Reports", "Service Difficulty Reports"].includes(item.title))
-                  .filter(item => getFilteredMenuItems([item.title]).includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -324,7 +317,7 @@ export function AppSidebar() {
         {/* Employee Group - Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-purple-50 dark:bg-purple-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-purple-50 dark:bg-purple-950/30"
             onClick={() => setEmployeeExpanded(!employeeExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -343,7 +336,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => ["Airport ID", "Technician Training"].includes(item.title))
+                  .filter(item => ["Employee Roster", "Employee Shifts", "Airport ID", "Technician Training"].includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -365,7 +358,7 @@ export function AppSidebar() {
         {/* Business Group - Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-emerald-50 dark:bg-emerald-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-emerald-50 dark:bg-emerald-950/30"
             onClick={() => setBusinessExpanded(!businessExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -384,8 +377,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => ["Data Analytics", "Notification Center"].includes(item.title))
-                  .filter(item => getFilteredMenuItems([item.title]).includes(item.title))
+                  .filter(item => ["Work Order Management", "Customer & Vendor", "Data Analytics", "Gantt Chart Schedule", "Company Reports"].includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -407,7 +399,7 @@ export function AppSidebar() {
         {/* Documentation Group - Collapsible */}
         <SidebarGroup className="py-1">
           <div 
-            className="flex items-center justify-between cursor-pointer px-2 py-1 hover:bg-sidebar-accent/50 bg-amber-50 dark:bg-amber-950/30"
+            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-amber-50 dark:bg-amber-950/30"
             onClick={() => setDocumentationExpanded(!documentationExpanded)}
           >
             <div className="flex items-center gap-2">
@@ -426,7 +418,48 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {menuItems
-                  .filter(item => ["Log Pages", "Technical Publications"].includes(item.title))
+                  .filter(item => ["Forms Creation", "Log Pages", "Technical Publications"].includes(item.title))
+                  .map((item) => {
+                    const isActive = pathname === item.url;
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild isActive={isActive}>
+                          <Link href={item.url} onClick={handleLinkClick}>
+                            <item.icon className="h-4 w-4" strokeWidth={1} />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </div>
+        </SidebarGroup>
+
+        {/* System Group - Collapsible */}
+        <SidebarGroup className="py-1">
+          <div 
+            className="flex items-center justify-between cursor-pointer px-2 py-1 rounded-md hover:bg-sidebar-accent/50 bg-slate-50 dark:bg-slate-950/30"
+            onClick={() => setSystemExpanded(!systemExpanded)}
+          >
+            <div className="flex items-center gap-2">
+              <Settings2Icon className="h-4 w-4 text-slate-500" />
+              <SidebarGroupLabel className="cursor-pointer uppercase font-medium">System</SidebarGroupLabel>
+            </div>
+            {systemExpanded ? (
+              <ChevronDownIcon className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+            )}
+          </div>
+          <div 
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${systemExpanded ? 'max-h-96' : 'max-h-0'}`}
+          >
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {menuItems
+                  .filter(item => ["AI Chat", "Manage Data Records", "User Activity", "Settings"].includes(item.title))
                   .map((item) => {
                     const isActive = pathname === item.url;
                     return (
@@ -447,13 +480,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4 text-xs text-muted-foreground">
         <div className="flex flex-col space-y-1">
-          {session?.user?.companyName && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-              <BuildingIcon className="h-3 w-3" />
-              <span className="font-medium uppercase">{session.user.companyName}</span>
-            </div>
-          )}
-          <p>&copy; V.1 Beta 30-Jun-25</p>
+          <p>&copy; 2025 MRO Logix v1.0.0</p>
         </div>
       </SidebarFooter>
     </Sidebar>

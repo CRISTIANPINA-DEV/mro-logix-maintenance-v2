@@ -26,6 +26,8 @@ type UserPermissions = {
   canEditFlightRecords: boolean;
   canExportPdfFlightRecords: boolean;
   canDeleteFlightRecords: boolean;
+  canAddTemporalFlightRecords: boolean;
+  canDeletePendingFlights: boolean;
   canViewStockInventory: boolean;
   canGenerateStockReport: boolean;
   canAddStockItem: boolean;
@@ -120,6 +122,8 @@ export function UserPermissionsModal({ isOpen, onClose, user, onPermissionsChang
           canEditFlightRecords: updatedPermissions.canEditFlightRecords,
           canExportPdfFlightRecords: updatedPermissions.canExportPdfFlightRecords,
           canDeleteFlightRecords: updatedPermissions.canDeleteFlightRecords,
+          canAddTemporalFlightRecords: updatedPermissions.canAddTemporalFlightRecords,
+          canDeletePendingFlights: updatedPermissions.canDeletePendingFlights,
           canViewStockInventory: updatedPermissions.canViewStockInventory,
           canGenerateStockReport: updatedPermissions.canGenerateStockReport,
           canAddStockItem: updatedPermissions.canAddStockItem,
@@ -347,6 +351,56 @@ export function UserPermissionsModal({ isOpen, onClose, user, onPermissionsChang
                         value={permissions.canDeleteFlightRecords ? "YES" : "NO"}
                         onValueChange={(value) => 
                           handlePermissionChange("canDeleteFlightRecords", value === "YES")
+                        }
+                        disabled={saving}
+                      >
+                        <SelectTrigger className="w-16 h-7 text-xs rounded-none border border-input">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="YES">YES</SelectItem>
+                          <SelectItem value="NO">NO</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Add Temporal Flight Records Permission */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium">Can add Temporal Flight Records</label>
+                        <p className="text-xs text-muted-foreground">
+                          Allow user to see and use the Add Flight button in Pending Flight Records
+                        </p>
+                      </div>
+                      <Select
+                        value={permissions.canAddTemporalFlightRecords ? "YES" : "NO"}
+                        onValueChange={(value) => 
+                          handlePermissionChange("canAddTemporalFlightRecords", value === "YES")
+                        }
+                        disabled={saving}
+                      >
+                        <SelectTrigger className="w-16 h-7 text-xs rounded-none border border-input">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="YES">YES</SelectItem>
+                          <SelectItem value="NO">NO</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Delete Existing Pending Flights Permission */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium">Can delete existing pending flights</label>
+                        <p className="text-xs text-muted-foreground">
+                          Allow user to see and use the delete button icon in existing pending flights
+                        </p>
+                      </div>
+                      <Select
+                        value={permissions.canDeletePendingFlights ? "YES" : "NO"}
+                        onValueChange={(value) => 
+                          handlePermissionChange("canDeletePendingFlights", value === "YES")
                         }
                         disabled={saving}
                       >

@@ -10,6 +10,8 @@ export type UserPermissions = {
   canEditFlightRecords: boolean;
   canExportPdfFlightRecords: boolean;
   canDeleteFlightRecords: boolean;
+  canAddTemporalFlightRecords: boolean;
+  canDeletePendingFlights: boolean;
   canViewStockInventory: boolean;
   canGenerateStockReport: boolean;
   canAddStockItem: boolean;
@@ -40,6 +42,8 @@ export function useUserPermissions() {
           canEditFlightRecords: true,
           canExportPdfFlightRecords: true,
           canDeleteFlightRecords: true,
+          canAddTemporalFlightRecords: true,
+          canDeletePendingFlights: true,
           canViewStockInventory: true,
           canGenerateStockReport: true,
           canAddStockItem: true,
@@ -79,6 +83,8 @@ export function useUserPermissions() {
           canEditFlightRecords: false,
           canExportPdfFlightRecords: false,
           canDeleteFlightRecords: false,
+          canAddTemporalFlightRecords: false,
+          canDeletePendingFlights: false,
           canViewStockInventory: false,
           canGenerateStockReport: false,
           canAddStockItem: false,
@@ -101,6 +107,8 @@ export function useUserPermissions() {
           canEditFlightRecords: false,
           canExportPdfFlightRecords: false,
           canDeleteFlightRecords: false,
+          canAddTemporalFlightRecords: false,
+          canDeletePendingFlights: false,
           canViewStockInventory: false,
           canGenerateStockReport: true,
           canAddStockItem: false,
@@ -125,6 +133,8 @@ export function useUserPermissions() {
         canEditFlightRecords: false,
         canExportPdfFlightRecords: false,
         canDeleteFlightRecords: false,
+        canAddTemporalFlightRecords: false,
+        canDeletePendingFlights: false,
         canViewStockInventory: false,
         canGenerateStockReport: true,
         canAddStockItem: false,

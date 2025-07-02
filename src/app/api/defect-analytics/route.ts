@@ -181,8 +181,8 @@ export async function GET(request: NextRequest) {
     });
 
     const fleetTypeChartData = fleetTypeDistributionRaw
-      .filter((item: { fleet: string; _count: { id: number } }) => item.fleet) // Ensure fleet is not null
-      .map((item: { fleet: string; _count: { id: number } }) => ({
+      .filter((item): item is { fleet: string; _count: { id: number } } => item.fleet !== null) // Type guard to ensure fleet is not null
+      .map((item) => ({
         name: item.fleet,
         value: item._count.id,
       }));

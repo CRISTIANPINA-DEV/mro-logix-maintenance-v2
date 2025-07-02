@@ -40,7 +40,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
   const [description, setDescription] = useState<string>("");
   const [partNo, setPartNo] = useState<string>("");
   const [serialNo, setSerialNo] = useState<string>("");
-  const [quantity, setQuantity] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
   const [hasExpireDate, setHasExpireDate] = useState<string>("no");
   const [expireDate, setExpireDate] = useState<string>("");
   const [type, setType] = useState<string>("");
@@ -192,7 +192,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (!incomingDate || !station || !owner || !description || !partNo || !serialNo || !quantity || !type || !location) {
+    if (!incomingDate || !station || !owner || !description || !partNo || !serialNo || quantity <= 0 || !type || !location) {
       toast({
         title: "Missing required fields",
         description: "Please fill in all required fields.",
@@ -334,7 +334,7 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
       formData.append('description', description);
       formData.append('partNo', partNo);
       formData.append('serialNo', serialNo);
-      formData.append('quantity', quantity);
+      formData.append('quantity', quantity.toString());
       formData.append('hasExpireDate', hasExpireDate);
       if (hasExpireDate === "yes") {
         formData.append('expireDate', expireDate);
@@ -582,12 +582,13 @@ export function AddStockInventoryForm({ onClose }: AddStockInventoryFormProps) {
           <div className="w-full md:w-1/3 px-2 mb-4">
             <Label htmlFor="quantity" className="text-sm sm:text-base">Quantity</Label>
             <Input
-              type="text"
+              type="number"
               id="quantity"
+              min="1"
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
               placeholder="Enter quantity"
-              className={`mt-1 w-full ${quantity ? 'bg-green-50' : ''}`}
+              className={`mt-1 w-full ${quantity > 0 ? 'bg-green-50' : ''}`}
               autoComplete="off"
             />
           </div>

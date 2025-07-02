@@ -46,7 +46,9 @@ export async function GET() {
 
     // For each fleet type, get the count of affected systems - filtered by company
     const fleetAnalytics = await Promise.all(
-      fleetTypes.map(async (fleet: { fleet: string; _count: { id: number } }) => {
+      fleetTypes
+        .filter((fleet): fleet is { fleet: string; _count: { id: number } } => fleet.fleet !== null && fleet.fleet !== "")
+        .map(async (fleet) => {
         const affectedSystems = await prisma.flightRecord.groupBy({
           by: ['systemAffected'],
           where: {

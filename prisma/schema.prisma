@@ -58,6 +58,7 @@ model Company {
   oilServiceAttachments         OilServiceAttachment[]
   wheelRotations                WheelRotation[]
   wheelRotationHistory          WheelRotationHistory[]
+  stockInventoryUsageHistory    StockInventoryUsageHistory[]
 }
 
 model Attachment {
@@ -95,9 +96,10 @@ model FlightRecord {
   id                String            @id @default(uuid())
   date              DateTime
   airline           String
-  fleet             String
+  fleet             String?
   station           String
-  service           String
+  service           String?
+  isTemporary       Boolean           @default(false)
   tail              String?
   hasTime           Boolean           @default(false)
   blockTime         String?
@@ -191,6 +193,10 @@ model UserPermission {
   canExportPdfFlightRecords Boolean @default(true)
   canDeleteFlightRecords  Boolean @default(false)
   
+  // Temporal Flight Records Permissions
+  canAddTemporalFlightRecords Boolean @default(false)
+  canDeletePendingFlights   Boolean @default(false)
+  
   // Stock Inventory Permissions
   canViewStockInventory   Boolean @default(true)
   canGenerateStockReport    Boolean @default(true)
@@ -244,7 +250,7 @@ model StockInventory {
   description       String
   partNo            String
   serialNo          String
-  quantity          String
+  quantity          Int // Changed from String to Int for proper quantity calculations
   hasExpireDate     Boolean                    @default(false)
   expireDate        DateTime?
   type              String
@@ -263,7 +269,28 @@ model StockInventory {
   updatedAt         DateTime                   @updatedAt
   Attachment        StockInventoryAttachment[]
   IncomingInspection    IncomingInspection[]
+  usageHistory      StockInventoryUsageHistory[]
   @@index([companyId])
+}
+
+model StockInventoryUsageHistory {
+  companyId         String
+  company           Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id                String   @id @default(uuid())
+  stockInventoryId  String
+  stockInventory    StockInventory @relation(fields: [stockInventoryId], references: [id], onDelete: Cascade)
+  usedQuantity      Int      // Quantity used in this transaction
+  remainingQuantity Int      // Remaining quantity after this usage
+  usedBy            String   // User ID who used the items
+  usedByName        String   // User name for display purposes
+  purpose           String?  // Optional purpose or reason for usage
+  notes             String?  // Optional additional notes
+  usedAt            DateTime @default(now())
+  createdAt         DateTime @default(now())
+  
+  @@index([companyId])
+  @@index([stockInventoryId])
+  @@index([usedAt])
 }
 
 model TemperatureControl {

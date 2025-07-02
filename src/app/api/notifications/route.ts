@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
+import { config } from '@/lib/auth';
 
 // GET - Fetch notifications for the current user
 export async function GET(request: NextRequest) {
@@ -12,13 +13,18 @@ export async function GET(request: NextRequest) {
       'Content-Type': 'application/json',
     });
 
-    const auth = await requireAuth(request);
-    if (auth.error) {
-      return NextResponse.json(auth.error, { status: auth.status, headers });
-    }
-    const currentUser = auth.user;
+    // Get the authenticated session
+    const session = await getServerSession(config);
 
-    if (!currentUser?.id || !currentUser?.companyId) {
+    // Check if user is authenticated
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { success: false, message: 'Authentication required' },
+        { status: 401, headers }
+      );
+    }
+
+    if (!session.user.id || !session.user.companyId) {
       return NextResponse.json(
         { success: false, message: 'Invalid user session' },
         { status: 401, headers }
@@ -31,8 +37,8 @@ export async function GET(request: NextRequest) {
 
     // Build the where clause - exclude soft-deleted notifications
     const where = {
-      userId: currentUser.id,
-      companyId: currentUser.companyId,
+      userId: session.user.id,
+      companyId: session.user.companyId,
       deletedAt: null, // Only show non-deleted notifications
       ...(archived !== null ? { isArchived: archived === 'true' } : {})
     };
@@ -69,13 +75,18 @@ export async function POST(request: NextRequest) {
   try {
     console.log('Creating new notification...');
     
-    const auth = await requireAuth(request);
-    if (auth.error) {
-      console.error('Authentication error:', auth.error);
-      return NextResponse.json(auth.error, { status: auth.status });
+    // Get the authenticated session
+    const session = await getServerSession(config);
+    
+    // Check if user is authenticated
+    if (!session || !session.user) {
+      console.error('Authentication error: No session or user');
+      return NextResponse.json(
+        { success: false, message: 'Authentication required' },
+        { status: 401 }
+      );
     }
-    const currentUser = auth.user;
-    console.log('Authenticated user:', { id: currentUser.id, companyId: currentUser.companyId });
+    console.log('Authenticated user:', { id: session.user.id, companyId: session.user.companyId });
 
     const body = await request.json();
     const { title, message, userId } = body;
@@ -94,12 +105,12 @@ export async function POST(request: NextRequest) {
     const targetUser = await prisma.user.findFirst({
       where: {
         id: userId,
-        companyId: currentUser.companyId
+        companyId: session.user.companyId
       }
     });
 
     if (!targetUser) {
-      console.error('Target user not found or not in same company:', { userId, companyId: currentUser.companyId });
+      console.error('Target user not found or not in same company:', { userId, companyId: session.user.companyId });
       return NextResponse.json(
         { success: false, message: 'Invalid target user' },
         { status: 400 }
@@ -114,7 +125,7 @@ export async function POST(request: NextRequest) {
         title,
         message,
         userId,
-        companyId: currentUser.companyId
+        companyId: session.user.companyId
       }
     });
     console.log('Notification created successfully:', notification);

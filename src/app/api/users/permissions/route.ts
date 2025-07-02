@@ -64,6 +64,8 @@ export async function GET(request: Request) {
           canEditFlightRecords: false,
           canExportPdfFlightRecords: true,
           canDeleteFlightRecords: false,
+          canAddTemporalFlightRecords: false,
+          canDeletePendingFlights: false,
           canViewStockInventory: true,
           canGenerateStockReport: true,
           canAddStockItem: false,
@@ -88,7 +90,9 @@ export async function GET(request: Request) {
                          userPermissions.canViewIncomingInspections === undefined ||
                          userPermissions.canAddIncomingInspections === undefined ||
                          userPermissions.canDeleteIncomingInspections === undefined ||
-                         userPermissions.canSeeAuditManagement === undefined;
+                         userPermissions.canSeeAuditManagement === undefined ||
+                         userPermissions.canAddTemporalFlightRecords === undefined ||
+                         userPermissions.canDeletePendingFlights === undefined;
       
       if (needsUpdate) {
         userPermissions = await prisma.userPermission.update({
@@ -103,6 +107,8 @@ export async function GET(request: Request) {
             canAddIncomingInspections: userPermissions.canAddIncomingInspections ?? false,
             canDeleteIncomingInspections: userPermissions.canDeleteIncomingInspections ?? false,
             canSeeAuditManagement: userPermissions.canSeeAuditManagement ?? false,
+            canAddTemporalFlightRecords: userPermissions.canAddTemporalFlightRecords ?? false,
+            canDeletePendingFlights: userPermissions.canDeletePendingFlights ?? false,
           },
         });
       }
@@ -142,6 +148,8 @@ export async function PATCH(request: Request) {
       canEditFlightRecords,
       canExportPdfFlightRecords,
       canDeleteFlightRecords,
+      canAddTemporalFlightRecords,
+      canDeletePendingFlights,
       canViewStockInventory,
       canGenerateStockReport,
       canAddStockItem,
@@ -195,6 +203,8 @@ export async function PATCH(request: Request) {
         canEditFlightRecords: canEditFlightRecords ?? false,
         canExportPdfFlightRecords: canExportPdfFlightRecords ?? true,
         canDeleteFlightRecords: canDeleteFlightRecords ?? false,
+        canAddTemporalFlightRecords: canAddTemporalFlightRecords ?? false,
+        canDeletePendingFlights: canDeletePendingFlights ?? false,
         canViewStockInventory: canViewStockInventory ?? true,
         canGenerateStockReport: canGenerateStockReport ?? true,
         canAddStockItem: canAddStockItem ?? false,
@@ -217,6 +227,8 @@ export async function PATCH(request: Request) {
         canEditFlightRecords: canEditFlightRecords ?? false,
         canExportPdfFlightRecords: canExportPdfFlightRecords ?? true,
         canDeleteFlightRecords: canDeleteFlightRecords ?? false,
+        canAddTemporalFlightRecords: canAddTemporalFlightRecords ?? false,
+        canDeletePendingFlights: canDeletePendingFlights ?? false,
         canViewStockInventory: canViewStockInventory ?? true,
         canGenerateStockReport: canGenerateStockReport ?? true,
         canAddStockItem: canAddStockItem ?? false,

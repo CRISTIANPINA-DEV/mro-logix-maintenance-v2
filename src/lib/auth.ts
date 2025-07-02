@@ -148,14 +148,43 @@ export async function getAuthenticatedUser() {
   }
 }
 
-// Helper function to check if a user is authenticated
-export async function requireAuth(request: NextRequest) {
-  const user = await getAuthenticatedUser();
-  if (!user) {
+// Helper function to check if a user is authenticated for API routes
+export async function requireAuth(request?: NextRequest) {
+  try {
+    // For API routes, we need to get the session differently
+    const session = await getNextAuthSession(config);
+    if (!session?.user?.id) {
+      return {
+        error: { success: false, message: 'Authentication required' },
+        status: 401
+      };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { 
+        id: true, 
+        firstName: true, 
+        lastName: true,
+        email: true,
+        username: true,
+        companyId: true
+      }
+    });
+
+    if (!user) {
+      return {
+        error: { success: false, message: 'User not found' },
+        status: 401
+      };
+    }
+
+    return { user };
+  } catch (error) {
+    console.error('Error in requireAuth:', error);
     return {
-      error: { success: false, message: 'Authentication required' },
-      status: 401
+      error: { success: false, message: 'Authentication failed' },
+      status: 500
     };
   }
-  return { user };
 } 

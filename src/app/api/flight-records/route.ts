@@ -113,6 +113,7 @@ export async function POST(request: Request) {
           tail: tail || null,
           station,
           service,
+          isTemporary: false, // Regular flights are not temporary
           hasTime,
           blockTime: hasTime ? blockTime : null,
           outTime: hasTime ? outTime : null,
@@ -248,10 +249,11 @@ export async function GET() {
       );
     }
 
-    // Fetch flight records filtered by company
+    // Fetch flight records filtered by company, excluding temporal flights
     const records = await prisma.flightRecord.findMany({
       where: {
-        companyId: session.user.companyId
+        companyId: session.user.companyId,
+        isTemporary: false // Only show completed flight records
       },
       include: {
         Attachment: true,

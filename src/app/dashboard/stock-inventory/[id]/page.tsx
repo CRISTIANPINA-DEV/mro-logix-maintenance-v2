@@ -3,8 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Download, Trash2, ArrowLeft, MoreHorizontal, Package, Calendar, User, MapPin, Hash, FileText, Clock, CheckCircle, XCircle, MessageSquare, Paperclip, FileDown } from "lucide-react";
+import { Download, Trash2, ArrowLeft, MoreHorizontal, Package, Calendar, User, MapPin, Hash, FileText, Clock, CheckCircle, XCircle, MessageSquare, Paperclip, FileDown, Minus, History, TrendingDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,7 +34,7 @@ interface StockInventory {
   description: string;
   partNo: string;
   serialNo: string;
-  quantity: string;
+  quantity: number;
   hasExpireDate: boolean;
   expireDate: string | null;
   type: string;
@@ -54,6 +56,42 @@ interface StockInventory {
   }>;
 }
 
+interface UsageRecord {
+  id: string;
+  usedQuantity: number;
+  remainingQuantity: number;
+  usedBy: string;
+  usedByName: string;
+  purpose: string | null;
+  notes: string | null;
+  usedAt: string;
+}
+
+interface UsageHistory {
+  stockItem: {
+    id: string;
+    partNo: string;
+    serialNo: string;
+    description: string;
+    currentQuantity: number;
+  };
+  usageHistory: UsageRecord[];
+  statistics: {
+    totalUsageRecords: number;
+    totalQuantityUsed: number;
+    currentQuantity: number;
+    lastUsedAt: string | null;
+    lastUsedBy: string | null;
+    uniqueUsers: number;
+  };
+  dailySummary: Array<{
+    date: string;
+    totalUsed: number;
+    recordCount: number;
+    users: string[];
+  }>;
+}
+
 export default function StockInventoryItemPage({ params }: { params: Promise<{ id: string }> }) {
   const [id, setId] = useState<string>("");
   const [record, setRecord] = useState<StockInventory | null>(null);
@@ -63,6 +101,19 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
   const [deleteText, setDeleteText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
+  
+  // Usage functionality state
+  const [showUseQuantityDialog, setShowUseQuantityDialog] = useState(false);
+  const [useQuantityAmount, setUseQuantityAmount] = useState<number>(1);
+  const [usePurpose, setUsePurpose] = useState("");
+  const [useNotes, setUseNotes] = useState("");
+  const [isUsingQuantity, setIsUsingQuantity] = useState(false);
+  
+  // Usage history state
+  const [showUsageHistory, setShowUsageHistory] = useState(false);
+  const [usageHistory, setUsageHistory] = useState<UsageHistory | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  
   const { toast } = useToast();
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -79,7 +130,7 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
   }, [params]);
   
   const fetchRecord = useCallback(async (abortController?: AbortController) => {
-    if (!id || isDeleted) return; // Don't fetch if id is not available yet or record is deleted
+    if (!id || isDeleted) return;
     
     try {
       setIsLoading(true);
@@ -87,7 +138,6 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
         signal: abortController?.signal
       });
       
-      // Check if the request was aborted
       if (abortController?.signal.aborted) {
         return;
       }
@@ -100,7 +150,6 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
         throw new Error(data.message || 'Failed to fetch record');
       }
     } catch (error) {
-      // Only log error and show toast if request wasn't aborted
       if (error instanceof Error && error.name !== 'AbortError') {
         console.error('Error fetching stock inventory record:', error);
         toast({
@@ -131,8 +180,6 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
     };
   }, [fetchRecord, id]);
 
-
-
   const handleDownload = async (fileKey: string, fileName: string) => {
     try {
       const response = await fetch(`/api/stock-inventory/attachments/${encodeURIComponent(fileKey)}`);
@@ -155,6 +202,102 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
     }
   };
 
+  const handleUseQuantity = async () => {
+    if (!record || useQuantityAmount <= 0) {
+      toast({
+        title: "Invalid quantity",
+        description: "Please enter a valid quantity to use",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (useQuantityAmount > record.quantity) {
+      toast({
+        title: "Insufficient quantity",
+        description: `Cannot use ${useQuantityAmount} units. Only ${record.quantity} available.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsUsingQuantity(true);
+    try {
+      const response = await fetch(`/api/stock-inventory/${id}/use-quantity`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          usedQuantity: useQuantityAmount,
+          purpose: usePurpose.trim() || null,
+          notes: useNotes.trim() || null
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setRecord(prev => prev ? { ...prev, quantity: data.data.remainingQuantity } : null);
+        
+        toast({
+          title: "Success",
+          description: data.message
+        });
+        
+        setUseQuantityAmount(1);
+        setUsePurpose("");
+        setUseNotes("");
+        setShowUseQuantityDialog(false);
+        
+        if (showUsageHistory) {
+          fetchUsageHistory();
+        }
+      } else {
+        throw new Error(data.message || 'Failed to use quantity');
+      }
+    } catch (error) {
+      console.error('Error using quantity:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to use quantity",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUsingQuantity(false);
+    }
+  };
+  
+  const fetchUsageHistory = async () => {
+    if (!id) return;
+    
+    setIsLoadingHistory(true);
+    try {
+      const response = await fetch(`/api/stock-inventory/${id}/usage-history`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setUsageHistory(data.data);
+      } else {
+        throw new Error(data.message || 'Failed to fetch usage history');
+      }
+    } catch (error) {
+      console.error('Error fetching usage history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch usage history",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+  
+  const handleShowUsageHistory = () => {
+    setShowUsageHistory(true);
+    fetchUsageHistory();
+  };
+
   const handleGeneratePDF = async () => {
     if (!record) {
       toast({
@@ -166,223 +309,18 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
     }
 
     try {
-      // Dynamic import to avoid SSR issues
       const jsPDF = (await import('jspdf')).default;
-      
       const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.width;
-      const pageHeight = doc.internal.pageSize.height;
-      const margin = 20;
-      const maxWidth = pageWidth - (margin * 2);
-      const footerHeight = 30;
-      const maxContentHeight = pageHeight - footerHeight - 10;
-      let yPosition = 30;
-
-      // Helper function to check if we need a new page
-      const checkPageBreak = (requiredSpace: number = 20) => {
-        if (yPosition + requiredSpace > maxContentHeight) {
-          doc.addPage();
-          yPosition = 30;
-          return true;
-        }
-        return false;
-      };
-
-      // Helper function to add text with word wrapping and page break handling
-      const addText = (text: string, x: number, y: number, options: any = {}) => {
-        const fontSize = options.fontSize || 12;
-        doc.setFontSize(fontSize);
-        doc.setFont(options.font || 'helvetica', options.style || 'normal');
-        
-        const lines = doc.splitTextToSize(text, options.maxWidth || maxWidth);
-        const textHeight = lines.length * fontSize * 0.4;
-        
-        // Check if we need a new page for this text
-        if (y + textHeight + (options.marginBottom || 5) > maxContentHeight) {
-          doc.addPage();
-          y = 30;
-        }
-        
-        doc.text(lines, x, y);
-        return y + textHeight + (options.marginBottom || 5);
-      };
-
-      // Helper function to add section header with page break check
-      const addSectionHeader = (title: string, currentY: number) => {
-        checkPageBreak(25); // Ensure space for header + some content
-        
-        doc.setFillColor(240, 240, 240);
-        doc.rect(margin - 5, yPosition - 5, maxWidth + 10, 8, 'F');
-        yPosition = addText(title, margin, yPosition, { 
-          fontSize: 14, 
-          style: 'bold',
-          marginBottom: 8
-        });
-        return yPosition;
-      };
-
-      // Add footer to each page
-      const addFooter = () => {
-        const footerY = pageHeight - 20;
-        doc.setFillColor(240, 240, 240);
-        doc.rect(0, footerY - 10, pageWidth, 30, 'F');
-        doc.setTextColor(100, 100, 100);
-        doc.setFontSize(8);
-        doc.text(`Document ID: ${record.id}`, margin, footerY);
-        doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy • h:mm a')}`, pageWidth - margin - 80, footerY);
-        doc.setTextColor(0, 0, 0); // Reset to black
-      };
-
-      // Header
-      doc.setFillColor(59, 130, 246); // Blue background
-      doc.rect(0, 0, pageWidth, 50, 'F');
       
-      doc.setTextColor(255, 255, 255); // White text
-      yPosition = addText('STOCK INVENTORY REPORT', margin, 25, { 
-        fontSize: 20, 
-        font: 'helvetica', 
-        style: 'bold',
-        marginBottom: 10 
-      });
+      // Simple PDF generation - you can expand this based on your needs
+      doc.setFontSize(16);
+      doc.text('Stock Inventory Report', 20, 20);
+      doc.setFontSize(12);
+      doc.text(`Part Number: ${record.partNo}`, 20, 40);
+      doc.text(`Serial Number: ${record.serialNo}`, 20, 50);
+      doc.text(`Quantity: ${record.quantity}`, 20, 60);
+      doc.text(`Description: ${record.description}`, 20, 70);
       
-      doc.setTextColor(200, 200, 200); // Light gray text
-      yPosition = addText(`Generated on ${format(new Date(), 'MMM d, yyyy • h:mm a')}`, margin, yPosition - 5, { 
-        fontSize: 10,
-        marginBottom: 15
-      });
-
-      yPosition = 70; // Reset position after header
-      doc.setTextColor(0, 0, 0); // Black text for content
-
-      // Part Identification Section
-      yPosition = addSectionHeader('PART IDENTIFICATION', yPosition);
-      yPosition = addText(`Part Number: ${record.partNo}`, margin + 10, yPosition, { 
-        fontSize: 11, 
-        style: 'bold',
-        marginBottom: 3
-      });
-      yPosition = addText(`Serial Number: ${record.serialNo}`, margin + 10, yPosition, { 
-        fontSize: 11, 
-        style: 'bold',
-        marginBottom: 3
-      });
-      yPosition = addText(`Quantity: ${record.quantity}`, margin + 10, yPosition, { 
-        fontSize: 11, 
-        style: 'bold',
-        marginBottom: 3
-      });
-      yPosition = addText(`Type: ${record.type}`, margin + 10, yPosition, { 
-        fontSize: 11, 
-        style: 'bold',
-        marginBottom: 10
-      });
-
-      // Description Section
-      yPosition = addSectionHeader('DESCRIPTION', yPosition);
-      yPosition = addText(record.description, margin + 10, yPosition, { 
-        fontSize: 10,
-        maxWidth: maxWidth - 20,
-        marginBottom: 10
-      });
-
-      // Location & Ownership Section
-      yPosition = addSectionHeader('LOCATION & OWNERSHIP', yPosition);
-      yPosition = addText(`Station: ${record.station}`, margin + 10, yPosition, { 
-        fontSize: 11,
-        marginBottom: 3
-      });
-      yPosition = addText(`Owner: ${record.owner}`, margin + 10, yPosition, { 
-        fontSize: 11,
-        marginBottom: 3
-      });
-      yPosition = addText(`Location: ${record.location}`, margin + 10, yPosition, { 
-        fontSize: 11,
-        marginBottom: 3
-      });
-      if (record.technician) {
-        yPosition = addText(`Assigned Technician: ${record.technician}`, margin + 10, yPosition, { 
-          fontSize: 11,
-          marginBottom: 10
-        });
-      } else {
-        yPosition += 7;
-      }
-
-      // Dates & Timeline Section
-      yPosition = addSectionHeader('DATES & TIMELINE', yPosition);
-      yPosition = addText(`Incoming Date: ${format(new Date(record.incomingDate), 'MMM d, yyyy (EEEE)')}`, margin + 10, yPosition, { 
-        fontSize: 11,
-        marginBottom: 3
-      });
-      
-      if (record.hasExpireDate && record.expireDate) {
-        const today = new Date();
-        const expiryDate = new Date(record.expireDate);
-        const diffTime = expiryDate.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const status = diffDays <= 0 ? 'EXPIRED' : diffDays <= 30 ? 'EXPIRING SOON' : 'CURRENT';
-        
-        yPosition = addText(`Expiry Date: ${format(expiryDate, 'MMM d, yyyy')} (${status})`, margin + 10, yPosition, { 
-          fontSize: 11,
-          marginBottom: 10
-        });
-      } else {
-        yPosition += 7;
-      }
-
-      // Inspection Status Section
-      if (record.hasInspection) {
-        yPosition = addSectionHeader('INSPECTION STATUS', yPosition);
-        yPosition = addText(`Result: ${record.inspectionResult}`, margin + 10, yPosition, { 
-          fontSize: 11,
-          style: 'bold',
-          marginBottom: 3
-        });
-        
-        if (record.inspectionResult === "Failed") {
-          const failureReason = record.inspectionFailure === "Other" ? record.customFailure : record.inspectionFailure;
-          yPosition = addText(`Failure Reason: ${failureReason}`, margin + 10, yPosition, { 
-            fontSize: 11,
-            maxWidth: maxWidth - 20,
-            marginBottom: 10
-          });
-        } else {
-          yPosition += 7;
-        }
-      }
-
-      // Comments Section
-      if (record.hasComment && record.comment) {
-        yPosition = addSectionHeader('ADDITIONAL COMMENTS', yPosition);
-        yPosition = addText(record.comment, margin + 10, yPosition, { 
-          fontSize: 10,
-          maxWidth: maxWidth - 20,
-          marginBottom: 10
-        });
-      }
-
-      // Attachments Section
-      if (record.hasAttachments && record.Attachment.length > 0) {
-        yPosition = addSectionHeader('ATTACHMENTS', yPosition);
-        
-        record.Attachment.forEach((attachment) => {
-          checkPageBreak(15); // Check space before each attachment
-          yPosition = addText(`• ${attachment.fileName} (${(attachment.fileSize / 1024).toFixed(1)} KB)`, margin + 10, yPosition, { 
-            fontSize: 10,
-            marginBottom: 2
-          });
-        });
-        yPosition += 5;
-      }
-
-      // Add footer to all pages
-      const totalPages = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        addFooter();
-      }
-
-      // Save the PDF
       const fileName = `Stock_Inventory_${record.partNo}_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
       doc.save(fileName);
 
@@ -419,13 +357,11 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
       const data = await response.json();
       
       if (data.success) {
-        // Mark as deleted to prevent further API calls
         setIsDeleted(true);
         toast({
           title: "Success",
           description: "Record deleted successfully"
         });
-        // Navigate back to inventory list
         router.push('/dashboard/stock-inventory');
       } else {
         throw new Error(data.message || 'Failed to delete record');
@@ -540,6 +476,22 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
                       Generate PDF
                     </DropdownMenuItem>
                   )}
+                  {record && record.quantity > 0 && (
+                    <DropdownMenuItem 
+                      onClick={() => setShowUseQuantityDialog(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Minus className="h-4 w-4" />
+                      Use Quantity
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem 
+                    onClick={handleShowUsageHistory}
+                    className="flex items-center gap-2"
+                  >
+                    <History className="h-4 w-4" />
+                    Usage History
+                  </DropdownMenuItem>
                   {permissions?.canDeleteStockRecord && (
                     <DropdownMenuItem 
                       onClick={() => setShowDeleteConfirm(true)}
@@ -555,16 +507,32 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
               <div className="flex items-center space-x-2">
                 {permissions?.canGenerateStockPdf && (
                   <Button
-                    variant="export"
+                    variant="outline"
                     onClick={handleGeneratePDF}
                   >
                     <FileDown className="h-4 w-4 mr-2" />
                     Generate PDF
                   </Button>
                 )}
+                {record && record.quantity > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowUseQuantityDialog(true)}
+                  >
+                    <Minus className="h-4 w-4 mr-2" />
+                    Use Quantity
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={handleShowUsageHistory}
+                >
+                  <History className="h-4 w-4 mr-2" />
+                  Usage History
+                </Button>
                 {permissions?.canDeleteStockRecord && (
                   <Button
-                    variant="delete"
+                    variant="outline"
                     onClick={() => setShowDeleteConfirm(true)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -624,10 +592,33 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
                 
                 <div className="space-y-4">
                   <div className="border rounded-lg p-4 bg-white">
-                    <div className="flex items-center mb-2">
+                    <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Quantity</span>
+                      {record.quantity > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowUseQuantityDialog(true)}
+                          className="text-xs h-6 px-2"
+                        >
+                          <Minus className="h-3 w-3 mr-1" />
+                          Use
+                        </Button>
+                      )}
                     </div>
-                    <div className="text-lg font-bold text-gray-900">{record.quantity}</div>
+                    <div className={`text-lg font-bold ${
+                      record.quantity === 0 ? 'text-red-600' : 
+                      record.quantity <= 5 ? 'text-orange-600' : 
+                      'text-gray-900'
+                    }`}>
+                      {record.quantity.toLocaleString()}
+                    </div>
+                    {record.quantity === 0 && (
+                      <div className="text-sm text-red-600 mt-1">Out of stock</div>
+                    )}
+                    {record.quantity > 0 && record.quantity <= 5 && (
+                      <div className="text-sm text-orange-600 mt-1">Low stock</div>
+                    )}
                   </div>
                   
                   <div className="border rounded-lg p-4 bg-white">
@@ -852,6 +843,180 @@ export default function StockInventoryItemPage({ params }: { params: Promise<{ i
             </div>
           </div>
         </div>
+
+        {/* Use Quantity Dialog */}
+        <Dialog open={showUseQuantityDialog} onOpenChange={setShowUseQuantityDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Use Inventory Quantity</DialogTitle>
+              <DialogDescription>
+                Specify how many units you want to use from this inventory item.
+                Current available: <strong>{record?.quantity || 0}</strong> units.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="useQuantity">Quantity to Use</Label>
+                <Input
+                  id="useQuantity"
+                  type="number"
+                  min="1"
+                  max={record?.quantity || 0}
+                  value={useQuantityAmount}
+                  onChange={(e) => setUseQuantityAmount(parseInt(e.target.value) || 1)}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <Label htmlFor="usePurpose">Purpose (optional)</Label>
+                <Input
+                  id="usePurpose"
+                  value={usePurpose}
+                  onChange={(e) => setUsePurpose(e.target.value)}
+                  placeholder="e.g., Maintenance, Repair, Installation"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <Label htmlFor="useNotes">Notes (optional)</Label>
+                <Textarea
+                  id="useNotes"
+                  value={useNotes}
+                  onChange={(e) => setUseNotes(e.target.value)}
+                  placeholder="Additional details about this usage..."
+                  className="w-full"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowUseQuantityDialog(false);
+                  setUseQuantityAmount(1);
+                  setUsePurpose("");
+                  setUseNotes("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUseQuantity}
+                disabled={isUsingQuantity || useQuantityAmount <= 0 || useQuantityAmount > (record?.quantity || 0)}
+              >
+                {isUsingQuantity ? "Processing..." : "Use Quantity"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Usage History Dialog */}
+        <Dialog open={showUsageHistory} onOpenChange={setShowUsageHistory}>
+          <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Usage History
+              </DialogTitle>
+              <DialogDescription>
+                Track of all quantity usage for this inventory item.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-auto space-y-6">
+              {isLoadingHistory ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : usageHistory ? (
+                <>
+                  {/* Statistics Summary */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {usageHistory.statistics.totalUsageRecords}
+                      </div>
+                      <div className="text-sm text-blue-600">Total Uses</div>
+                    </div>
+                    <div className="bg-red-50 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-red-600">
+                        {usageHistory.statistics.totalQuantityUsed}
+                      </div>
+                      <div className="text-sm text-red-600">Total Used</div>
+                    </div>
+                    <div className="bg-green-50 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-green-600">
+                        {usageHistory.statistics.currentQuantity}
+                      </div>
+                      <div className="text-sm text-green-600">Remaining</div>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {usageHistory.statistics.uniqueUsers}
+                      </div>
+                      <div className="text-sm text-purple-600">Users</div>
+                    </div>
+                  </div>
+                  
+                  {/* Recent Usage Records */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <TrendingDown className="h-4 w-4" />
+                      Recent Usage Records
+                    </h4>
+                    {usageHistory.usageHistory.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No usage records found for this item.
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-60 overflow-auto">
+                        {usageHistory.usageHistory.map((usage) => (
+                          <div key={usage.id} className="border rounded-lg p-3 bg-white">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-semibold text-red-600">-{usage.usedQuantity}</span>
+                                  <span className="text-sm text-muted-foreground">→</span>
+                                  <span className="font-semibold text-green-600">{usage.remainingQuantity} remaining</span>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Used by <strong>{usage.usedByName}</strong> on{' '}
+                                  {format(new Date(usage.usedAt), 'MMM d, yyyy • h:mm a')}
+                                </div>
+                                {usage.purpose && (
+                                  <div className="text-sm mt-1">
+                                    <strong>Purpose:</strong> {usage.purpose}
+                                  </div>
+                                )}
+                                {usage.notes && (
+                                  <div className="text-sm mt-1 text-muted-foreground">
+                                    <strong>Notes:</strong> {usage.notes}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Failed to load usage history.
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowUsageHistory(false)}
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>

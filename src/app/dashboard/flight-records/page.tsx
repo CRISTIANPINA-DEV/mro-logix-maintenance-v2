@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { AddFlightForm } from "./AddFlightForm";
+import { AddTemporalFlightForm } from "./AddTemporalFlightForm";
 import { FlightRecordsList } from "./FlightRecordsList";
 import { FlightRecordsFilters } from "./flight-records-filters";
 import FlightRecordsHeader from './flight-records-header';
@@ -13,6 +14,7 @@ import { useSession } from "next-auth/react";
 
 export default function FlightRecordsPage() {
   const [showForm, setShowForm] = useState(false);
+  const [showTemporalForm, setShowTemporalForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [stationFilter, setStationFilter] = useState("all_stations");
@@ -41,6 +43,16 @@ export default function FlightRecordsPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const handleTemporalFlightSuccess = useCallback(() => {
+    // Refresh the main flight records list in case any were completed
+    handleRefresh();
+  }, [handleRefresh]);
+
+  const handleCloseForms = useCallback(() => {
+    setShowForm(false);
+    setShowTemporalForm(false);
   }, []);
 
   // Show loading state while checking permissions
@@ -78,10 +90,19 @@ export default function FlightRecordsPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-4">
-      <FlightRecordsHeader showForm={showForm} onAddFlightClick={() => setShowForm(true)} />
+      <FlightRecordsHeader 
+        showForm={showForm || showTemporalForm} 
+        onAddFlightClick={() => setShowForm(true)} 
+        onAddTemporalFlightClick={() => setShowTemporalForm(true)}
+      />
 
       {showForm ? (
-        <AddFlightForm onClose={() => setShowForm(false)} />
+        <AddFlightForm onClose={handleCloseForms} />
+      ) : showTemporalForm ? (
+        <AddTemporalFlightForm 
+          onClose={handleCloseForms} 
+          onSuccess={handleTemporalFlightSuccess}
+        />
       ) : (
         <>
           <FlightRecordsFilters

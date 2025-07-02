@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Shield } from "lucide-react";
 import { UserPrivilegeSection } from "./UserPrivilegeSection";
 import { SystemStatusSection } from "./SystemStatusSection";
+import { ManageUserSection } from "./ManageUserSection";
 
 export default async function AdministrationPage() {
   const session = await getServerSession(authOptions);
@@ -52,6 +53,7 @@ export default async function AdministrationPage() {
       <div className="w-full">
         <div className="rounded-md border divide-y">
           <UserPrivilegeSection users={users} />
+          <ManageUserSection />
           <SystemStatusSection />
         </div>
       </div>
